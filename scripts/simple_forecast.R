@@ -1,6 +1,6 @@
 library(forecast)
-load("~/Project/R projects/lodfor/output_data/out_m_xts_us.Rdata")
-outf_m_xts_us <- out_m_xts_us
+load("output_data/out_str_m_us.Rdata")
+outf_str_m_us <- out_str_m_us
 
 h <- 24
 a <- "1987-01-01"
@@ -19,7 +19,7 @@ for(n in cityl){
     print(seriesn)
     
     # uses the variable name to select a specific vector
-    temp <- out_m_xts_us[,series_sa]
+    temp <- outf_str_m_us[,series_sa]
     temp <- temp[c]
     head(temp)
     tail(temp)
@@ -38,32 +38,18 @@ for(n in cityl){
     plot(temp4)
     
     tail(temp4)
-    outf_m_xts_us[,series_sa] <- temp4
-    
-    outf_m_xts_us[,seriesn] <- outf_m_xts_us[,series_sa] * outf_m_xts_us[,series_sf]
-
+    outf_str_m__us[,series_sa] <- temp4
+    outf_str_m_us[,seriesn] <- outf_str_m_us[,series_sa] * outf_str_m_us[,series_sf]
 }
 }
-
-head(outf_m_xts_us)
-tail(outf_m_xts_us)
-plot(outf_m_xts_us$totus_demd)
-
-
-# tempa <- out_m_xts_us$totus_occ
-# temp_sf <- out_m_xts_us$totus_occ_sf
-# temp_sa <- out_m_xts_us$totus_occ_sa
-# tempc <- tempa/temp_sf
-# head(tempa)
-# head(temp_sf)
-# head(temp_sa)
-# head(tempc)
-#tempd <- temp_sa * temp_sf
-#head(tempd)
+head(outf_str_m_us)
+tail(outf_str_m_us)
+plot(outf_str_m_us$totus_demd)
 
 # writes csv versions of the output files
-write.zoo(outf_m_xts_us, file="output_data/outf_m_us.csv", sep=",")
-
+write.zoo(outf_str_m_us, file="output_data/outf_str_m_us.csv", sep=",")
 # saves Rdata versions of the output files
-save(outf_m_xts_us, file="output_data/outf_m_xts_us.Rdata")
+save(outf_str_m_us, file="output_data/outf_str_m_us.Rdata")
 
+rm(out_str_m_us)
+rm(temp, temp4, fcast1, segl

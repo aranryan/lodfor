@@ -1,18 +1,10 @@
 # this is going to be the output file
 # going to add the adjusted series to it
-#out_m_xts <- lodus_m
-#out_q_xts <- lodus_q
-out_m_xts <- lodus_m
-out_q_xts <- lodus_q
-
-
-# not totally clear why this was needed
-lodusm_df <- as.data.frame(lodus_m)
-lodusq_df <- as.data.frame(lodus_q)
+out_str_m <- lodus_m
+out_str_q <- lodus_q
 
 tempdate_q <- index(lodus_q)
 tempdate_q <- as.Date(tempdate_q, "%Y-%m-%d")
-
 tempdate_m <- index(lodus_m)
 tempdate_m <- as.Date(tempdate_m, "%Y-%m-%d")
 
@@ -23,9 +15,7 @@ tempdate_m <- as.Date(tempdate_m, "%Y-%m-%d")
 #"oahu", "orlando", "philadelphia", "phoenix", "sandiego", "sanfrancisco",
 #"seattle", "stlouis", "tampa", "upmus", "upsus", "upuus", "totus", "washingtondc")
 
-# short version for testing
-#cityl <- c("anaheim", "atlanta", "boston")
-cityl <- c("totus", "upmus") #, "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
+cityl <- c("totus", "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
 
 # list for unit conversions (dividing by 1 million)
 units <- c("supt", "demt", "supd", "demd", "rmrevt")
@@ -41,7 +31,7 @@ for(n in cityl){
   for(s in units){
     seriesn <- paste(n,"_",s, sep="")
     # the units_millions function is one I defined
-    out_q_xts[,seriesn] <- units_millions(out_q_xts[,seriesn])
+    out_str_q[,seriesn] <- units_millions(out_str_q[,seriesn])
   }
 }
 
@@ -57,7 +47,7 @@ for(n in cityl){
       # so this is evaluating what's in the seriesn variable
       # puts the series into a variable called tempdata
       # print(lodusq_df[,eval(seriesn)])
-      tempdata <- out_q_xts[,seriesn]
+      tempdata <- out_str_q[,seriesn]
       # previously had done the line above this way for some reason
       #tempdata <- xts(lodusq_df[,eval(seriesn)], tempdate_q)
  
@@ -95,12 +85,7 @@ for(n in cityl){
       tempdata_sa <- series(mp, c("d11")) # seasonally adjusted series
       tempdata_sf <- series(mp, c("d16")) # seasonal factors
       tempdata_fct <- series(mp, c("fct")) # forecast of nonseasonally adjusted series
-      
-      # not sure what these did
-      #trim <- (length(tempdata_sa))
-      #trimdate <- tempdate[1:trim]
-      #tempdata_sa <- xts(tempdata_sa, trimdate)
-      
+        
       # creates xts objects
       tempdata_sa <- as.xts(tempdata_sa)
       tempdata_sf <- as.xts(tempdata_sf)
@@ -116,11 +101,9 @@ for(n in cityl){
       
       # merges the adjusted series onto the existing xts object with the unadjusted
       # series
-      out_q_xts <- merge(out_q_xts, tempdata_sa, tempdata_sf, tempdata_fct)
+      out_str_q <- merge(out_str_q, tempdata_sa, tempdata_sf, tempdata_fct)
     }
-      
 }
-
 
 # creates a seasonally adjusted annual rate series for demand based on daily
 for(term in cityl){
@@ -128,15 +111,13 @@ for(term in cityl){
   tempseries <- paste(term, "_demd_sa", sep="")
   print(tempseries)
   newseries <- paste(term, "_demar_sa", sep="")
-  temp_a <- out_q_xts[,tempseries]*365
+  temp_a <- out_str_q[,tempseries]*365
   colnames(temp_a) <- newseries
-  out_q_xts <- merge(out_q_xts, temp_a)
+  out_str_q <- merge(out_str_q, temp_a)
 }
 
-
-
-# monthly, just a copy of above with relabeling data frames and adding thanksgiving variable
-
+# monthly, just a copy of above with relabeling data frames and adding 
+#thanksgiving variable
 
 # unit conversion
 # applies a function to each specified series, overwriting the original
@@ -145,7 +126,7 @@ for(n in cityl){
   for(s in units){
     seriesn <- paste(n,"_",s, sep="")
     # the units_millions function is one I defined
-    out_m_xts[,seriesn] <- units_millions(out_m_xts[,seriesn])
+    out_str_m[,seriesn] <- units_millions(out_str_m[,seriesn])
   }
 }
 
@@ -161,9 +142,7 @@ for(n in cityl){
     # so this is evaluating what's in the seriesn variable
     # puts the series into a variable called tempdata
     # print(lodusq_df[,eval(seriesn)])
-    tempdata <- out_m_xts[,seriesn]
-    # previously had done the line above this way for some reason
-    #tempdata <- xts(lodusm_df[,eval(seriesn)], tempdate_m)
+    tempdata <- out_str_m[,seriesn]
     
     # trims the NAs from the series
     tempdata <- na.trim(tempdata)
@@ -220,7 +199,7 @@ for(n in cityl){
     
     # merges the adjusted series onto the existing xts object with the unadjusted
     # series
-    out_m_xts <- merge(out_m_xts, tempdata_sa, tempdata_sf, tempdata_fct)
+    out_str_m <- merge(out_str_m, tempdata_sa, tempdata_sf, tempdata_fct)
   }
 }
 # creates a seasonally adjusted annual rate series for demand based on daily
@@ -229,15 +208,13 @@ for(term in cityl){
   tempseries <- paste(term, "_demd_sa", sep="")
   print(tempseries)
   newseries <- paste(term, "_demar_sa", sep="")
-  temp_a <- out_m_xts[,tempseries]*365
+  temp_a <- out_str_m[,tempseries]*365
   colnames(temp_a) <- newseries
-  out_m_xts <- merge(out_m_xts, temp_a)
+  out_str_m <- merge(out_str_m, temp_a)
 }
-
 
 # creates a file with just the US and chainscale outputs, no metros
 # idea was that would be useful with IHG files
-
 
 print("preping US output files")
 
@@ -246,7 +223,7 @@ print("preping US output files")
 
 #cityl <- c("ecous", "indus", "luxus", "midus", "upmus", "upsus", "upuus", "totus")
 
-temp_names <- names(out_q_xts)
+temp_names <- names(out_str_q)
 temp_out <- c("year", "month", "qtr", "days")
 
 for(term in cityl){
@@ -261,20 +238,20 @@ for(term in cityl){
   temp_out <- c(temp_out, temp)
 }
 temp_out
-# takes just those columns in out_m_xts that are in the list of names
-out_q_xts_us <- out_q_xts[ , temp_out]
-out_m_xts_us <- out_m_xts[ , temp_out]
+# takes just those columns in out_str_m that are in the list of names
+out_str_q_us <- out_str_q[ , temp_out]
+out_str_m_us <- out_str_m[ , temp_out]
 
 # writes csv versions of the output files
-write.zoo(out_m_xts_us, file="output_data/out_m_us.csv", sep=",")
-write.zoo(out_q_xts_us, file="output_data/out_q_us.csv", sep=",")
+write.zoo(out_str_m_us, file="output_data/out_m_us.csv", sep=",")
+write.zoo(out_str_q_us, file="output_data/out_q_us.csv", sep=",")
 
 # saves Rdata versions of the output files
-save(out_m_xts_us, file="output_data/out_m_xts_us.Rdata")
-save(out_q_xts_us, file="output_data/out_q_xts_us.Rdata")
+save(out_str_m_us, file="output_data/out_str_m_us.Rdata")
+save(out_str_q_us, file="output_data/out_str_q_us.Rdata")
 
-rm(temp_out, lodus_m, lodus_q, lodusm_df, lodusq_df)
-rm(out_m_xts, out_m_xts_us, out_q_xts, out_q_xts_us)
+rm(temp_out, lodus_m, lodus_q, lodusq_df)
+rm(out_str_m, out_str_m_us, out_str_q, out_str_q_us)
 rm(temp_a, tempdata, tempdata_fct, tempdata_sa, tempdata_sf)
 rm(cityl, freq)
 
