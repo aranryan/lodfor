@@ -1,8 +1,10 @@
-
 # this is going to be the output file
 # going to add the adjusted series to it
+#out_m_xts <- lodus_m
+#out_q_xts <- lodus_q
 out_m_xts <- lodus_m
 out_q_xts <- lodus_q
+
 
 # not totally clear why this was needed
 lodusm_df <- as.data.frame(lodus_m)
@@ -23,7 +25,7 @@ tempdate_m <- as.Date(tempdate_m, "%Y-%m-%d")
 
 # short version for testing
 #cityl <- c("anaheim", "atlanta", "boston")
-cityl <- c("totus", "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
+cityl <- c("totus", "upmus") #, "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
 
 # list for unit conversions (dividing by 1 million)
 units <- c("supt", "demt", "supd", "demd", "rmrevt")
@@ -242,7 +244,7 @@ print("preping US output files")
 # makes a list of the column names that start with the various segments and US total
 # both monthly and quarterly are done with the same loop
 
-cityl <- c("ecous", "indus", "luxus", "midus", "upmus", "upsus", "upuus", "totus")
+#cityl <- c("ecous", "indus", "luxus", "midus", "upmus", "upsus", "upuus", "totus")
 
 temp_names <- names(out_q_xts)
 temp_out <- c("year", "month", "qtr", "days")
@@ -264,12 +266,12 @@ out_q_xts_us <- out_q_xts[ , temp_out]
 out_m_xts_us <- out_m_xts[ , temp_out]
 
 # writes csv versions of the output files
-write.zoo(out_m_xts_us, file="~/Project/R projects/lodging graphs/output_data/out_m_us.csv", sep=",")
-write.zoo(out_q_xts_us, file="~/Project/R projects/lodging graphs/output_data/out_q_us.csv", sep=",")
+write.zoo(out_m_xts_us, file="output_data/out_m_us.csv", sep=",")
+write.zoo(out_q_xts_us, file="output_data/out_q_us.csv", sep=",")
 
 # saves Rdata versions of the output files
-save(out_m_xts_us, file="~/Project/R projects/lodging graphs/output_data/out_m_xts_us.Rdata")
-save(out_q_xts_us, file="~/Project/R projects/lodging graphs/output_data/out_q_xts_us.Rdata")
+save(out_m_xts_us, file="output_data/out_m_xts_us.Rdata")
+save(out_q_xts_us, file="output_data/out_q_xts_us.Rdata")
 
 rm(temp_out, lodus_m, lodus_q, lodusm_df, lodusq_df)
 rm(out_m_xts, out_m_xts_us, out_q_xts, out_q_xts_us)

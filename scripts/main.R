@@ -24,7 +24,18 @@ source("scripts/load_str.R")
 # preps the STR data, including unit conversion of a couple series and seasonal adjustment
 source("scripts/prep_str.R")
 
-# as a result 
+# as a result there will be two R data files saved (as well as csv versions) and the 
+# work space gets cleaned up a bit
+
+
+# create open close csv files by copying each sheet, deleting the first two rows
+# then deleting rows at the bottom
+
+source("load_str_openclose.R")
+
+
+
+source("load_macro.R")
 
 source("scripts/analyze.R")
 
