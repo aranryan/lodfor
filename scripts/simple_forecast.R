@@ -8,7 +8,7 @@ b <- "2014-08-01"
 c <- paste(a, b, sep="::")
 c
 
-cityl <- c("totus", "upmus") #, "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
+cityl <- c("totus", "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
 segl <- c("demd", "occ", "adr", "revpar", "supd") 
 
 for(n in cityl){
@@ -38,7 +38,7 @@ for(n in cityl){
     plot(temp4)
     
     tail(temp4)
-    outf_str_m__us[,series_sa] <- temp4
+    outf_str_m_us[,series_sa] <- temp4
     outf_str_m_us[,seriesn] <- outf_str_m_us[,series_sa] * outf_str_m_us[,series_sf]
 }
 }
@@ -52,4 +52,3 @@ write.zoo(outf_str_m_us, file="output_data/outf_str_m_us.csv", sep=",")
 save(outf_str_m_us, file="output_data/outf_str_m_us.Rdata")
 
 rm(out_str_m_us)
-rm(temp, temp4, fcast1, segl
