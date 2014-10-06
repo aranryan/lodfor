@@ -3,17 +3,24 @@
 out_str_m <- lodus_m
 out_str_q <- lodus_q
 
-#cityl <- c("totus") #, "upsus", "upmus") #, "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
+cityl <- c(
+  "totus", 
+  "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous"
+  
+#   "anaheim", "atlanta", "boston", "chicago", "dallas", 
+#   "denver", "detroit", "houston", "lalongbeach", "miami", 
+#   "minneapolis", "nashville", "neworleans", "newyork", "norfolk",
+#   "oahu", "orlando", "philadelphia", "phoenix", "sandiego", 
+#   "sanfrancisco", "seattle", "stlouis", "tampa", "washingtondc"
+  )
 
-cityl <-  c("washingtondc") #c("anaheim", "atlanta", "boston", "chicago", "dallas", "denver", 
-#"detroit", "ecous", "houston", "indus", "lalongbeach", "luxus", "miami", 
-#"midus", "minneapolis", "nashville", "neworleans", "newyork", "norfolk",
-#"oahu", "orlando", "philadelphia", "phoenix", "sandiego", "sanfrancisco",
-#"seattle", "stlouis", "tampa", "upmus", "upsus", "upuus", "totus", "washingtondc")
-# inserted another row after this one
-# just a test
-# list for seasonal adjustment
-measl <- c("demd") #, "occ") #, "adr", "revpar", "supd") 
+measl <- c(
+  "demd", 
+  "occ", 
+  "adr", 
+  "revpar", 
+  "supd"
+  ) 
 
 ###############
 #
@@ -114,6 +121,10 @@ rm(temp_b, temp_names)
 #   colnames(temp_a) <- newseries
 #   out_str_m <- merge(out_str_m, temp_a)
 # }
+
+
+
+
 
 ################
 #
