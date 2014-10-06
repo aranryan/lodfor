@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+# tried out a new idea
+>>>>>>> new_idea
 # these two data frames are the working data frames and become the outputs
 out_str_m <- lodus_m
 out_str_q <- lodus_q
