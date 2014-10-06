@@ -6,11 +6,12 @@ out_str_q <- lodus_q
 
 #cityl <- c("totus") #, "upsus", "upmus") #, "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
 
-cityl <-  c("washingtondc") #c("anaheim", "atlanta", "boston", "chicago", "dallas", "denver", 
+cityl <-  c("anaheim") #c("anaheim", "atlanta", "boston", "chicago", "dallas", "denver", 
 #"detroit", "ecous", "houston", "indus", "lalongbeach", "luxus", "miami", 
 #"midus", "minneapolis", "nashville", "neworleans", "newyork", "norfolk",
 #"oahu", "orlando", "philadelphia", "phoenix", "sandiego", "sanfrancisco",
 #"seattle", "stlouis", "tampa", "upmus", "upsus", "upuus", "totus", "washingtondc")
+# inserted another row after this one
 
 # list for seasonal adjustment
 measl <- c("demd", "occ") #, "adr", "revpar", "supd") 
