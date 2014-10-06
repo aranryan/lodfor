@@ -1,12 +1,11 @@
 
-# tried out a new idea
 # these two data frames are the working data frames and become the outputs
 out_str_m <- lodus_m
 out_str_q <- lodus_q
 
 #cityl <- c("totus") #, "upsus", "upmus") #, "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
 
-cityl <-  c("anaheim") #c("anaheim", "atlanta", "boston", "chicago", "dallas", "denver", 
+cityl <-  c("washingtondc") #c("anaheim", "atlanta", "boston", "chicago", "dallas", "denver", 
 #"detroit", "ecous", "houston", "indus", "lalongbeach", "luxus", "miami", 
 #"midus", "minneapolis", "nashville", "neworleans", "newyork", "norfolk",
 #"oahu", "orlando", "philadelphia", "phoenix", "sandiego", "sanfrancisco",
@@ -14,7 +13,7 @@ cityl <-  c("anaheim") #c("anaheim", "atlanta", "boston", "chicago", "dallas", "
 # inserted another row after this one
 # just a test
 # list for seasonal adjustment
-measl <- c("demd", "occ") #, "adr", "revpar", "supd") 
+measl <- c("demd") #, "occ") #, "adr", "revpar", "supd") 
 
 ###############
 #
@@ -74,43 +73,47 @@ for(n in cityl){
     temp_out_m <- merge(temp, temp_out_m)
   } 
 }
-
-
 temp_out_m$dummy <- NULL
 out_str_m <- merge(temp_out_m,out_str_m)
 head(out_str_m)
 
-#experimenting with mutate_each
-# time <- index(out_str_m)
-# head(time)
-# temp_b <- data.frame(out_str_m)
-# temp_b <- select(temp_b, starts_with("washingtondc"), ends_with("_demd"))
-# temp_b <- cbind(temp_b,time)
-# head(temp_b)
-# temp_b <- mutate_each(temp_b, funs(anr = .*365))
-# 
-# temp_c <-
-# temp_b %>%
-#   mutate_each(funs(min(., na.rm=TRUE), max(., na.rm=TRUE)), matches("_demd_sa"))
-# head(temp_c)
-# 
-# temp_c <-
-#   temp_b %>%
-#   mutate_each(funs(min(., na.rm=TRUE), max(., na.rm=TRUE)), matches("_demd_sa"))
-# head(temp_c)
-
-
-
 # creates a seasonally adjusted annual rate series for demand based on daily
-for(term in cityl){
-  print(term)
-  tempseries <- paste(term, "_demd_sa", sep="")
-  print(tempseries)
-  newseries <- paste(term, "_demar_sa", sep="")
-  temp_a <- out_str_m[,tempseries]*365
-  colnames(temp_a) <- newseries
-  out_str_m <- merge(out_str_m, temp_a)
-}
+# previously I had a loop that did this
+# converts the xts object to a data frame
+temp_b <- data.frame(out_str_m)
+# sets up the column names I will use
+temp_names <- 
+  select(temp_b, ends_with("_demd_sa"))
+temp_names <- colnames(temp_names)
+temp_names <- gsub("_demd_sa", "_demar_sa", temp_names)
+head(temp_names)  
+# used dplyr piping create the annual rate series
+temp_b <- 
+  # uses dplyr select to select all columns based on end_with 
+  select(temp_b, ends_with("_demd_sa")) %>%
+    # uses vapply in base r to multiply each column by 365 to get to annual rate.
+  # vapply is apparently similar to sapply but has a pre-specified type of return
+  # value so it can be safer and faster to use.
+  # http://codereview.stackexchange.com/questions/39180/best-way-to-apply-across-an-xts-object
+  vapply(function(col) col * 365, FUN.VALUE = numeric(nrow(temp_b))) %>%
+  # puts output back into an xts format based on the time index in certain dataframe
+  xts(order.by = time(out_str_m))
+# renames columns using vector created previously
+colnames(temp_b) <- temp_names
+head(temp_b)
+out_str_m <- merge(out_str_m, temp_b)
+rm(temp_b, temp_names)
+
+# my old loop
+# for(term in cityl){
+#   print(term)
+#   tempseries <- paste(term, "_demd_sa", sep="")
+#   print(tempseries)
+#   newseries <- paste(term, "_demar_sa", sep="")
+#   temp_a <- out_str_m[,tempseries]*365
+#   colnames(temp_a) <- newseries
+#   out_str_m <- merge(out_str_m, temp_a)
+# }
 
 ################
 #
@@ -168,8 +171,8 @@ save(out_str_q_us, file="output_data/out_str_q_us.Rdata")
 rm(regressvar, temp_seasonal_a, temp_out_m)
 rm(temp_out, lodus_m, lodus_q)
 #rm(out_str_m, out_str_m_us, out_str_q, out_str_q_us)
-rm(temp_a, tempdata, tempdata_fct, tempdata_sa, tempdata_sf)
-rm(cityl, freq, mp, n, newseries, plt_start, s, measl, seriesn, start)
-rm(temp, temp_names, tempdata_ts, tempdate_m, tempdate_q, tempseries)
+rm(tempdata, tempdata_fct, tempdata_sa, tempdata_sf)
+rm(cityl)
+rm(temp, temp_names, tempdata_ts, tempdate_m, tempdate_q)
 rm(term)
 rm(units)
