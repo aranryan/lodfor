@@ -12,7 +12,7 @@ cityl <-  c("anaheim") #c("anaheim", "atlanta", "boston", "chicago", "dallas", "
 #"oahu", "orlando", "philadelphia", "phoenix", "sandiego", "sanfrancisco",
 #"seattle", "stlouis", "tampa", "upmus", "upsus", "upuus", "totus", "washingtondc")
 # inserted another row after this one
-
+# just a test
 # list for seasonal adjustment
 measl <- c("demd", "occ") #, "adr", "revpar", "supd") 
 
