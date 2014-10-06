@@ -42,7 +42,7 @@ units_millions <- function(col) {
 
 
 seasonal_ad <- function (x,
-                        meffects = c("const", "easter[8]", "thank[3]"), 
+                        meffects = c("const", "easter[8]", "thank[5]"), 
                         qeffects = c("const", "easter[8]")) {
   #stores the name
   holdn <- names(x)
@@ -94,6 +94,7 @@ seasonal_ad <- function (x,
              x11.appendfcst = "yes", # appends the forecast of the seasonal factors
              dir = "output_data/" 
   )
+  #inspect(mp)
   # removes series that is no longer needed
   # doesn't seem to work, maybe because I don't understand environments
   # rm(temp_seasonal_a)
@@ -102,6 +103,7 @@ seasonal_ad <- function (x,
   tempdata_sa <- series(mp, c("d11")) # seasonally adjusted series
   tempdata_sf <- series(mp, c("d16")) # seasonal factors
   tempdata_fct <- series(mp, "forecast.forecasts") # forecast of nonseasonally adjusted series
+  tempdata_irreg <- series(mp, c("d13")) # final irregular component
   
   # creates xts objects
   tempdata_sa <- as.xts(tempdata_sa)
@@ -110,7 +112,76 @@ seasonal_ad <- function (x,
   # I had to do in two steps, I'm not sure why
   tempdata_fct <- as.xts(tempdata_fct) 
   tempdata_fct <- as.xts(tempdata_fct$forecast) 
+  tempdata_irreg <- as.xts(tempdata_irreg)
   
+  # names the objects
+  names(tempdata_sa) <- paste(holdn,"_sa",sep="") 
+  names(tempdata_sf) <- paste(holdn,"_sf",sep="") 
+  names(tempdata_fct) <- paste(holdn,"_fct",sep="") 
+  names(tempdata_irreg) <- paste(holdn,"_irreg",sep="") 
+  
+  # merges the adjusted series onto the existing xts object with the unadjusted
+  # series
+  out_sa <- merge(y, tempdata_sa, tempdata_sf, tempdata_fct, tempdata_irreg)
+  return(out_sa)
+}
+
+
+##########################
+#
+# skip seasonal adjustment but still output series that are 
+# the same format as what would be exported by the seasonal 
+# adjustment function
+# in other words copy the unadjusted series as the
+# seasonally adjusted, create seasonal factors equal to 1
+# and create a temporary fct series
+
+
+skip_seasonal_ad <- function (x) {
+
+  # stores the name
+  holdn <- names(x)
+  print(holdn)
+  # trims the NAs from the series
+  x <- na.trim(x)
+  # sets up a variable with the end of the historical data
+  # and then the start of the forecast in the month after
+  end <- end(x)
+  library(lubridate)
+  d <- ymd(end) 
+  d <- d + months(1)
+  startd <- as.Date(d)
+  startd
+  
+  # this series y is used in the output, just outputs the original series
+  y <- x
+  
+  tempdata_sa <- y
+  # seasonal factor is unadjusted series divided by adjusted
+  # though in this case that's just 1
+  tempdata_sf <- y/y
+
+  # just out of habit, forecast the seasonally adjusted series
+  # which is just the nsa series anyway
+  tempdata_fct <- forecast(tempdata_sa,h=30)$mean
+  plot(tempdata_fct)
+  head(tempdata_fct)
+  tail(y)
+  # start forecast in the month after
+  temp2 <- zooreg(1:30, start = as.yearmon(startd), frequency = 12)
+  temp3 <- as.Date(index(temp2))
+  temp4 <- xts(tempdata_fct, temp3)
+  head(temp4)
+  tail(temp4)
+  tempdata_fct <- rbind(y, temp4)
+  plot(tempdata_fct)
+  # converts the forecast to an nsa version (even though it's the same)
+  tempdata_fct <- tempdata_fct * tempdata_sf
+  
+  # creates xts objects
+  tempdata_sa <- as.xts(tempdata_sa)
+  tempdata_sf <- as.xts(tempdata_sf)
+  tempdata_fct <- as.xts(tempdata_fct)
   # names the objects
   names(tempdata_sa) <- paste(holdn,"_sa",sep="") 
   names(tempdata_sf) <- paste(holdn,"_sf",sep="") 
@@ -119,5 +190,9 @@ seasonal_ad <- function (x,
   # merges the adjusted series onto the existing xts object with the unadjusted
   # series
   out_sa <- merge(y, tempdata_sa, tempdata_sf, tempdata_fct)
-  return(out_sa)
+  
+return(out_sa)
 }
+
+
+
