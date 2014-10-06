@@ -7,6 +7,7 @@
           spec, a sample mean adjustment has been used in place of the
           effect of the constant regressor specified in the regression spec.
 
-  
- WARNING: At least one visually significant trading day peak has been
-          found in one or more of the estimated spectra.
+
+ NOTE: Unable to test LS2000.Apr due to regression matrix singularity.
+       The effect of this outlier is already accounted for by other regressors 
+       (usually user-specified or previously identified outliers).

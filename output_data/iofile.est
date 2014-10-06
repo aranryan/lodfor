@@ -2,19 +2,19 @@ $regression:
 $regression$estimates:
 group	variable	estimate	standard error	fixed
 -----	--------	-----------	--------------	-----
-Easter[8]	Easter[8]	-0.200144418280461E-01	+0.539145402085303E-02	       
-Thanksgiving[5]	Thanksgiving[5]	-0.265558912918037E-01	+0.616700189533167E-01	       
-Automatically Identified Outliers	AO1996.Jan	-0.973589252957880E-01	+0.220858574663357E-01	       
-Automatically Identified Outliers	AO2001.Sep	-0.256791689891129E+00	+0.241495579867665E-01	       
-Automatically Identified Outliers	AO2001.Oct	-0.141515201831405E+00	+0.242259461219268E-01	       
+Easter[8]	Easter[8]	+0.752186041719214E-03	+0.658296319460339E-03	       
+Automatically Identified Outliers	LS1987.Jun	+0.198317504284247E-01	+0.385996462034263E-02	       
+Automatically Identified Outliers	LS1989.Jul	+0.165625498577675E-01	+0.381918320073210E-02	       
+Automatically Identified Outliers	LS1990.Jun	+0.156798399120626E-01	+0.382163010420586E-02	       
+Automatically Identified Outliers	LS1990.Nov	+0.174349392788326E-01	+0.382125142731521E-02	       
+Automatically Identified Outliers	LS1995.Feb	+0.397867442043180E-01	+0.381847445642794E-02	       
+Automatically Identified Outliers	LS1998.Jul	+0.179519762067148E-01	+0.381847444220464E-02	       
 $arima:
 $arima$estimates:
 operator	factor	period	lag	estimate	standard error	fixed
 --------	------	------	---	--------	--------------	-----
-MA	Nonseasonal	01	01	+0.39554185818923E+00	+0.53889233836991E-01	       
-MA	Nonseasonal	01	02	+0.21462032319738E+00	+0.54101475921579E-01	       
-MA	Seasonal	12	12	+0.73347317244119E+00	+0.41775512837949E-01	       
+MA	Nonseasonal	01	01	+0.87123784397526E+00	+0.26829863677422E-01	       
 $variance:
 
-mle	+0.78137872060222E-03
-se	+0.61870159574956E-04
+mle	+0.15584064970970E-04
+se	+0.12132178125645E-05

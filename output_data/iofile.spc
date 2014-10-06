@@ -18,7 +18,7 @@ automdl{
 }
 
 regression{
-  variables = (const easter[8] thank[5])
+  variables = (const easter[8])
 }
 
 identify{
