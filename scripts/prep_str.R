@@ -1,21 +1,37 @@
-# this is going to be the output file
-# going to add the adjusted series to it
+# tried out a new idea
+# these two data frames are the working data frames and become the outputs
 out_str_m <- lodus_m
 out_str_q <- lodus_q
 
 #cityl <- c("totus") #, "upsus", "upmus") #, "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
 
-cityl <-  c("philadelphia") #c("anaheim", "atlanta", "boston", "chicago", "dallas", "denver", 
+cityl <-  c("washingtondc") #c("anaheim", "atlanta", "boston", "chicago", "dallas", "denver", 
 #"detroit", "ecous", "houston", "indus", "lalongbeach", "luxus", "miami", 
 #"midus", "minneapolis", "nashville", "neworleans", "newyork", "norfolk",
 #"oahu", "orlando", "philadelphia", "phoenix", "sandiego", "sanfrancisco",
 #"seattle", "stlouis", "tampa", "upmus", "upsus", "upuus", "totus", "washingtondc")
 
-
-
 # list for seasonal adjustment
-# "supdaily" I was having issues running seasonal adjustment on supply, so set it aside
-segl <- c("demd", "occ", "adr", "revpar", "supd") 
+measl <- c("demd", "occ") #, "adr", "revpar", "supd") 
+
+###############
+#
+# setting up a matrix that is FALSE for series that should be skipped
+# during the adjustment loop
+# have monthly and quarterly versions
+
+adjmat_m <- matrix(TRUE, nrow = length(measl), ncol = length(cityl))
+colnames(adjmat_m) <- cityl
+rownames(adjmat_m) <- measl
+head(adjmat_m)
+
+# manually set the cells to skip to FALSE
+# first tests to see if a given metro is in the vector using is.element which
+# returns true if it's in the vector
+if (is.element('anaheim', cityl)){
+adjmat_m["supd","anaheim"] <- FALSE
+}
+head(adjmat_m)
 
 #########
 #
@@ -29,20 +45,59 @@ temp_out_m <- merge(temp_out_m, dummy=1)
 head(temp_out_m)
 
 for(n in cityl){
-  for(s in segl){
+  for(s in measl){
     seriesn <- paste(n,"_",s, sep="")
     print(seriesn)
-    temp <- seasonal_ad(out_str_m[,seriesn], meffects =  c("const", "easter[8]")) 
+    
+    # checking whether there series is to be adjusted
+    adjmat_t <- adjmat_m[s, n]
+    if (adjmat_t==TRUE) {
+      
+      # if it is to be adjusted then it runs the adjustment function
+      print(paste("yes, adjust ", adjmat_t, sep=""))    
+      temp <- seasonal_ad(out_str_m[,seriesn], 
+                          meffects =  c("const", "easter[8]", "thank[5]")) 
+    }
+    # if it isn't to be adjusted then it runs the skip adjustment 
+    # function which creates a similar set of outputs
+    else {
+      print(paste("skip adjusting", seriesn, sep=""))
+      temp <- skip_seasonal_ad(out_str_m[,seriesn])
+    }
+    
     # drops the original series
-    # I tried other ways to refer to seriesn but couldn't get it to work
-    # this works because seriesn is the first column
-    temp <- temp[,2:4]
+    # I tried other ways to refer to seriesn but couldn't get 
+    # it to work this works because seriesn is the first column
+    temp <- temp[,2:ncol(temp)]
     temp_out_m <- merge(temp, temp_out_m)
-  }}
+  } 
+}
+
 
 temp_out_m$dummy <- NULL
 out_str_m <- merge(temp_out_m,out_str_m)
 head(out_str_m)
+
+#experimenting with mutate_each
+# time <- index(out_str_m)
+# head(time)
+# temp_b <- data.frame(out_str_m)
+# temp_b <- select(temp_b, starts_with("washingtondc"), ends_with("_demd"))
+# temp_b <- cbind(temp_b,time)
+# head(temp_b)
+# temp_b <- mutate_each(temp_b, funs(anr = .*365))
+# 
+# temp_c <-
+# temp_b %>%
+#   mutate_each(funs(min(., na.rm=TRUE), max(., na.rm=TRUE)), matches("_demd_sa"))
+# head(temp_c)
+# 
+# temp_c <-
+#   temp_b %>%
+#   mutate_each(funs(min(., na.rm=TRUE), max(., na.rm=TRUE)), matches("_demd_sa"))
+# head(temp_c)
+
+
 
 # creates a seasonally adjusted annual rate series for demand based on daily
 for(term in cityl){
@@ -112,7 +167,7 @@ rm(regressvar, temp_seasonal_a, temp_out_m)
 rm(temp_out, lodus_m, lodus_q)
 #rm(out_str_m, out_str_m_us, out_str_q, out_str_q_us)
 rm(temp_a, tempdata, tempdata_fct, tempdata_sa, tempdata_sf)
-rm(cityl, freq, mp, n, newseries, plt_start, s, segl, seriesn, start)
+rm(cityl, freq, mp, n, newseries, plt_start, s, measl, seriesn, start)
 rm(temp, temp_names, tempdata_ts, tempdate_m, tempdate_q, tempseries)
 rm(term)
 rm(units)
