@@ -1,0 +1,12 @@
+     Error messages generated from processing the X-13ARIMA-SEATS spec file
+     C:\Users\Aran\AppData\Local\Temp\RtmpYvifJh/x13/iofile.spc:
+
+
+
+ WARNING: For calculating the ACF's and PACF's requested from the identify
+          spec, a sample mean adjustment has been used in place of the
+          effect of the constant regressor specified in the regression spec.
+
+  
+ WARNING: At least one visually significant trading day peak has been
+          found in one or more of the estimated spectra.
