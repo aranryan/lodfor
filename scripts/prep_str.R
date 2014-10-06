@@ -1,10 +1,9 @@
-<<<<<<< HEAD
->>>>>>> new_idea
+
 # tried out a new idea
 # these two data frames are the working data frames and become the outputs
 out_str_m <- lodus_m
 out_str_q <- lodus_q
-# this is new idea
+
 #cityl <- c("totus") #, "upsus", "upmus") #, "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
 
 cityl <-  c("washingtondc") #c("anaheim", "atlanta", "boston", "chicago", "dallas", "denver", 
