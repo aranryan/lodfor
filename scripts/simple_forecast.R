@@ -8,8 +8,10 @@ b <- "2014-08-01"
 c <- paste(a, b, sep="::")
 c
 
-cityl <- c("totus", "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
+cityl <- c("totus",  "upsus", "upmus") #"indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
 segl <- c("demd", "occ", "adr", "revpar", "supd") 
+
+
 
 for(n in cityl){
   for(s in segl){

@@ -8,6 +8,7 @@ library(xts)
 library(lubridate)
 #library(forecast) # added so I could use monthdays() which also works for quarters
 library(seasonal)
+library(forecast)
 Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
 checkX13()
 
@@ -59,7 +60,7 @@ for(term in units){
 
 # unit conversion
 # applies a function to each specified series, overwriting the original
-print("doing unit conversion, quarterly")
+print("doing unit conversion, monthly and quarterly")
 for(n in temp_units){
   seriesn <- paste(n, sep="")
   # the units_millions function is one I defined
