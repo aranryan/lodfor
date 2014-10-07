@@ -23,7 +23,7 @@ source("scripts/load_str.R")
 # preps the STR data, including unit conversion of a couple series and seasonal adjustment
 source("scripts/prep_str.R")
 
-# for the metros, my temporary fix has been to separate them from the US/chains
+  # for the metros, my temporary fix has been to separate them from the US/chains
 # so it's just a copy of the prep_str_us file, but with a list of metros
 # and with a couple of the files named "_metro" rather than "_us"
 # it assumes you start right after running load_str, so before running, it's

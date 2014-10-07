@@ -4,22 +4,22 @@ out_str_m <- lodus_m
 out_str_q <- lodus_q
 
 cityl <- c(
-  "totus", 
-  "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous"
+  "totus" 
+   ,"indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous"
   
-#   "anaheim", "atlanta", "boston", "chicago", "dallas", 
-#   "denver", "detroit", "houston", "lalongbeach", "miami", 
-#   "minneapolis", "nashville", "neworleans", "newyork", "norfolk",
-#   "oahu", "orlando", "philadelphia", "phoenix", "sandiego", 
-#   "sanfrancisco", "seattle", "stlouis", "tampa", "washingtondc"
+   ,"anaheim", "atlanta", "boston", "chicago", "dallas" 
+   ,"denver", "detroit", "houston", "lalongbeach", "miami" 
+   ,"minneapolis", "nashville", "neworleans", "newyork", "norfolk"
+   ,"oahu", "orlando", "philadelphia", "phoenix", "sandiego" 
+   ,"sanfrancisco", "seattle", "stlouis", "tampa", "washingtondc"
   )
 
 measl <- c(
-  "demd", 
-  "occ", 
-  "adr", 
-  "revpar", 
-  "supd"
+  "demd" 
+   ,"occ" 
+   ,"adr" 
+   ,"revpar" 
+   ,"supd"
   ) 
 
 ###############
@@ -28,18 +28,43 @@ measl <- c(
 # during the adjustment loop
 # have monthly and quarterly versions
 
+#monthly
 adjmat_m <- matrix(TRUE, nrow = length(measl), ncol = length(cityl))
 colnames(adjmat_m) <- cityl
 rownames(adjmat_m) <- measl
 head(adjmat_m)
-
 # manually set the cells to skip to FALSE
 # first tests to see if a given metro is in the vector using is.element which
 # returns true if it's in the vector
 if (is.element('anaheim', cityl)){
 adjmat_m["supd","anaheim"] <- FALSE
 }
+if (is.element('neworleans', cityl)){
+  adjmat_m["supd","neworleans"] <- FALSE
+}
+if (is.element('oahu', cityl)){
+  adjmat_m["supd","oahu"] <- FALSE
+}
+if (is.element('sanfrancisco', cityl)){
+  adjmat_m["supd","sanfrancisco"] <- FALSE
+}
+if (is.element('tampa', cityl)){
+  adjmat_m["supd","tampa"] <- FALSE
+}
 head(adjmat_m)
+
+#quarterly
+adjmat_q <- matrix(TRUE, nrow = length(measl), ncol = length(cityl))
+colnames(adjmat_q) <- cityl
+rownames(adjmat_q) <- measl
+head(adjmat_q)
+# manually set the cells to skip to FALSE
+# first tests to see if a given metro is in the vector using is.element which
+# returns true if it's in the vector
+if (is.element('anaheim', cityl)){
+  #adjmat_q["supd","anaheim"] <- FALSE
+}
+head(adjmat_q)
 
 #########
 #
@@ -122,6 +147,76 @@ rm(temp_b, temp_names)
 #   out_str_m <- merge(out_str_m, temp_a)
 # }
 
+#########
+#
+# quarterly seasonal adjustment
+# just like monthly - with specific changes commented
+print("quarterly")
+# creates a blank object with just a dummy series
+# this is used to hold the output of each seasonal adjustment
+temp_out_q <- xts(order.by=index(out_str_q))
+temp_out_q <- merge(temp_out_q, dummy=1)
+head(temp_out_q)
+
+for(n in cityl){
+  for(s in measl){
+    seriesn <- paste(n,"_",s, sep="")
+    print(seriesn)
+    
+    # checking whether there series is to be adjusted
+    adjmat_t <- adjmat_q[s, n]
+    if (adjmat_t==TRUE) {
+      
+      # if it is to be adjusted then it runs the adjustment function
+      print(paste("yes, adjust ", adjmat_t, sep=""))    
+      temp <- seasonal_ad(out_str_q[,seriesn], 
+                          # took out thanksgiving for quarterly
+                          meffects =  c("const", "easter[8]")) 
+    }
+    # if it isn't to be adjusted then it runs the skip adjustment 
+    # function which creates a similar set of outputs
+    else {
+      print(paste("skip adjusting", seriesn, sep=""))
+      temp <- skip_seasonal_ad(out_str_q[,seriesn])
+    }
+    
+    # drops the original series
+    # I tried other ways to refer to seriesn but couldn't get 
+    # it to work this works because seriesn is the first column
+    temp <- temp[,2:ncol(temp)]
+    temp_out_q <- merge(temp, temp_out_q)
+  } 
+}
+temp_out_q$dummy <- NULL
+out_str_q <- merge(temp_out_q,out_str_q)
+head(out_str_q)
+
+# creates a seasonally adjusted annual rate series for demand based on daily
+# previously I had a loop that did this
+# converts the xts object to a data frame
+temp_b <- data.frame(out_str_q)
+# sets up the column names I will use
+temp_names <- 
+  select(temp_b, ends_with("_demd_sa"))
+temp_names <- colnames(temp_names)
+temp_names <- gsub("_demd_sa", "_demar_sa", temp_names)
+head(temp_names)  
+# used dplyr piping create the annual rate series
+temp_b <- 
+  # uses dplyr select to select all columns based on end_with 
+  select(temp_b, ends_with("_demd_sa")) %>%
+  # uses vapply in base r to multiply each column by 365 to get to annual rate.
+  # vapply is apparently similar to sapply but has a pre-specified type of return
+  # value so it can be safer and faster to use.
+  # http://codereview.stackexchange.com/questions/39180/best-way-to-apply-across-an-xts-object
+  vapply(function(col) col * 365, FUN.VALUE = numeric(nrow(temp_b))) %>%
+  # puts output back into an xts format based on the time index in certain dataframe
+  xts(order.by = time(out_str_q))
+# renames columns using vector created previously
+colnames(temp_b) <- temp_names
+head(temp_b)
+out_str_q <- merge(out_str_q, temp_b)
+rm(temp_b, temp_names)
 
 
 
