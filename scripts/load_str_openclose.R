@@ -1,22 +1,59 @@
+require(xlsx)
+require(plyr)
+require(dplyr)
+require(reshape2)
+require(zoo)
+require(xts)
+require(tframePlus)
+require(seasonal)
+require(ggplot2)
+Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
+checkX13()
 # in the following yearmon is a class for representing monthly data
 # I used it because I found a way to use that format in reading the data
 # would have liked to avoid it, as I later conver it with as.Date
 f <- function(x) as.yearmon(format(x, nsmall = 2), "%Y%m")
+fname <- c("input_data/Open_Close_201407.xlsx")
 
-opens_m <- read.zoo("input_data/usopens.csv", header = TRUE, FUN = f , sep=",")
-head(opens_m)
-opens_m <- rename(opens_m, c("PROPS" = "totusopprop", "ROOMS" = "totusoprms"), warn_missing = TRUE)
-opens_m <- as.xts(opens_m)
-tempa <- as.Date(index(opens_m))
-index(opens_m) <- tempa
+# handles opens
+  temp <- read.xlsx(fname, sheetName="cooptotopen", startRow=3,colIndex =1:3,
+                    header = TRUE)
+  opens_m <- rename(temp, c(
+    "PROPS" = "totusopprop", 
+    "ROOMS" = "totusoprms"
+    ), warn_missing = TRUE)
+  # dplyr chain that filters to drop rows where the YYYYM ends in 13
+  # or starts with TOTAL, and then also drops the NA row that appears at bottom
+  opens_m <- opens_m %>% filter(!grepl("13$", YYYYMM)) %>%
+    filter(!grepl("^TOTAL", YYYYMM)) %>%
+    na.omit(opens_m)
+  # reads as zoo
+  opens_m <- read.zoo(opens_m, header = TRUE, FUN = f , sep=",")
+  head(opens_m)
+  # creates xts
+  opens_m <- as.xts(opens_m)
+  tempa <- as.Date(index(opens_m))
+  index(opens_m) <- tempa
 
-closes_m <- read.zoo("input_data/uscloses.csv", header = TRUE, FUN = f , sep=",")
+# handles closes
+temp <- read.xlsx(fname, sheetName="cooptotcls", startRow=3,colIndex =1:3,
+                  header = TRUE)
+closes_m <- rename(temp, c(
+  "PROPS" = "totusclprop", 
+  "ROOMS" = "totusclrms"
+  ), warn_missing = TRUE)
+# dplyr chain that filters to drop rows where the YYYYM ends in 13
+# or starts with TOTAL, and then also drops the NA row that appears at bottom
+closes_m <- closes_m %>% filter(!grepl("13$", YYYYMM)) %>%
+  filter(!grepl("^TOTAL", YYYYMM)) %>%
+  na.omit(closes_m)
+# reads as zoo
+closes_m <- read.zoo(closes_m, header = TRUE, FUN = f , sep=",")
 head(closes_m)
-closes_m <- rename(closes_m, c("PROPS" = "totusclprop", "ROOMS" = "totusclrms"), warn_missing = TRUE)
+# creates xts
 closes_m <- as.xts(closes_m)
-tempa <- as.Date(index(closes_m))
+tempa <- as.Date.yearmon(index(closes_m))
 index(closes_m) <- tempa
-rm(tempa)
 
 # combine opens and closes
 opcl_m <- merge(opens_m, closes_m)
@@ -40,3 +77,163 @@ head(opcl_m$totusclrms)
 
 summary(opcl_m)
 rm(f)
+
+# creates quarterly by summing monthly
+
+
+a <- opcl_m$totusoprms
+# gets it into a ts object
+a.ts <- ts(as.numeric(a), frequency = 12, start = c(year(start(a)), month(start(a))))
+aq <- as.quarterly(a.ts, na.rm=TRUE)
+aq
+
+a.ts <- ts(as.numeric(a), frequency = 12, start = c(year(start(a)), month(start(a))))
+a.m <- opcl_m$totusoprms
+
+m_to_q_sum=function(x){
+a.q <- as.quarterly(
+  ts(as.numeric(x), frequency = 12, start = c(year(start(x)), month(start(x)))), 
+  FUN=sum,
+  na.rm=TRUE)
+return(a.q)
+}
+
+totusoprms.q <- as.xts(m_to_q(opcl_m$totusoprms, type=sum))
+totusopprop.q <- as.xts(m_to_q(opcl_m$totusopprop, type=sum))
+totusclrms.q <- as.xts(m_to_q(opcl_m$totusoprms, type=sum))
+totusclprop.q <- as.xts(m_to_q(opcl_m$totusclprop, type=sum))
+opcl_q <- merge(totusoprms.q,
+                totusopprop.q,
+                totusclrms.q,
+                totusclprop.q)
+#killing me, but I can't seem to get apply to work, probably because 
+# it's a xts, not a dataframe
+
+# sets up the start of the index that will be used for the quarterly object
+start <- as.yearqtr((start(opcl_m)))
+# necessary to give vapply the expected length, so it is the number of quarters
+# rounded down with "floor"
+j <- floor(nrow(opcl_m)/3)
+# uses vapply to essentially run an apply across the xts object because
+# apply doesn't work on an xts object
+# for vapply we need to give the expected length in FUN.VALUE and a
+# start date and quarterly frequency
+# The function that I'm applying to each column is m_to_q, which I wrote, the type="sum"
+# is giving the type of aggregation to use in it
+h <- zooreg(vapply(opcl_m, m_to_q, FUN.VALUE = 
+                     numeric(floor(nrow(opcl_m)/3)), 
+                     type="sum"), start=start, frequency=4)
+# converts to xts
+opcl_q <- xts(h)
+# changes the format of the index for the xts object from yearqtr to Date
+indexClass(opcl_q) <- c("Date")
+# if I had just wanted to run on one series, I could do the following
+#d <- m_to_q(opcl_m$totusoprms, type=sum)
+#d
+
+tail(opcl_q)
+
+plot(opcl_q$totusoprms)
+plot(opcl_q$totusclrms)
+tail(opcl_q)
+
+out_opcl_q <- opcl_q
+out_opcl_m <- opcl_m
+
+# just did opens, closes wouldn't adjust
+seriesl_m <- c("totusoprms") #, "totusclrms")
+seriesl_q <- c("totusoprms") #, "totusclrms")
+
+#########
+#
+# monthly seasonal adjustment
+#
+print("monthly")
+# creates a blank object with just a dummy series
+# this is used to hold the output of each seasonal adjustment
+temp_out_m <- xts(order.by=index(out_opcl_m))
+temp_out_m <- merge(temp_out_m, dummy=1)
+head(temp_out_m)
+
+
+for(n in seriesl_m){
+    seriesn <- n
+    print(seriesn)
+    
+      # if it is to be adjusted then it runs the adjustment function
+      temp <- seasonal_ad(out_opcl_m[,seriesn], 
+                          meffects =  c("const", "easter[8]", "thank[5]")) 
+    # drops the original series
+    # I tried other ways to refer to seriesn but couldn't get 
+    # it to work this works because seriesn is the first column
+    temp <- temp[,2:ncol(temp)]
+    temp_out_m <- merge(temp, temp_out_m)
+}
+temp_out_m$dummy <- NULL
+out_opcl_m <- merge(temp_out_m,out_opcl_m)
+
+#########
+#
+# quarterly seasonal adjustment
+#
+print("quarterly")
+# creates a blank object with just a dummy series
+# this is used to hold the output of each seasonal adjustment
+temp_out_q <- xts(order.by=index(out_opcl_q))
+temp_out_q <- merge(temp_out_q, dummy=1)
+head(temp_out_q)
+
+
+for(n in seriesl_q){
+  seriesn <- n
+  print(seriesn)
+  
+  # if it is to be adjusted then it runs the adjustment function
+  temp <- seasonal_ad(out_opcl_q[,seriesn], 
+                      qeffects =  c("const", "easter[8]")) 
+  # drops the original series
+  # I tried other ways to refer to seriesn but couldn't get 
+  # it to work this works because seriesn is the first column
+  temp <- temp[,2:ncol(temp)]
+  temp_out_q <- merge(temp, temp_out_q)
+}
+temp_out_q$dummy <- NULL
+out_opcl_q <- merge(temp_out_q,out_opcl_q)
+
+
+
+#################
+#
+# looking at data a bit
+#
+
+# monthly
+tail(out_opcl_m)
+
+autoplot(out_opcl_m$totusoprms)
+autoplot(out_opcl_m$totusoprms_sa)
+
+autoplot(out_opcl_m$totusclrms)
+
+# quarterly
+a <- window(out_opcl_q, start = as.Date("2000-01-01"), end=as.Date("2014-10-01"))
+tail(a)
+
+autoplot(out_opcl_q$totusoprms)
+autoplot(out_opcl_q$totusoprms_sa)
+
+autoplot(out_opcl_q$totusclrms)
+
+
+#########################
+#
+# writing outputs
+#
+
+# writes csv versions of the output files
+write.zoo(out_opcl_m, file="output_data/out_opcl_m.csv", sep=",")
+write.zoo(out_opcl_q, file="output_data/out_opcl_q.csv", sep=",")
+
+# saves Rdata versions of the output files
+save(out_opcl_m, file="output_data/out_opcl_m.Rdata")
+save(out_opcl_q, file="output_data/out_opcl_q.Rdata")

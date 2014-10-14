@@ -1,0 +1,277 @@
+---
+title: "US graphs"
+author: "Tourism Economics"
+date: "Tuesday, October 07, 2014"
+output:
+  html_document:
+    fig_caption: yes
+    fig_width: 9
+---
+
+This is an R Markdown document. 
+
+
+
+Simple example graph
+```{r, echo=FALSE, warning=FALSE}
+p1 <- ggplot(temp, aes(x = time, y = value, color = variable)) +
+  geom_line(size = .5)
+p1
+# p1 <- ggplot(temp, aes(x = time, y = value, color = variable)) +
+#   scale_linetype_manual(size = c(3.4, 1) +
+#   geom_line(size = .5) + colors_ts1
+#   #scale_color_manual(values = c(mypallete[8:8], "grey80"), 
+#   #                  labels=c(variable_name, "test")) 
+# p1
+# # you can also specifiy the pallet directly, such as in the following
+# # the first part of the concatenation refers to a certain color in the palette,
+# # the second part refers to a specific grey
+# #p1 + scale_colour_manual(values = c(brewer.pal(10, "RdBu")[8:8],"grey80"))
+
+
+
+
+```
+
+Sets the line color using a specific color in the palette and uses a variable name for a label in the legend
+```{r, echo=FALSE, warning=FALSE}
+# sets the 
+p1 <- ggplot(temp, aes(x = time, y = value, color = variable)) +
+  geom_line(size = .9) +
+  scale_color_manual(values = c(mypallete[8:8], "grey80"), 
+                    labels=c(variable_name, "test")) 
+p1 
+
+
+```
+
+
+```{r}
+# I can do this and change the pallete but it screws up the legend text
+p1 + colors_ts1
+```
+
+```{r, echo=FALSE, warning=FALSE}
+# uses gtable
+
+p1 <- ggplot(temp, aes(x = time, y = value, color = variable)) +
+  geom_line(size = .9) +
+  scale_color_manual(values = c(mypallete[8:8], "grey80"), 
+                    labels=c(variable_name, "test")) +
+  ggtitle(variable_name) 
+#p1 
+
+# I think this creates a gtable object
+# creates a text grob
+gt3 <- textGrob("Global title is really, really long, so verry long", just="left", gp=gpar(fontsize=20))
+gtfoot <- textGrob("Source: (fill in)", just="left", gp=gpar(fontsize=12))
+g <- ggplotGrob(p1)
+# adds a row at the top
+g <- gtable_add_rows(g, unit(1,"cm"), pos=0) # pos=0 adds to top
+# adds a rowt at the bottom
+g <- gtable_add_rows(g, unit(.8,"cm")) # default adds to bottom
+# can be used to show layout
+#gtable_show_layout(g)
+# adds the text grob to the gtable
+g <- gtable_add_grob(g, gt3, clip="off",
+                     t = 1, l=1, b=1, r=1)
+g <- gtable_add_grob(g, gtfoot, clip="off",
+                     t = dim(g)[1], l=1, b=dim(g)[1], r=1)
+grid.newpage()
+grid.draw(g)
+
+
+```
+
+```{r}
+{r fig.width=7, fig.height=6, fig.cap="Plot distance vs. speed"}
+
+plot(cars)
+```
+
+
+# ```{r awesome_figure, fig.cap=fig.txt}
+# 
+# fig.txt = paste0("My amazingly witty and smart figure caption",
+# 
+#                  " text goes here. The function paste0 is very",
+# 
+#                  " convenient as it doesn't add the space character",
+# 
+#                  " between each concatenating string.")
+#                  p1
+# ```
+
+
+
+
+# ```{r}
+# library(ggplot2)
+# print(qplot(1,1), vp=viewport(height=0.8))
+# p1 + theme(plot.margin = unit(c(3,1,2,1), "lines"))
+# grid.text(0.0, unit(1,"npc") - unit(1,"line"), bold(label="I'm (slightly)out of here!"))
+# grid.text(0.0, unit(.9,"npc"), label="I'm (slightly)out of here!")
+# 
+# ```
+
+
+# ```{r}
+# library(gridExtra)
+# g <- arrangeGrob(p1, sub = textGrob("Footnote", x = 0, hjust = -0.1, vjust=0.1, gp = gpar(fontface = "italic", fontsize = 18)))
+# g
+# g1 <- arrangeGrob(g, sub = textGrob("Title", x = 0, hjust = -0.1, vjust=.1, gp = gpar(fontface = "italic", fontsize = 18)))
+# g1
+# 
+# 
+# 
+# library(RGraphics) # support of the "R graphics" book, on CRAN
+# library(gridExtra) 
+# g1 <- tableGrob(head(iris))
+# string <- "
+# This famous (Fisher's or Anderson's) iris data set gives the
+# measurements in centimeters of the variables sepal length and width
+# and petal length and width, respectively, for 50 flowers from each of
+# 3 species of iris. The species are Iris setosa, versicolor, and
+# virginica.
+# "
+# g2 <- splitTextGrob(string)
+# #"Sepal.Length" "Sepal.Width"  "Petal.Length" "Petal.Width"  "Species"
+# g3 <- qplot(Sepal.Length,  Petal.Length, data=iris, colour=Species)
+# grid.arrange(g1, g2, g3, ncol=1, main="The iris data")
+# 
+# titletext <- "My title"
+# subtitletext <- "my subtitle"
+# g1 <- splitTextGrob(titletext)
+# g2 <- splitTextGrob(subtitletext)
+# #grid.arrange(g1, g2, g3, ncol=1, main="The iris data")
+# g4 <- arrangeGrob(p1, main=g1, sub=g2)
+# g4
+# 
+# 
+# grobframe <- arrangeGrob(p1, ncol=1, nrow=1,
+#                   main = textGrob("\nArrangeGrob Test", hjust=2.2, gp = gpar(fontsize=18, fontface="bold.italic", fontsize=18)),
+#                   sub = textGrob("*subtitle location*", x=0, hjust=-0.5, vjust=0.1, gp = gpar(fontface = "italic", fontsize = 15)))
+#  
+# print(grobframe)
+# 
+# 
+# 
+# library(gridExtra)
+# 
+# 
+# p <- qplot(1,1, geom="blank") + xlab("")
+# 
+# caption <- tableGrob(matrix(expression(paste(bold("Demand")), italic("second line"))),
+#                      parse=TRUE, theme=theme.list(gpar.corefill =gpar(fill = NA, col = NA),
+#                                    core.just = "left", padding.h = unit(1, "mm")
+# ))
+# grid.arrange(p1,  caption)
+# 
+# grid.arrange(p1,  main=caption)
+# 
+# 
+# 
+# 
+# ```
+
+
+
+```{r}
+
+p1 <- ggplot(temp, aes(x = time, y = value, color = variable)) +
+  geom_line(size = .9) +
+  scale_color_manual(values = c(mypallete[10:10], "grey80"), labels=c(variable_name, "test")) +
+  # uses an object I defined to hold pallete
+  # adds a title followed by a line break
+  ggtitle("Demand \n")
+p1
+plot.title <- c("Demand")
+plot.subtitle <- c("Subtitle")
+p1 + ggtitle(bquote(atop(bold(.(plot.title)), atop(italic(.(plot.subtitle)), ""))))
+# adds a bit of space below
+p1 + theme(plot.margin = unit(c(1,1,2,1), "lines"))
+xmin1 <- head(temp$time,1)
+ymax <- tail()
+p1 + annotate("Point", x=xmin1, y=ymax)
+```
+
+
+# ```{r}
+# 
+# library(gridExtra)
+# 
+# titleGrob <- function(x=c("First line", "second line"), size=10, ...){
+#   n <- length(x)
+#   size <- rep(size, length.out=n)
+#   one_label <- function(x, size, ...)
+#     textGrob(x, gp=gpar(fontsize=size), ...)
+#   lg <- mapply(one_label, x=x, size=size, ..., SIMPLIFY=FALSE)
+#   wg <- lapply(lg, grobWidth) 
+# 
+# hg <- lapply(lg, grobHeight) 
+# 
+#   widths <- do.call(unit.c, wg)
+# print(widths)
+# heights <- do.call(unit.c, hg) 
+# 
+#   maxwidth <- max(widths)
+#   g <- frameGrob(layout = grid.layout(n, 1, width=maxwidth, height=heights) )
+#   for(ii in seq_along(lg))
+#     g <- placeGrob(g, lg[[ii]], row=ii)
+# 
+#   g
+# }
+# 
+# grid.newpage()
+# g <- titleGrob(size=c(18,12))
+# grid.arrange(p1, main=g)
+# grid.arrange(qplot(1,1), main=g)
+# 
+# # basic information at the beginning of each script
+# scriptName <- "filename.R"
+# author <- "mh"
+# footnote <- paste(scriptName, format(Sys.time(), "%d %b %Y"),
+#                   author, sep=" / ")
+# 
+# # default footnote is today's date, cex=.7 (size) and color
+# # is a kind of grey
+# 
+# makeFootnote <- function(footnoteText=
+#                          format(Sys.time(), "%d %b %Y"),
+#                          size= .7, color= grey(.5))
+# {
+#    require(grid)
+#    pushViewport(viewport())
+#    grid.text(label= footnoteText ,
+#              x = unit(1,"npc") - unit(2, "mm"),
+#              y= unit(2, "mm"),
+#              just=c("right", "bottom"),
+#              gp=gpar(cex= size, col=color))
+#    popViewport()
+# }
+# 
+# makeFootnote(footnote)
+# 
+# ## Example ##
+# plot(1:10)
+# makeFootnote(footnote)
+# 
+# library(gridExtra)
+# g <- arrangeGrob(p, sub = textGrob("Footnote", x = 0, hjust = -0.1, vjust=0.1, gp = gpar(fontface = "italic", fontsize = 18)))
+# g
+# ggsave("/Users/Alan/Desktop/plot_grid_extra.png", g)
+# 
+# 
+# ```
+
+
+Shows that we can change the data and update the plot based on that data
+# ```{r, echo=FALSE}
+# temp2 <- filter(df2m,variable == "totus_revpar_sa") 
+# 
+# # very interesting, this recreates the plot using temp2 as the source of data
+# p1 %+% temp2
+# 
+# 
+# ```
+
