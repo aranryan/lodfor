@@ -23,29 +23,12 @@ source("scripts/load_str.R")
 # preps the STR data, including unit conversion of a couple series and seasonal adjustment
 source("scripts/prep_str.R")
 
-  # for the metros, my temporary fix has been to separate them from the US/chains
-# so it's just a copy of the prep_str_us file, but with a list of metros
-# and with a couple of the files named "_metro" rather than "_us"
-# it assumes you start right after running load_str, so before running, it's
-# necessary to just run load_str again before running prep_str_metros
-#
-#
-# - got stuck, wouldn't run seasonal adjustment of supply for anahiem, may need to try additive
-# really need to try rewriting as a function
-#
-
-source("scripts/load_str.R")
-source("scripts/prep_str_metro.R")
-
 # as a result there will be two R data files saved (as well as csv versions) and the 
 # work space gets cleaned up a bit
 
 
-# create open close csv files by copying each sheet, deleting the first two rows
-# then deleting rows at the bottom
-
+# reads opens and closes directly from Excel source file
 source("load_str_openclose.R")
-
 
 
 source("load_macro.R")
