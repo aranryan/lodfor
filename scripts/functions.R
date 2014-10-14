@@ -5,7 +5,7 @@
 # sets a theme
 # requires the grid package
 #
-library(grid)
+require(grid)
 
 theme_jack <- function (base_size = 12, base_family = "") {
   theme_grey(base_size = base_size, base_family = base_family) %+replace%
@@ -194,5 +194,33 @@ skip_seasonal_ad <- function (x) {
 return(out_sa)
 }
 
-
+#########################
+#
+# aggregates, or converts, from monthly to quarterly
+#
+# I based this on the as.quarterly function that is in
+# the tframePlus package
+# I set it up so you have to give a type of aggregation
+# it works for type=sum or type=mean
+# The ts line is basically converting a series from xts
+# to ts, because the ts works as an input to as.quarterly
+m_to_q=function(x, type){
+  a.q <- as.quarterly(
+    ts(as.numeric(x), frequency = 12, start = c(year(start(x)), month(start(x)))), 
+    FUN=type,
+    na.rm=TRUE)
+  return(a.q)
+}
+# a couple examples of as.quarterly for reference
+# z <- ts(1:10, start = c(1999,2), frequency=4)
+# z
+# as.annually(z) 
+# as.annually(z, na.rm=TRUE)
+# 
+# z <- ts(1:30, start = c(1999,2), frequency=12)
+# z
+# as.annually(z) 
+# as.annually(z, na.rm=TRUE)
+# as.quarterly(z) 
+# as.quarterly(z, na.rm=TRUE)
 
