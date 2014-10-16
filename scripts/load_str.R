@@ -8,9 +8,9 @@ library(xts)
 library(lubridate)
 #library(forecast) # added so I could use monthdays() which also works for quarters
 library(seasonal)
-library(forecast)
 Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
 checkX13()
+library(forecast)
 
 ########
 #
