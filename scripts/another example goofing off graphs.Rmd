@@ -1,0 +1,350 @@
+---
+title: "US graphs"
+author: "Tourism Economics"
+date: "Tuesday, October 07, 2014"
+output:
+  html_document:
+    fig_caption: yes
+    fig_width: 9
+---
+
+I think this is just various scraps. 
+
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+load("~/Project/R projects/lodfor/output_data/out_str_q_us.Rdata")
+
+library(zoo)
+library(xts)
+library(dplyr)
+library(reshape2)
+library(ggplot2)
+library(RColorBrewer)
+require("gridExtra")
+
+
+xts1 <- out_str_q_us
+xts1 <- window(xts1, end = as.Date("2014-08-01"))
+
+df1 <- data.frame(time=time(xts1), xts1)
+
+df2 <- df1
+df2m <- melt(df2, id.vars = c("time"))
+df2m[1:4,]
+```
+
+Loads code_book_matrix and shows example contents
+```{r,echo=FALSE}
+ code_book_matrix <- read.csv("~/Project/R projects/lodfor/input_data/code_book_matrix.csv", stringsAsFactors=FALSE)
+head(code_book_matrix)
+```
+
+Displays palette and sets the ts1 theme
+
+```{r, echo=FALSE}
+display.brewer.pal(10, "RdBu")
+mypallete <- brewer.pal( 10 , "RdBu" )
+colors_ts1 <- scale_colour_manual(values = mypallete[c(10, 1, 5, 4)])
+# I don't use the following, was an example I saw somewhere maybe as a way to 
+# interpolate additional palette colors
+#mypal <- colorRampPalette( brewer.pal( 10 , "RdBu" ) )
+
+theme_ts1 <- function (base_size = 12, base_family = "") {
+  theme_classic(base_size = base_size, base_family = base_family) %+replace%
+    theme(                                  #text=element_text(family="Lato Light", size=14),
+      panel.grid.major.x=element_blank(),
+      panel.grid.minor.x=element_blank(),
+      panel.grid.minor.y=element_blank(),
+     # panel.grid.major.y=element_line(colour="#ECECEC", size=2, linetype=1),
+      axis.ticks.y=element_line(size=.2),
+      panel.background=element_blank(),
+      legend.title=element_blank(),
+      legend.key=element_rect(fill="white", colour = "white"),
+      #legend.key.size=unit(1.5, "cm"),
+      legend.text=element_text(size=rel(1.1)),
+      legend.position = c(1, .1),
+      #legend.position = "top",
+      legend.justification = "right",
+      #axis.title.y=element_text(angle=0),
+      axis.line=element_line(size=.2),
+      axis.title.y=element_blank(),
+      axis.title.x=element_blank(),
+      axis.text=element_text(color="black",size=rel(.9)),
+      plot.title=element_text(size=24, face="bold",hjust=-0.06,vjust=1.05)
+    )
+}
+theme_set(theme_ts1())
+#theme_set(theme_classic())
+
+#this is also a useful theme to keep in mind
+#theme_classic()
+
+# this function gets the settings used by the current theme
+#theme_get()
+
+```
+
+Gets a few parts ready for the examples that follow
+```{r, echo=FALSE, warning=FALSE}
+
+todo <- c("totus_demd_sa")
+temp <- filter(df2m,variable == todo) # | variable == "totus_demd")
+variable_name <- code_book_matrix[code_book_matrix$variable_name == c("totus_demd_sa"), "variable_text"]
+
+```
+
+Simple example graph
+```{r, echo=FALSE, warning=FALSE}
+p1 <- ggplot(temp, aes(x = time, y = value, color = variable)) +
+  geom_line(size = .5)
+p1
+# p1 <- ggplot(temp, aes(x = time, y = value, color = variable)) +
+#   scale_linetype_manual(size = c(3.4, 1) +
+#   geom_line(size = .5) + colors_ts1
+#   #scale_color_manual(values = c(mypallete[8:8], "grey80"), 
+#   #                  labels=c(variable_name, "test")) 
+# p1
+# # you can also specifiy the pallet directly, such as in the following
+# # the first part of the concatenation refers to a certain color in the palette,
+# # the second part refers to a specific grey
+# #p1 + scale_colour_manual(values = c(brewer.pal(10, "RdBu")[8:8],"grey80"))
+
+
+
+
+```
+
+Sets the line color using a specific color in the palette and uses a variable name for a label in the legend
+```{r, echo=FALSE, warning=FALSE}
+# sets the 
+p1 <- ggplot(temp, aes(x = time, y = value, color = variable)) +
+  geom_line(size = .9) +
+  scale_color_manual(values = c(mypallete[8:8], "grey80"), 
+                    labels=c(variable_name, "test")) +
+  ggtitle(variable_name)
+p1 
+```
+
+
+```{r}
+# I can do this and change the pallete but it screws up the legend text
+p1 + colors_ts1
+```
+
+```{r}
+footnote <- c("Source: Smith Travel Research; Tourism Economics")
+grtitle <- c("Room demand")
+
+grobframe <- arrangeGrob(p1, ncol=1, nrow=1,
+                  main = textGrob(grtitle, x=0, hjust=0, vjust=0.2, gp = gpar(fontsize=18, fontface="bold.italic", fontsize=18)),
+                  sub = textGrob(footnote, x=0, hjust=0, vjust=0.1, gp = gpar(fontface = "italic", fontsize = 10)))
+ 
+print(grobframe)
+
+
+```
+
+
+
+```{r}
+
+
+
+
+
+```{r}
+#opts_knit$set(eval.after = "fig.cap")
+```
+
+```{r}
+{r fig.width=7, fig.height=6, fig.cap="Plot distance vs. speed"}
+
+plot(cars)
+```
+
+
+# ```{r awesome_figure, fig.cap=fig.txt}
+# 
+# fig.txt = paste0("My amazingly witty and smart figure caption",
+# 
+#                  " text goes here. The function paste0 is very",
+# 
+#                  " convenient as it doesn't add the space character",
+# 
+#                  " between each concatenating string.")
+#                  p1
+# ```
+
+
+
+
+# ```{r}
+# library(ggplot2)
+# print(qplot(1,1), vp=viewport(height=0.8))
+# p1 + theme(plot.margin = unit(c(3,1,2,1), "lines"))
+# grid.text(0.0, unit(1,"npc") - unit(1,"line"), bold(label="I'm (slightly)out of here!"))
+# grid.text(0.0, unit(.9,"npc"), label="I'm (slightly)out of here!")
+# 
+# ```
+
+
+# ```{r}
+# library(gridExtra)
+# g <- arrangeGrob(p1, sub = textGrob("Footnote", x = 0, hjust = -0.1, vjust=0.1, gp = gpar(fontface = "italic", fontsize = 18)))
+# g
+# g1 <- arrangeGrob(g, sub = textGrob("Title", x = 0, hjust = -0.1, vjust=.1, gp = gpar(fontface = "italic", fontsize = 18)))
+# g1
+# 
+# 
+# 
+# library(RGraphics) # support of the "R graphics" book, on CRAN
+# library(gridExtra) 
+# g1 <- tableGrob(head(iris))
+# string <- "
+# This famous (Fisher's or Anderson's) iris data set gives the
+# measurements in centimeters of the variables sepal length and width
+# and petal length and width, respectively, for 50 flowers from each of
+# 3 species of iris. The species are Iris setosa, versicolor, and
+# virginica.
+# "
+# g2 <- splitTextGrob(string)
+# #"Sepal.Length" "Sepal.Width"  "Petal.Length" "Petal.Width"  "Species"
+# g3 <- qplot(Sepal.Length,  Petal.Length, data=iris, colour=Species)
+# grid.arrange(g1, g2, g3, ncol=1, main="The iris data")
+# 
+# titletext <- "My title"
+# subtitletext <- "my subtitle"
+# g1 <- splitTextGrob(titletext)
+# g2 <- splitTextGrob(subtitletext)
+# #grid.arrange(g1, g2, g3, ncol=1, main="The iris data")
+# g4 <- arrangeGrob(p1, main=g1, sub=g2)
+# g4
+# 
+# 
+# grobframe <- arrangeGrob(p1, ncol=1, nrow=1,
+#                   main = textGrob("\nArrangeGrob Test", hjust=2.2, gp = gpar(fontsize=18, fontface="bold.italic", fontsize=18)),
+#                   sub = textGrob("*subtitle location*", x=0, hjust=-0.5, vjust=0.1, gp = gpar(fontface = "italic", fontsize = 15)))
+#  
+# print(grobframe)
+# 
+# 
+# 
+# library(gridExtra)
+# 
+# 
+# p <- qplot(1,1, geom="blank") + xlab("")
+# 
+# caption <- tableGrob(matrix(expression(paste(bold("Demand")), italic("second line"))),
+#                      parse=TRUE, theme=theme.list(gpar.corefill =gpar(fill = NA, col = NA),
+#                                    core.just = "left", padding.h = unit(1, "mm")
+# ))
+# grid.arrange(p1,  caption)
+# 
+# grid.arrange(p1,  main=caption)
+# 
+# 
+# 
+# 
+# ```
+
+
+
+```{r}
+
+p1 <- ggplot(temp, aes(x = time, y = value, color = variable)) +
+  geom_line(size = .9) +
+  scale_color_manual(values = c(mypallete[10:10], "grey80"), labels=c(variable_name, "test")) +
+  # uses an object I defined to hold pallete
+  # adds a title followed by a line break
+  ggtitle("Demand \n")
+p1
+plot.title <- c("Demand")
+plot.subtitle <- c("Subtitle")
+p1 + ggtitle(bquote(atop(bold(.(plot.title)), atop(italic(.(plot.subtitle)), ""))))
+# adds a bit of space below
+p1 + theme(plot.margin = unit(c(1,1,2,1), "lines"))
+xmin1 <- head(temp$time,1)
+ymax <- tail()
+p1 + annotate("Point", x=xmin1, y=ymax)
+```
+
+
+# ```{r}
+# 
+# library(gridExtra)
+# 
+# titleGrob <- function(x=c("First line", "second line"), size=10, ...){
+#   n <- length(x)
+#   size <- rep(size, length.out=n)
+#   one_label <- function(x, size, ...)
+#     textGrob(x, gp=gpar(fontsize=size), ...)
+#   lg <- mapply(one_label, x=x, size=size, ..., SIMPLIFY=FALSE)
+#   wg <- lapply(lg, grobWidth) 
+# 
+# hg <- lapply(lg, grobHeight) 
+# 
+#   widths <- do.call(unit.c, wg)
+# print(widths)
+# heights <- do.call(unit.c, hg) 
+# 
+#   maxwidth <- max(widths)
+#   g <- frameGrob(layout = grid.layout(n, 1, width=maxwidth, height=heights) )
+#   for(ii in seq_along(lg))
+#     g <- placeGrob(g, lg[[ii]], row=ii)
+# 
+#   g
+# }
+# 
+# grid.newpage()
+# g <- titleGrob(size=c(18,12))
+# grid.arrange(p1, main=g)
+# grid.arrange(qplot(1,1), main=g)
+# 
+# # basic information at the beginning of each script
+# scriptName <- "filename.R"
+# author <- "mh"
+# footnote <- paste(scriptName, format(Sys.time(), "%d %b %Y"),
+#                   author, sep=" / ")
+# 
+# # default footnote is today's date, cex=.7 (size) and color
+# # is a kind of grey
+# 
+# makeFootnote <- function(footnoteText=
+#                          format(Sys.time(), "%d %b %Y"),
+#                          size= .7, color= grey(.5))
+# {
+#    require(grid)
+#    pushViewport(viewport())
+#    grid.text(label= footnoteText ,
+#              x = unit(1,"npc") - unit(2, "mm"),
+#              y= unit(2, "mm"),
+#              just=c("right", "bottom"),
+#              gp=gpar(cex= size, col=color))
+#    popViewport()
+# }
+# 
+# makeFootnote(footnote)
+# 
+# ## Example ##
+# plot(1:10)
+# makeFootnote(footnote)
+# 
+# library(gridExtra)
+# g <- arrangeGrob(p, sub = textGrob("Footnote", x = 0, hjust = -0.1, vjust=0.1, gp = gpar(fontface = "italic", fontsize = 18)))
+# g
+# ggsave("/Users/Alan/Desktop/plot_grid_extra.png", g)
+# 
+# 
+# ```
+
+
+Shows that we can change the data and update the plot based on that data
+# ```{r, echo=FALSE}
+# temp2 <- filter(df2m,variable == "totus_revpar_sa") 
+# 
+# # very interesting, this recreates the plot using temp2 as the source of data
+# p1 %+% temp2
+# 
+# 
+# ```
+
