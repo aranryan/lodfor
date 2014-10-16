@@ -5,6 +5,8 @@ date: "Wednesday, October 15, 2014"
 output: html_document
 ---
 
+As an input, this expects a csv file. This csv file can be created using the
+select file that I've set up and the OE macro model
 
 
 ```{r}
@@ -54,23 +56,23 @@ temp1 <- read.zoo(temp)
 class(temp1)
 temp1 <- as.xts(temp1, frequency=4)
 head(temp1)
-oef_usmac_q <- temp1
+oe_usmac_q <- temp1
 
 #shortens future period based on current date 
 cur_year <- year(Sys.time())
 end_year <- cur_year +15
 end_year <- round(end_year,-1) -1
 end <- paste(end_year,"-10-01",sep="")
-oef_usmac_q <- window(oef_usmac_q, end = end)
+oe_usmac_q <- window(oe_usmac_q, end = end)
 ```
 
 A few plots
 
 ```{r, echo=FALSE}
 
-autoplot(oef_usmac_q$us_gdp)
+autoplot(oe_usmac_q$us_gdp)
 
-autoplot(oef_usmac_q$us_up)
+autoplot(oe_usmac_q$us_up)
 
 ```
 
@@ -84,8 +86,8 @@ Writing out files
 
 ```{r}
 # writes csv versions of the output files
-write.zoo(oef_usmac_q, file="output_data/oef_usmac_q.csv", sep=",")
+write.zoo(oe_usmac_q, file="output_data/oe_usmac_q.csv", sep=",")
 # saves Rdata versions of the output files
-save(oef_usmac_q, file="output_data/oef_usmac_q.Rdata")
+save(oe_usmac_q, file="output_data/oe_usmac_q.Rdata")
 ```
 
