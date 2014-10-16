@@ -1,0 +1,91 @@
+---
+title: "load oef macro"
+author: "Tourism Economics"
+date: "Wednesday, October 15, 2014"
+output: html_document
+---
+
+
+
+```{r}
+require("stringr")
+require("dplyr")
+require("reshape2")
+require("zoo")
+require("xts")
+require("lubridate")
+require("ggplot2")
+
+fname <- c("input_data/LODFOR_OEF_USMACRO_2014_10_15.csv")
+temp <- read.csv(fname, header=TRUE)
+# sets up column names
+temp_names <- colnames(temp)
+# removes periods in column names
+temp_names <- gsub(".", "", temp_names, fixed = TRUE) 
+# changes part of column names
+temp_names <- gsub("XUS", "US", temp_names) 
+temp_names <- tolower(temp_names)
+# replaces the existing column names
+colnames(temp) <- temp_names
+
+# works on the date column to get into a date format
+# more difficult than I would have liked
+hold <- temp[,1]
+hold <- gsub("01$", " Q1", hold) 
+hold <- gsub("02$", " Q2", hold) 
+hold <- gsub("03$", " Q3", hold) 
+hold <- gsub("04$", " Q4", hold) 
+temp[,1] <- as.yearqtr(hold) 
+head(temp)
+temp$dates <- format(temp$dates, format="%Y Q%q")
+temp$dates <- as.yearqtr(temp$dates)
+# finally gets this to date format
+temp$dates <- as.Date(temp$dates)
+str(temp)
+
+# much of the data is in character format
+# this step converts to numeric and overwrites it
+tempa <- temp[,2:ncol(temp)]
+tempa <- sapply(tempa, as.numeric )
+temp[,2:ncol(temp)] <- tempa
+
+#creates zoo object then xts object
+temp1 <- read.zoo(temp)
+class(temp1)
+temp1 <- as.xts(temp1, frequency=4)
+head(temp1)
+oef_usmac_q <- temp1
+
+#shortens future period based on current date 
+cur_year <- year(Sys.time())
+end_year <- cur_year +15
+end_year <- round(end_year,-1) -1
+end <- paste(end_year,"-10-01",sep="")
+oef_usmac_q <- window(oef_usmac_q, end = end)
+```
+
+A few plots
+
+```{r, echo=FALSE}
+
+autoplot(oef_usmac_q$us_gdp)
+
+autoplot(oef_usmac_q$us_up)
+
+```
+
+Cleans up
+```{r}
+rm(temp, temp1, tempa, fname, hold, temp_names)
+```
+
+
+Writing out files
+
+```{r}
+# writes csv versions of the output files
+write.zoo(oef_usmac_q, file="output_data/oef_usmac_q.csv", sep=",")
+# saves Rdata versions of the output files
+save(oef_usmac_q, file="output_data/oef_usmac_q.Rdata")
+```
+
