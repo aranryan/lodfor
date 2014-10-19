@@ -1,5 +1,7 @@
 
 require("rmarkdown")
+require("knitr")
+require("dplyr")
 
 #############################
 #
@@ -205,6 +207,9 @@ return(out_sa)
 # it works for type=sum or type=mean
 # The ts line is basically converting a series from xts
 # to ts, because the ts works as an input to as.quarterly
+# One reason that I believe I needed to set this up was
+# that I want to be able to run it accross columns of an xts
+# object, which one can't typically do with apply.
 m_to_q=function(x, type){
   a.q <- as.quarterly(
     ts(as.numeric(x), frequency = 12, start = c(year(start(x)), month(start(x)))), 
@@ -212,6 +217,16 @@ m_to_q=function(x, type){
     na.rm=TRUE)
   return(a.q)
 }
+# as an example of using this function is the steps I had in 
+# load_str_openclose, which are as follows
+# start <- as.yearqtr((start(opcl_m)))
+#h <- zooreg(vapply(opcl_m, m_to_q, FUN.VALUE = 
+#                     numeric(floor(nrow(opcl_m)/3)), 
+#                   type="sum"), start=start, frequency=4)
+#opcl_q <- xts(h)
+#indexClass(opcl_q) <- c("Date")
+#
+
 # a couple examples of as.quarterly for reference
 # z <- ts(1:10, start = c(1999,2), frequency=4)
 # z
