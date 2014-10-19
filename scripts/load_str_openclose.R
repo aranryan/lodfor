@@ -83,15 +83,12 @@ rm(f)
 # creates quarterly by summing monthly
 #
 
-#killing me, but I can't seem to get apply to work, probably because 
-# it's a xts, not a dataframe (e.g. see 
+# I couldn't use apply because the object is 
+# a xts, not a dataframe, see 
 # http://codereview.stackexchange.com/questions/39180/best-way-to-apply-across-an-xts-object
 
 # sets up the start of the index that will be used for the quarterly object
 start <- as.yearqtr((start(opcl_m)))
-# necessary to give vapply the expected length, so it is the number of quarters
-# rounded down with "floor"
-j <- floor(nrow(opcl_m)/3)
 # uses vapply to essentially run an apply across the xts object because
 # apply doesn't work on an xts object
 # for vapply we need to give the expected length in FUN.VALUE and a
