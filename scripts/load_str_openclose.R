@@ -78,36 +78,14 @@ head(opcl_m$totusclrms)
 summary(opcl_m)
 rm(f)
 
+#############################3
+#
 # creates quarterly by summing monthly
+#
 
-
-a <- opcl_m$totusoprms
-# gets it into a ts object
-a.ts <- ts(as.numeric(a), frequency = 12, start = c(year(start(a)), month(start(a))))
-aq <- as.quarterly(a.ts, na.rm=TRUE)
-aq
-
-a.ts <- ts(as.numeric(a), frequency = 12, start = c(year(start(a)), month(start(a))))
-a.m <- opcl_m$totusoprms
-
-m_to_q_sum=function(x){
-a.q <- as.quarterly(
-  ts(as.numeric(x), frequency = 12, start = c(year(start(x)), month(start(x)))), 
-  FUN=sum,
-  na.rm=TRUE)
-return(a.q)
-}
-
-totusoprms.q <- as.xts(m_to_q(opcl_m$totusoprms, type=sum))
-totusopprop.q <- as.xts(m_to_q(opcl_m$totusopprop, type=sum))
-totusclrms.q <- as.xts(m_to_q(opcl_m$totusoprms, type=sum))
-totusclprop.q <- as.xts(m_to_q(opcl_m$totusclprop, type=sum))
-opcl_q <- merge(totusoprms.q,
-                totusopprop.q,
-                totusclrms.q,
-                totusclprop.q)
 #killing me, but I can't seem to get apply to work, probably because 
-# it's a xts, not a dataframe
+# it's a xts, not a dataframe (e.g. see 
+# http://codereview.stackexchange.com/questions/39180/best-way-to-apply-across-an-xts-object
 
 # sets up the start of the index that will be used for the quarterly object
 start <- as.yearqtr((start(opcl_m)))
