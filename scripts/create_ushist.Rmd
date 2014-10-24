@@ -1,0 +1,187 @@
+---
+title: "create_ushist"
+author: "Tourism Economics"
+date: "Thursday, October 16, 2014"
+output: html_document
+---
+
+Creates a us historical databank. Combines the STR data with selected macro data and calculates a few series
+
+```{r}
+require("tidyr")
+require("zoo")
+require("xts")
+
+fpath <- c("~/Project/R projects/lodfor/") 
+load(paste(fpath,"output_data/out_str_q_us.Rdata", sep=""))
+load(paste(fpath,"output_data/oe_usmac_q.Rdata", sep=""))
+load(paste(fpath,"output_data/out_str_m_us.Rdata", sep=""))
+
+```
+
+
+The initial steps do the quarterly databank. Monthly is done further below.
+```{r}
+
+temp <- data.frame(oe_usmac_q)
+# will see if time is needed
+#temp <- data.frame(time=time(oe_usmac_q), oe_usmac_q)
+
+temp <- oe_usmac_q %>%
+  data.frame(time=time(oe_usmac_q),oe_usmac_q) 
+
+temp <- oe_usmac_q %>%
+  data.frame(time=time(oe_usmac_q), oe_usmac_q) %>%
+  select(time, 
+         us_gdp,
+         us_if,
+               us_cd,
+               us_iconstr,
+               us_popnipa,
+               us_popw,
+               us_et,
+               us_up,
+               us_yhat,
+               us_pc,
+               us_pedy,
+               us_penw,
+               us_cogtp,
+               us_cpi
+         ) %>%
+        read.zoo %>%
+        as.xts
+head(temp)
+
+
+# merges dataframes. the all.=TRUE piece ensures all the rows
+# in the first dataframe are included
+ushist_q <- merge(temp, out_str_q_us, all=TRUE) 
+
+###########################3
+#
+# create annual
+#
+
+# start with those that should be summed
+
+# select series that should be converted to annual by summing
+# I wrote a regular expression that is looking for certain text strings
+# for reference on writing regular expressions, see
+# http://www.regular-expressions.info/quickstart.html
+suma_df <- data.frame(ushist_q) %>%
+  select(matches("_demt|_supt|_rmrevt"))
+suma <- as.xts(suma_df)
+rm(suma_df)
+
+# this function is one I defined, it converts all the columns in 
+# an xts object to annual. Must be an xts object to start with
+suma <- q_to_a_xts(suma, type="sum")
+
+# takes the summed data and spreads it into a tidy format with
+# tidyr and then calculates the occupancy and revpar series
+tb2 <- data.frame(time=time(suma), suma)%>% 
+  gather(segvar, value, -time, na.rm = FALSE) %>%
+  # in the following the ^ means anything not in the list
+  # with the list being all characters and numbers
+  separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+  spread(variable,value) %>%
+  mutate(occ = demt / supt) %>%
+  mutate(revpar = rmrevt / supt)
+
+# takes it from a tidy format and melts it, and then creates the unique
+# variable names and then reads into a zoo object spliting on the 
+# second column
+a <- melt(tb2, id=c("time","seg"), na.rm=FALSE)
+a$variable <- paste(a$seg, "_", a$var, sep='')
+a$seg <- NULL
+suma <- xts(read.zoo(a, split = 2))
+
+autoplot(suma$luxus_revpar)
+autoplot(window(suma$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2014-01-01")))
+
+
+######################
+#
+# indexes everything in ushist_q
+#
+ushist_ind_q <- index_q_xts(ushist_q,index_year=2005)
+
+# look at a graph
+tempa <- ushist_ind_q$totus_occ_sa
+tempb <- ushist_ind_q$upsus_occ_sa
+tempc <- merge(tempa,tempb)
+autoplot(window(tempc, start="2000-01-01", end="2014-10-01"), facets=NULL)
+
+######################
+#
+# converts some series to real
+#
+
+# first index the personal cons price deflator to average 100 in 2013
+us_pc_index <- index_q(ushist_q$us_pc, index_year=2013)
+names(us_pc_index) <- "us_pc_index"
+ushist_q <- merge(ushist_q, us_pc_index)
+autoplot(ushist_q$us_pc_index)
+
+# select the series that contain adr or revpar and convert to real
+# the way this works is that matches works on a regular expression
+# I wrote a regular expression that is taking _adr_ or _revpar_
+# for reference on writing regular expressions, see
+# http://www.regular-expressions.info/quickstart.html
+real_df <- data.frame(ushist_q) %>%
+  select(matches("_adr$|_adr_sa|_revpar$|_revpar_sa")) %>% 
+  mutate_each(funs(ind = ( . / us_pc_index)*100))
+# adds on a time index to get it back to xts
+temp <- data.frame(time=time(ushist_q)) 
+real_df <- cbind(temp,real_df)
+real <- read.zoo(real_df)
+real <- xts(real)
+
+# renames series 
+tempnames <- names(real)
+tempnames <- paste(tempnames,"rpc",sep="")
+tempnames
+names(real) <- tempnames
+rm(tempnames)
+
+autoplot(window(real$luxus_adr_sarpc, start="2000-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2014-10-01"))
+
+# merges onto ushist_q
+ushist_q <- merge(ushist_q, real)
+autoplot(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2014-10-01"))
+
+# which segments or markets are in the data frame
+a <- grep(pattern="_demt", colnames(suma), value=TRUE)
+a <- gsub(pattern="_demt",replacement="",a)
+
+```
+
+Writing quarterly outputs
+
+```{r, echo=FALSE}
+# writes csv versions of the output files
+write.zoo(ushist_q, file=paste(fpath, "output_data/ushist_q.csv", sep=""), sep=",")
+write.zoo(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.csv", sep=""), sep=",")
+
+# saves Rdata versions of the output files
+save(ushist_q, file=paste(fpath, "output_data/ushist_q.Rdata", sep=""))
+save(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
+```
+
+Creating monthly historical databank
+```{r}
+# not that much that needs to be done
+ushist_m <- out_str_m_us
+```
+
+Writing monthly outputs
+
+```{r, echo=FALSE}
+# writes csv versions of the output files
+write.zoo(ushist_m, file=paste(fpath,"output_data/ushist_m.csv",sep=""), sep=",")
+
+# saves Rdata versions of the output files
+save(ushist_m, file=paste(fpath,"output_data/ushist_m.Rdata", sep=""))
+```
+

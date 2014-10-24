@@ -1,7 +1,20 @@
 
+# names this as a code chunk so I can run it from knitr
+## @knitr variablesXY
+
 require("rmarkdown")
 require("knitr")
 require("dplyr")
+require("tidyr")
+require("tframe")
+require("tframePlus")
+require("lubridate")
+require("stringr")
+require("dplyr")
+require("reshape2")
+require("ggplot2")
+require("scales")
+
 
 #############################
 #
@@ -210,12 +223,19 @@ return(out_sa)
 # One reason that I believe I needed to set this up was
 # that I want to be able to run it accross columns of an xts
 # object, which one can't typically do with apply.
+# also, the aggregate.zoo function will sum up the months
+# to a quarterly value even if the last month is missing, for 
+# example:
+#tempc_m <- opcl_m$totusoprms
+#tempc_q <- aggregate(tempc_m, as.yearqtr, sum)
+#tempc_q <- xts(tempc_q)
+# so this is what I came up with
 m_to_q=function(x, type){
-  a.q <- as.quarterly(
+  a_q <- as.quarterly(
     ts(as.numeric(x), frequency = 12, start = c(year(start(x)), month(start(x)))), 
     FUN=type,
-    na.rm=TRUE)
-  return(a.q)
+    na.rm=TRUE) # remove nas, helpful for vapply as we can anticipate length
+  return(a_q)
 }
 # as an example of using this function is the steps I had in 
 # load_str_openclose, which are as follows
@@ -240,3 +260,89 @@ m_to_q=function(x, type){
 # as.quarterly(z) 
 # as.quarterly(z, na.rm=TRUE)
 
+# similar for conversion to annual
+q_to_a=function(x, type){
+  a_a <- as.annually(
+    ts(as.numeric(x), frequency = 4, start = c(year(start(x)), month(start(x)))), 
+    FUN=type,
+    na.rm=FALSE)
+  return(a_a)
+}
+
+#######################
+#
+# takes a quarterly xts object with multiple columns and converts to annual 
+# need to give the type of conversion as argument, for example could do
+# b <- q_to_a_xts(suma, type="sum")
+# this function uses the q_to_a function that I've defined above, but then
+# applys it to all of the columns of a xts object
+q_to_a_xts=function(x, type){
+start <- as.Date((start(x)))
+start <- as.numeric(format(start(x), "%Y"))
+h <- zooreg(vapply(x, q_to_a, FUN.VALUE = 
+                     numeric(floor(nrow(x)/4)), 
+                   type=type),  start=start, frequency=1)
+# at this point it has a four digit year as the index
+# but I wanted to format as a date with the start date of the year
+h <- zooreg(h, order.by=as.Date(paste(index(h),"-01-01", sep="")))
+h <- xts(h)
+  return(h)
+}
+
+#######################
+#
+# creating indexes
+
+# creates an index of a quarterly xts or maybe zoo series
+index_q=function(x, index_year){
+  start_index <- as.Date(paste(index_year,"-01-01",sep=""))
+  end_index <- as.Date(paste(index_year,"-10-01",sep=""))
+  temp_mean <- mean(window(x, start=start_index, end=end_index))
+  x_index <- (x / temp_mean)*100
+  return(x_index)
+}
+
+# runs across a quarterly xts object to create an index of each series
+index_q_xts=function(x, index_year){
+  start <- as.Date((start(x)))
+  h <- zooreg(vapply(x, index_q, FUN.VALUE = 
+                       numeric(nrow(x)), 
+                     index_year=index_year))  
+  h <- zooreg(h, order.by=index(x))
+  h <- xts(h)
+  return(h)
+}
+
+
+# creates an index of a _monthly_ xts or maybe zoo series
+index_m=function(x, index_year){
+  start_index <- as.Date(paste(index_year,"-01-01",sep=""))
+  end_index <- as.Date(paste(index_year,"-12-01",sep=""))
+  temp_mean <- mean(window(x, start=start_index, end=end_index))
+  x_index <- (x / temp_mean)*100
+  return(x_index)
+}
+
+########################33
+#
+# functions for plots
+#
+
+# adds the title
+plot_title_1=function(plot, grtitle, footnote){
+  grobframe <- arrangeGrob(plot, ncol=1, nrow=1,
+                           main = textGrob(grtitle, x=0, hjust=0, vjust=0.5, 
+                                           gp = gpar(fontsize=16, fontface="bold")),
+                           sub = textGrob(footnote, x=0, hjust=0, vjust=0.1, 
+                                          gp = gpar(fontface="italic", fontsize=8)))
+  grid.newpage()
+  grid.draw(grobframe)
+}
+
+
+
+####################
+#
+# ending that might help with issue in knitr
+
+## @knitr plotXY
