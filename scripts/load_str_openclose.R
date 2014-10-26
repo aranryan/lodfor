@@ -19,8 +19,8 @@ fname <- c("input_data/Open_Close_201407.xlsx")
   temp <- read.xlsx(fname, sheetName="cooptotopen", startRow=3,colIndex =1:3,
                     header = TRUE)
   opens_m <- rename(temp, c(
-    "PROPS" = "totusopprop", 
-    "ROOMS" = "totusoprms"
+    "PROPS" = "totus_opprop", 
+    "ROOMS" = "totus_oprms"
     ), warn_missing = TRUE)
   # dplyr chain that filters to drop rows where the YYYYM ends in 13
   # or starts with TOTAL, and then also drops the NA row that appears at bottom
@@ -39,8 +39,8 @@ fname <- c("input_data/Open_Close_201407.xlsx")
 temp <- read.xlsx(fname, sheetName="cooptotcls", startRow=3,colIndex =1:3,
                   header = TRUE)
 closes_m <- rename(temp, c(
-  "PROPS" = "totusclprop", 
-  "ROOMS" = "totusclrms"
+  "PROPS" = "totus_clprop", 
+  "ROOMS" = "totus_clrms"
   ), warn_missing = TRUE)
 # dplyr chain that filters to drop rows where the YYYYM ends in 13
 # or starts with TOTAL, and then also drops the NA row that appears at bottom
@@ -71,9 +71,9 @@ summary(opcl_m)
 
 # fills NAs with zeros 
 opcl_m <- na.fill(opcl_m, c(0))
-plot(opcl_m$totusoprms)
-plot(opcl_m$totusclrms)
-head(opcl_m$totusclrms)
+plot(opcl_m$totus_oprms)
+plot(opcl_m$totus_clrms)
+head(opcl_m$totus_clrms)
 
 summary(opcl_m)
 rm(f)
@@ -103,22 +103,22 @@ opcl_q <- xts(h)
 # changes the format of the index for the xts object from yearqtr to Date
 indexClass(opcl_q) <- c("Date")
 # if I had just wanted to run on one series, I could do the following
-#d <- m_to_q(opcl_m$totusoprms, type=sum)
+#d <- m_to_q(opcl_m$totus_oprms, type=sum)
 #d
 
 
 tail(opcl_q)
 
-plot(opcl_q$totusoprms)
-plot(opcl_q$totusclrms)
+plot(opcl_q$totus_oprms)
+plot(opcl_q$totus_clrms)
 tail(opcl_q)
 
 out_opcl_q <- opcl_q
 out_opcl_m <- opcl_m
 
 # just did opens, closes wouldn't adjust
-seriesl_m <- c("totusoprms") #, "totusclrms")
-seriesl_q <- c("totusoprms") #, "totusclrms")
+seriesl_m <- c("totus_oprms") #, "totus_clrms")
+seriesl_q <- c("totus_oprms") #, "totus_clrms")
 
 #########
 #
@@ -186,19 +186,19 @@ out_opcl_q <- merge(temp_out_q,out_opcl_q)
 # monthly
 tail(out_opcl_m)
 
-autoplot(out_opcl_m$totusoprms)
-autoplot(out_opcl_m$totusoprms_sa)
+autoplot(out_opcl_m$totus_oprms)
+autoplot(out_opcl_m$totus_oprms_sa)
 
-autoplot(out_opcl_m$totusclrms)
+autoplot(out_opcl_m$totus_clrms)
 
 # quarterly
 a <- window(out_opcl_q, start = as.Date("2000-01-01"), end=as.Date("2014-10-01"))
 tail(a)
 
-autoplot(out_opcl_q$totusoprms)
-autoplot(out_opcl_q$totusoprms_sa)
+autoplot(out_opcl_q$totus_oprms)
+autoplot(out_opcl_q$totus_oprms_sa)
 
-autoplot(out_opcl_q$totusclrms)
+autoplot(out_opcl_q$totus_clrms)
 
 
 #########################
