@@ -35,6 +35,7 @@ fpath <- c("~/Project/R projects/lodfor/")
 load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
 load(paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
 load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
+load(paste(fpath, "output_data/outf_str_m_us.Rdata", sep=""))
 ```
 
 ```{r readchunk, echo=FALSE, message=FALSE, warning=FALSE}
@@ -48,6 +49,13 @@ source('~/Project/R projects/lodfor/scripts/functions.R')
 ```
 
 ```{r create_dataframes, echo=FALSE, message=FALSE, warning=FALSE}
+# puts the monthly simple forecast data into a melted data frame
+xts1 <- outf_str_m_us
+#xts1 <- window(xts1, end = as.Date("2014-09-01"))
+df1 <- data.frame(time=time(xts1), xts1)
+outf_str_m_us <- df1
+outf_str_m_us_m <- melt(outf_str_m_us, id.vars = c("time"))
+
 # puts the monthly str data into a melted data frame
 xts1 <- ushist_m
 xts1 <- window(xts1, end = as.Date("2014-09-01"))
@@ -665,6 +673,166 @@ theme(legend.text = element_text(size=10)) +
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
+## Occupancy, monthly simple forecast lower
+```{r occ_monthly_simpf_lower, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+todo1 <- c("totus_occ_sa")
+todo2 <- c("upmus_occ_sa")
+todo3 <- c("midus_occ_sa")
+todo4 <- c("ecous_occ_sa")
+grtitle <- c("Occupancy, lower-priced chain scales")
+footnote <- c("Source: Smith Travel Research; Tourism Economics")
+starta <- as.Date("2010-01-01")
+enda <- as.Date("2014-10-01")
+variable_text <- c("Seasonally adjusted, \nIndex 2005=100")
+variable_legend_1 <- c("US")
+variable_legend_2 <- c("Upper midscale")
+variable_legend_3 <- c("Midscale")
+variable_legend_4 <- c("Economy")
+
+temp <- outf_str_m_us_m %>% 
+  filter(time >= starta, time <= enda, 
+         variable == todo1 | variable == todo2 | variable == todo3 | 
+           variable == todo4) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("time"))
+
+holdnames <-setNames(c("grey70", mypallete[10:10], mypallete[8:8], mypallete[7:7]), 
+                     c(todo1, todo2, todo3, todo4))
+legendnames <- setNames(c(variable_legend_1, variable_legend_2, 
+                          variable_legend_3, variable_legend_4),
+                        c(todo1, todo2, todo3, todo4))
+
+p1 <- ggplot(data = temp, aes(x = time, y = value, color = variable)) +
+  geom_point() +
+ geom_line() +
+ ggtitle(variable_text) +
+ theme(legend.position=c(1, .2)) +
+ scale_colour_manual(values=holdnames, labels=legendnames) +
+theme(legend.text = element_text(size=10)) + 
+  theme(legend.key.size = unit(1, "cm"))
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+## Occupancy, monthly simple forecast higher
+```{r occ_monthly_simpf_higher, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+todo1 <- c("totus_occ_sa")
+todo2 <- c("luxus_occ_sa")
+todo3 <- c("upuus_occ_sa")
+todo4 <- c("upsus_occ_sa")
+grtitle <- c("Occupancy, higher-priced chain scales")
+footnote <- c("Source: Smith Travel Research; Tourism Economics")
+starta <- as.Date("2010-01-01")
+enda <- as.Date("2014-10-01")
+variable_text <- c("Seasonally adjusted, \nIndex 2005=100")
+variable_legend_1 <- c("US")
+variable_legend_2 <- c("Luxury")
+variable_legend_3 <- c("Upper upscale")
+variable_legend_4 <- c("Upscale")
+names(outf_str_m_us)
+temp <- outf_str_m_us_m %>% 
+  filter(time >= starta, time <= enda, 
+         variable == todo1 | variable == todo2 | variable == todo3 | 
+           variable == todo4) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("time"))
+
+holdnames <-setNames(c("grey70", mypallete[10:10], mypallete[8:8], mypallete[7:7]), 
+                     c(todo1, todo2, todo3, todo4))
+legendnames <- setNames(c(variable_legend_1, variable_legend_2, 
+                          variable_legend_3, variable_legend_4),
+                        c(todo1, todo2, todo3, todo4))
+
+p1 <- ggplot(data = temp, aes(x = time, y = value, color = variable)) +
+  geom_point() +
+ geom_line() +
+ ggtitle(variable_text) +
+ theme(legend.position=c(1, .2)) +
+ scale_colour_manual(values=holdnames, labels=legendnames) +
+theme(legend.text = element_text(size=10)) + 
+  theme(legend.key.size = unit(1, "cm"))
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+## ADR, monthly simple forecast
+```{r adr_monthly_simpf_higher, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+todo1 <- c("totus_adr_sa")
+#todo2 <- c("luxus_adr_sa")
+todo3 <- c("upuus_adr_sa")
+todo4 <- c("upsus_adr_sa")
+grtitle <- c("ADR, higher-priced chain scales")
+footnote <- c("Source: Smith Travel Research; Tourism Economics")
+starta <- as.Date("2010-01-01")
+enda <- as.Date("2014-10-01")
+variable_text <- c("Seasonally adjusted")
+variable_legend_1 <- c("US")
+variable_legend_2 <- c("Luxury")
+variable_legend_3 <- c("Upper upscale")
+variable_legend_4 <- c("Upscale")
+names(outf_str_m_us)
+temp <- outf_str_m_us_m %>% 
+  filter(time >= starta, time <= enda, 
+         variable == todo1  | variable == todo3 | #| variable == todo2
+           variable == todo4) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("time"))
+
+holdnames <-setNames(c("grey70", mypallete[10:10], mypallete[8:8], mypallete[7:7]), 
+                     c(todo1, todo3, todo4))
+legendnames <- setNames(c(variable_legend_1, 
+                          variable_legend_3, variable_legend_4),
+                        c(todo1, todo3, todo4))
+
+p1 <- ggplot(data = temp, aes(x = time, y = value, color = variable)) +
+  geom_point() +
+ geom_line() +
+ ggtitle(variable_text) +
+ theme(legend.position=c(0.2, .2)) +
+ scale_colour_manual(values=holdnames, labels=legendnames) +
+theme(legend.text = element_text(size=10)) + 
+  theme(legend.key.size = unit(1, "cm"))
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+
+## ADR, monthly simple forecast lower
+```{r occ_monthly_simpf_lower, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+todo1 <- c("totus_adr_sa")
+todo2 <- c("upmus_adr_sa")
+todo3 <- c("midus_adr_sa")
+todo4 <- c("ecous_adr_sa")
+grtitle <- c("ADR, lower-priced chain scales")
+footnote <- c("Source: Smith Travel Research; Tourism Economics")
+starta <- as.Date("2013-01-01")
+enda <- as.Date("2014-10-01")
+variable_text <- c("Seasonally adjusted")
+variable_legend_1 <- c("US")
+variable_legend_2 <- c("Upper midscale")
+variable_legend_3 <- c("Midscale")
+variable_legend_4 <- c("Economy")
+
+temp <- outf_str_m_us_m %>% 
+  filter(time >= starta, time <= enda, 
+         variable == todo1 | variable == todo2 | variable == todo3 | 
+           variable == todo4) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("time"))
+
+holdnames <-setNames(c("grey70", mypallete[10:10], mypallete[8:8], mypallete[7:7]), 
+                     c(todo1, todo2, todo3, todo4))
+legendnames <- setNames(c(variable_legend_1, variable_legend_2, 
+                          variable_legend_3, variable_legend_4),
+                        c(todo1, todo2, todo3, todo4))
+
+p1 <- ggplot(data = temp, aes(x = time, y = value, color = variable)) +
+  geom_point() +
+ geom_line() +
+ ggtitle(variable_text) +
+ theme(legend.position=c(.2, .2)) +
+ scale_colour_manual(values=holdnames, labels=legendnames) +
+theme(legend.text = element_text(size=10)) + 
+  theme(legend.key.size = unit(1, "cm"))
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
 
 ## Remaining are just examples for reference
 

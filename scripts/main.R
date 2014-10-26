@@ -19,15 +19,22 @@ source("scripts/prep_str.R")
 # out_str_q_us
 
 # reads STR opens and closes directly from Excel source file
-source("load_str_openclose.R")
+source("scripts/load_str_openclose.R")
 # as a result, two R files are saved (as well as csv versions)
 # out_opcl_m
 # out_opcl_q
 
 # reads macro source file
-source("load_macro.R")
+knit("scripts/load_usmacro.Rmd")
+
+# creates the ushist file
+knit("scripts/create_ushist.Rmd")
+
+# runs simple forecast 
+source("scripts/simple_forecast.R")
+
+# runs the markdown file
+rmarkdown::render("scripts/us_overview_graphs.Rmd") #, output_dir = "/output_data/")
 
 
-# old files
-#source("~/Project/R projects/lodging graphs/scripts/graphs.R")
 

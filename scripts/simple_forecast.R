@@ -1,17 +1,15 @@
-library(forecast)
+require("forecast")
 load("output_data/out_str_m_us.Rdata")
 outf_str_m_us <- out_str_m_us
 
-h <- 24
+h <- 30
 a <- "1987-01-01"
-b <- "2014-08-01"
+b <- "2014-09-01"
 c <- paste(a, b, sep="::")
 c
 
-cityl <- c("totus",  "upsus", "upmus") #"indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
+cityl <- c("totus", "indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous")
 segl <- c("demd", "occ", "adr", "revpar", "supd") 
-
-
 
 for(n in cityl){
   for(s in segl){
@@ -23,24 +21,31 @@ for(n in cityl){
     # uses the variable name to select a specific vector
     temp <- outf_str_m_us[,series_sa]
     temp <- temp[c]
-    head(temp)
-    tail(temp)
+    print(head(temp))
+    print(tail(temp))
     fcast1 <- forecast(temp,h=h)$mean
     plot(forecast(temp,h=h))
-    head(fcast1)
+    print(head(fcast1))
     
-    temp2 <- zooreg(1:24, start = as.yearmon("2014-09-01"), frequency = 12)
+    print("got here1")
+    
+    temp2 <- zooreg(1:30, start = as.yearmon("2014-10-01"), frequency = 12)
     temp3 <- as.Date(index(temp2))
-    head(temp3)
+    print(head(temp3))
     temp4 <- xts(fcast1, temp3)
-    head(temp4)
-    tail(temp4)
-    head(temp)
+    print(head(temp4))
+    print(tail(temp4))
+    print(head(temp))
+    
+    print("got here2")
     temp4 <- rbind(temp, temp4)
     plot(temp4)
     
-    tail(temp4)
+    print(tail(temp4))
+    print("got here3")
+    
     outf_str_m_us[,series_sa] <- temp4
+    print("got here4")
     outf_str_m_us[,seriesn] <- outf_str_m_us[,series_sa] * outf_str_m_us[,series_sf]
 }
 }
