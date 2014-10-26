@@ -19,7 +19,7 @@ require("lubridate")
 require("ggplot2")
 
 fname <- c("input_data/LODFOR_OEF_USMACRO_2014_10_15.csv")
-temp <- read.csv(fname, header=TRUE)
+temp <- read.csv(fname, header=TRUE, stringsAsFactors=FALSE)
 # sets up column names
 temp_names <- colnames(temp)
 # removes periods in column names
@@ -48,8 +48,11 @@ str(temp)
 # much of the data is in character format
 # this step converts to numeric and overwrites it
 tempa <- temp[,2:ncol(temp)]
-tempa <- sapply(tempa, as.numeric )
-temp[,2:ncol(temp)] <- tempa
+tempb <- data.matrix(tempa)
+# could have also used sapply I believe
+# tempb <- sapply(tempa, as.numeric )
+temp[,2:ncol(temp)] <- tempb
+
 
 #creates zoo object then xts object
 temp1 <- read.zoo(temp)
@@ -73,6 +76,20 @@ A few plots
 autoplot(oe_usmac_q$us_gdp)
 
 autoplot(oe_usmac_q$us_up)
+autoplot(oe_usmac_q$us_et)
+autoplot(oe_usmac_q$us_rcorp)
+autoplot(oe_usmac_q$us_pc)
+
+temp <- (oe_usmac_q$us_gdp)
+# percentage growth
+tempdiff <- diff(temp)/lag(temp)
+# annualized growth
+tempcagr <- (temp/lag(temp))^4-1
+#plotting annualized growth
+autoplot(window(tempcagr, start=as.Date("2013-01-01"), end=as.Date("2015-01-01")))
+tempa <- merge(temp, tempdiff, tempcagr)
+
+
 
 ```
 

@@ -7,11 +7,11 @@ cityl <- c(
   "totus" 
    ,"indus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous"
   
-   ,"anaheim", "atlanta", "boston", "chicago", "dallas" 
-   ,"denver", "detroit", "houston", "lalongbeach", "miami" 
-   ,"minneapolis", "nashville", "neworleans", "newyork", "norfolk"
-   ,"oahu", "orlando", "philadelphia", "phoenix", "sandiego" 
-   ,"sanfrancisco", "seattle", "stlouis", "tampa", "washingtondc"
+#    ,"anaheim", "atlanta", "boston", "chicago", "dallas" 
+#    ,"denver", "detroit", "houston", "lalongbeach", "miami" 
+#    ,"minneapolis", "nashville", "neworleans", "newyork", "norfolk"
+#    ,"oahu", "orlando", "philadelphia", "phoenix", "sandiego" 
+#    ,"sanfrancisco", "seattle", "stlouis", "tampa", "washingtondc"
   )
 
 measl <- c(
@@ -232,7 +232,7 @@ print("preping US output files")
 uslist<- c("ecous", "indus", "luxus", "midus", "upmus", "upsus", "upuus", "totus")
 
 temp_names <- names(out_str_m)
-temp_out <- c("year", "month", "qtr", "days")
+temp_out_uslist <- c("year", "month", "qtr", "days")
 
 for(term in uslist){
   # searches across temp_names for those items that start with the search term
@@ -243,9 +243,8 @@ for(term in uslist){
   # also this was useful reference on strings
   #http://gastonsanchez.com/Handling_and_Processing_Strings_in_R.pdf
   temp_us <- grep(paste("^",term,sep=""),temp_names, value=TRUE)
-  temp_out_uslist <- c(temp_out, temp_us)
+  temp_out_uslist <- c(temp_out_uslist, temp_us)
 }
-
 # takes just those columns in out_str_m that are in the list of names
 out_str_q_us <- out_str_q[ , temp_out_uslist]
 out_str_m_us <- out_str_m[ , temp_out_uslist]
@@ -275,7 +274,7 @@ save(out_str_q_us, file="output_data/out_str_q_us.Rdata")
 # cleaning up
 
 rm(regressvar, temp_seasonal_a, temp_out_m)
-rm(temp_out, lodus_m, lodus_q)
+rm(temp_out_uslist, lodus_m, lodus_q)
 #rm(out_str_m, out_str_m_us, out_str_q, out_str_q_us)
 rm(tempdata, tempdata_fct, tempdata_sa, tempdata_sf)
 rm(cityl)

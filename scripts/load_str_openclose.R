@@ -88,13 +88,13 @@ rm(f)
 # http://codereview.stackexchange.com/questions/39180/best-way-to-apply-across-an-xts-object
 
 # sets up the start of the index that will be used for the quarterly object
-start <- as.yearqtr((start(opcl_m)))
 # uses vapply to essentially run an apply across the xts object because
 # apply doesn't work on an xts object
 # for vapply we need to give the expected length in FUN.VALUE and a
 # start date and quarterly frequency
 # The function that I'm applying to each column is m_to_q, which I wrote, the type="sum"
 # is giving the type of aggregation to use in it
+start <- as.yearqtr((start(opcl_m)))
 h <- zooreg(vapply(opcl_m, m_to_q, FUN.VALUE = 
                      numeric(floor(nrow(opcl_m)/3)), 
                      type="sum"), start=start, frequency=4)
@@ -105,6 +105,7 @@ indexClass(opcl_q) <- c("Date")
 # if I had just wanted to run on one series, I could do the following
 #d <- m_to_q(opcl_m$totusoprms, type=sum)
 #d
+
 
 tail(opcl_q)
 
