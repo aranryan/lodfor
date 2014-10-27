@@ -6,52 +6,56 @@ output: html_document
 ---
 
 Creates a us historical databank. Combines the STR data with selected macro data and calculates a few series
-
 ```{r}
 require("tidyr")
 require("zoo")
 require("xts")
+require("ggplot2")
+require("tframePlus")
+require("seasonal")
+
+Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
+checkX13()
 
 fpath <- c("~/Project/R projects/lodfor/") 
-load(paste(fpath,"output_data/out_str_q_us.Rdata", sep=""))
+
+#macro data
 load(paste(fpath,"output_data/oe_usmac_q.Rdata", sep=""))
+
+# str data
+load(paste(fpath,"output_data/out_str_q_us.Rdata", sep=""))
 load(paste(fpath,"output_data/out_str_m_us.Rdata", sep=""))
 
+# open close data
+load(paste(fpath,"output_data/out_opcl_q.Rdata", sep=""))
+load(paste(fpath,"output_data/out_opcl_m.Rdata", sep=""))
 ```
-
 
 The initial steps do the quarterly databank. Monthly is done further below.
 ```{r}
-
-temp <- data.frame(oe_usmac_q)
-# will see if time is needed
-#temp <- data.frame(time=time(oe_usmac_q), oe_usmac_q)
-
-temp <- oe_usmac_q %>%
-  data.frame(time=time(oe_usmac_q),oe_usmac_q) 
-
+# selects certain series to bring in. Others just stay in macro in case they 
+# are needed in future.
 temp <- oe_usmac_q %>%
   data.frame(time=time(oe_usmac_q), oe_usmac_q) %>%
   select(time, 
          us_gdp,
          us_if,
-               us_cd,
-               us_iconstr,
-               us_popnipa,
-               us_popw,
-               us_et,
-               us_up,
-               us_yhat,
-               us_pc,
-               us_pedy,
-               us_penw,
-               us_cogtp,
-               us_cpi
+         us_cd,
+         us_iconstr,
+         us_popnipa,
+         us_popw,
+         us_et,
+         us_up,
+         us_yhat,
+         us_pc,
+         us_pedy,
+         us_penw,
+         us_cogtp,
+         us_cpi
          ) %>%
-        read.zoo %>%
-        as.xts
+  read.zoo %>%
+  as.xts
 head(temp)
-
 
 # merges dataframes. the all.=TRUE piece ensures all the rows
 # in the first dataframe are included
@@ -151,14 +155,172 @@ autoplot(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2014-10-01"))
 ushist_q <- merge(ushist_q, real)
 autoplot(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2014-10-01"))
 
-# which segments or markets are in the data frame
-a <- grep(pattern="_demt", colnames(suma), value=TRUE)
-a <- gsub(pattern="_demt",replacement="",a)
+```
 
+Adds open close data
+
+As background:
+supd is average daily room nights during period
+so for monthly data that's the measure of number of rooms
+during the month. That's essentially the supply at the start of the month.
+
+sups is going to be start of period supply in number of rooms. 
+Calculate sups for quarterly data by taking supd of the first month of the quarter.
+
+supe is the end of the quarter, so it should be set equal to the start of
+supply from the next quarter
+
+```{r}
+# process is to create a quarterly object with open close andstart/end of 
+# period supply, and then merge it onto the quarterly object we're building
+
+# just select the series we want
+temp_opcl <- data.frame(time=time(out_opcl_q), out_opcl_q) %>%
+  select(time, 
+         totus_oprms_sa, 
+         totus_oprms_sf, 
+         totus_oprms, 
+         totus_clrms) %>%
+  read.zoo %>%
+  as.xts
+head(temp_opcl)
+
+# setting up end of period and start of period supply quarterly
+
+# use monthly supply to calculate start of quarter supply
+# this approach is based on the help for aggregate.zoo 
+#function which returns corresponding first "Date" of quarter
+first.of.quarter <- function(tt) as.Date(as.yearqtr(tt))
+sup_qtr <- aggregate(out_str_m_us$totus_supd, first.of.quarter, first) %>%
+  xts()
+# had to mannually add back the column names, not sure what happened
+colnames(sup_qtr) <- c("totus_sups")
+
+# create supe as lead of sups
+# remember lags in xts are different than in zoo
+sup_qtr$totus_supe <- lag(sup_qtr$totus_sups, -1)
+
+# as a check
+head(out_str_m_us$totus_supd) #monthly
+head(sup_qtr$totus_sups) # based on start of quarter
+head(sup_qtr$totus_supe) # based on start of quarter
+
+# combine with ushist_q did in two steps just so
+# I had a way to look at temp_opcl if I wanted to
+temp_opcl <- merge(temp_opcl, sup_qtr)
+ushist_q <- merge(ushist_q, temp_opcl)
+
+# calculate the schange and schanger
+ushist_q <- data.frame(time=time(ushist_q), ushist_q) %>%
+  mutate(totus_schange = 
+           totus_supe - totus_sups - totus_oprms /1000000 + totus_clrms/1000000,
+         totus_schanger = totus_schange / totus_sups) %>%
+  read.zoo %>%
+  as.xts
+
+# looking at data
+autoplot(window(ushist_q$totus_oprms, start="1995-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$totus_clrms, start="1995-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2014-10-01"))
+
+# looking at it as a ts
+tempa <- na.exclude(ushist_q$totus_schange)*1000000
+tempa_ts <<- ts(as.numeric(tempa), start=c(1987, 1), frequency=4)
+plot(tempa_ts)
+head(tempa_ts)
+monthplot(tempa_ts)
+
+# looking at schanger
+tempa <- na.exclude(ushist_q$totus_schanger)
+tempa_ts <<- ts(as.numeric(tempa), start=c(1987, 1), frequency=4)
+#plot(tempa_ts)
+head(tempa_ts)
+monthplot(tempa_ts)
+
+# if I adjust as seas, it works, but my function didn't
+# I think the issue is that my function requires a transform.function ="log"
+# which I don't think works with negative values
+# so my temporary solution is to not use my fuction and just use seas directly
+# generally follow the structure of my function
+
+x <- ushist_q$totus_schanger
+  #stores the name
+  holdn <- names(x)
+  print(holdn)
+  # trims the NAs from the series
+  x <- na.trim(x)
+  # this series y is used in the output, just outputs the original series
+  y <- x
+y <- ts(as.numeric(y), start=c(1987, 1), frequency=4)
+mp <- seas(y,
+            # transform.function = "log",
+             regression.aictest = NULL,
+             regression.variables = c("const", "easter[8]"),
+             identify.diff = c(0, 1),
+             identify.sdiff = c(0, 1),
+             forecast.maxlead = 30, # extends 30 quarters ahead
+             x11.appendfcst = "yes", # appends the forecast of the seasonal factors
+             dir = "output_data/" )
+
+  # grabs the seasonally adjusted series
+  tempdata_sa <- series(mp, c("d11")) # seasonally adjusted series
+  tempdata_sf <- series(mp, c("d16")) # seasonal factors
+  tempdata_fct <- series(mp, "forecast.forecasts") # forecast of nonseasonally adjusted series
+  tempdata_irreg <- series(mp, c("d13")) # final irregular component
+  
+  # creates xts objects
+  tempdata_sa <- as.xts(tempdata_sa)
+  tempdata_sf <- as.xts(tempdata_sf)
+  # in the following, we just want the forecast series, not the ci bounds
+  # I had to do in two steps, I'm not sure why
+  tempdata_fct <- as.xts(tempdata_fct) 
+  tempdata_fct <- as.xts(tempdata_fct$forecast) 
+  tempdata_irreg <- as.xts(tempdata_irreg)
+  
+  # names the objects
+  names(tempdata_sa) <- paste(holdn,"_sa",sep="") 
+  names(tempdata_sf) <- paste(holdn,"_sf",sep="") 
+  names(tempdata_fct) <- paste(holdn,"_fct",sep="") 
+  names(tempdata_irreg) <- paste(holdn,"_irreg",sep="") 
+
+  # merges the adjusted series onto the existing xts object with the unadjusted
+  # series
+  out_sa <- merge(tempa, tempdata_sa, tempdata_sf, tempdata_fct, tempdata_irreg)
+
+  # select a few that I want to add
+  temp_schanger <- data.frame(time=time(out_sa), out_sa) %>%
+  select(time, 
+         totus_schanger_sa,
+         totus_schanger_sf) %>%
+  read.zoo %>%
+  as.xts
+  head(temp_schanger)
+
+autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2014-10-01"))
+autoplot(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2014-10-01"))
+
+# merge onto ushist_q
+ushist_q <- merge(ushist_q, temp_schanger)
+
+autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2014-10-01"))
+```
+
+
+Looking at what's in quarterly databank
+```{r}
+# which segments or markets are in the data frame, just for observation
+# not used anywhere
+a <- grep(pattern="_demt", colnames(ushist_q), value=TRUE)
+a
+a <- gsub(pattern="_demt",replacement="",a)
+a
+
+b <- grep(pattern="totus_", colnames(ushist_q), value=TRUE)
+b
 ```
 
 Writing quarterly outputs
-
 ```{r, echo=FALSE}
 # writes csv versions of the output files
 write.zoo(ushist_q, file=paste(fpath, "output_data/ushist_q.csv", sep=""), sep=",")
@@ -176,7 +338,6 @@ ushist_m <- out_str_m_us
 ```
 
 Writing monthly outputs
-
 ```{r, echo=FALSE}
 # writes csv versions of the output files
 write.zoo(ushist_m, file=paste(fpath,"output_data/ushist_m.csv",sep=""), sep=",")
