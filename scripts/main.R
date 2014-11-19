@@ -12,11 +12,9 @@ source("scripts/load_str.R")
 source("scripts/prep_str.R")
 # as a result, four R data files saved (as well as csv versions) 
 # # the first two include the metro data
-# out_str_m
-# out_str_q
+# out_str_m out_str_q
 # these second two are just US data
-# out_str_m_us
-# out_str_q_us
+# out_str_m_us out_str_q_us
 
 # reads STR opens and closes directly from Excel source file
 source("scripts/load_str_openclose.R")

@@ -331,11 +331,11 @@ index_m=function(x, index_year){
 # adds the title
 plot_title_1=function(plot, grtitle, footnote){
   grobframe <- arrangeGrob(plot, ncol=1, nrow=1,
-                           main = textGrob(grtitle, x=0, hjust=0, vjust=0.5, 
-                                           gp = gpar(fontsize=16, fontface="bold")),
-                           sub = textGrob(footnote, x=0, hjust=0, vjust=0.1, 
-                                          gp = gpar(fontface="italic", fontsize=8)))
-  grid.newpage()
+    main = textGrob(grtitle, x=0, hjust=0, vjust=0.5, 
+                    gp = gpar(fontsize=16, fontface="bold")),
+    sub = textGrob(footnote, x=0, hjust=0, vjust=0.1, 
+                    gp = gpar(fontface="italic", fontsize=8)))
+  grid.newpage() # basic command to create a new page of output
   grid.draw(grobframe)
 }
 

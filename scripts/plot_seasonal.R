@@ -2,13 +2,13 @@ library(zoo)
 library(reshape2)
 library(ggplot2)
 
-n <- "washingtondc"
-m <- "demd" # "occ", "adr", "revpar", "supd") 
+n <- "totus" # "washingtondc"
+m <- "schanger" # "occ", "adr", "revpar", "supd") 
 
-temp <- out_str_m
+temp <- ushist_q #out_str_m
 
 series <- temp[ , paste(n, "_", m, sep="")]
-series_sa <- temp[ , paste(n, "_", m, "_sa", sep="")]
+series_sa <- temp[ , paste(n, "_", m,  "_sa", sep="")]
 series_sf <- temp[ , paste(n, "_", m, "_sf", sep="")]
 series_irreg <- temp[ , paste(n, "_", m, "_irreg", sep="")]
 

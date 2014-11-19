@@ -13,22 +13,18 @@ require("xts")
 require("ggplot2")
 require("tframePlus")
 require("seasonal")
-
 Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
 checkX13()
 
 fpath <- c("~/Project/R projects/lodfor/") 
-
 #macro data
-load(paste(fpath,"output_data/oe_usmac_q.Rdata", sep=""))
-
+  load(paste(fpath,"output_data/oe_usmac_q.Rdata", sep=""))
 # str data
-load(paste(fpath,"output_data/out_str_q_us.Rdata", sep=""))
-load(paste(fpath,"output_data/out_str_m_us.Rdata", sep=""))
-
+  load(paste(fpath,"output_data/out_str_q_us.Rdata", sep=""))
+  load(paste(fpath,"output_data/out_str_m_us.Rdata", sep=""))
 # open close data
-load(paste(fpath,"output_data/out_opcl_q.Rdata", sep=""))
-load(paste(fpath,"output_data/out_opcl_m.Rdata", sep=""))
+  load(paste(fpath,"output_data/out_opcl_q.Rdata", sep=""))
+  load(paste(fpath,"output_data/out_opcl_m.Rdata", sep=""))
 ```
 
 The initial steps do the quarterly databank. Monthly is done further below.
@@ -60,49 +56,6 @@ head(temp)
 # merges dataframes. the all.=TRUE piece ensures all the rows
 # in the first dataframe are included
 ushist_q <- merge(temp, out_str_q_us, all=TRUE) 
-
-###########################3
-#
-# create annual
-#
-
-# start with those that should be summed
-
-# select series that should be converted to annual by summing
-# I wrote a regular expression that is looking for certain text strings
-# for reference on writing regular expressions, see
-# http://www.regular-expressions.info/quickstart.html
-suma_df <- data.frame(ushist_q) %>%
-  select(matches("_demt|_supt|_rmrevt"))
-suma <- as.xts(suma_df)
-rm(suma_df)
-
-# this function is one I defined, it converts all the columns in 
-# an xts object to annual. Must be an xts object to start with
-suma <- q_to_a_xts(suma, type="sum")
-
-# takes the summed data and spreads it into a tidy format with
-# tidyr and then calculates the occupancy and revpar series
-tb2 <- data.frame(time=time(suma), suma)%>% 
-  gather(segvar, value, -time, na.rm = FALSE) %>%
-  # in the following the ^ means anything not in the list
-  # with the list being all characters and numbers
-  separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
-  spread(variable,value) %>%
-  mutate(occ = demt / supt) %>%
-  mutate(revpar = rmrevt / supt)
-
-# takes it from a tidy format and melts it, and then creates the unique
-# variable names and then reads into a zoo object spliting on the 
-# second column
-a <- melt(tb2, id=c("time","seg"), na.rm=FALSE)
-a$variable <- paste(a$seg, "_", a$var, sep='')
-a$seg <- NULL
-suma <- xts(read.zoo(a, split = 2))
-
-autoplot(suma$luxus_revpar)
-autoplot(window(suma$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2014-01-01")))
-
 
 ######################
 #
@@ -306,7 +259,6 @@ ushist_q <- merge(ushist_q, temp_schanger)
 autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2014-10-01"))
 ```
 
-
 Looking at what's in quarterly databank
 ```{r}
 # which segments or markets are in the data frame, just for observation
@@ -320,15 +272,45 @@ b <- grep(pattern="totus_", colnames(ushist_q), value=TRUE)
 b
 ```
 
-Writing quarterly outputs
-```{r, echo=FALSE}
-# writes csv versions of the output files
-write.zoo(ushist_q, file=paste(fpath, "output_data/ushist_q.csv", sep=""), sep=",")
-write.zoo(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.csv", sep=""), sep=",")
+Create annual databank
+```{r}
+# start with those that should be summed
 
-# saves Rdata versions of the output files
-save(ushist_q, file=paste(fpath, "output_data/ushist_q.Rdata", sep=""))
-save(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
+# select series that should be converted to annual by summing
+# I wrote a regular expression that is looking for certain text strings
+# for reference on writing regular expressions, see
+# http://www.regular-expressions.info/quickstart.html
+suma <- data.frame(ushist_q) %>%
+  select(matches("_demt|_supt|_rmrevt"), totus_oprms, totus_clrms, totus_schange) %>%
+  as.xts()
+
+# this function is one I defined, it converts all the columns in 
+# an xts object to annual. Must be an xts object to start with
+suma <- q_to_a_xts(suma, type="sum")
+
+# takes the summed data and spreads it into a tidy format with
+# tidyr and then calculates the occupancy and revpar series
+tb2 <- data.frame(time=time(suma), suma)%>% 
+  gather(segvar, value, -time, na.rm = FALSE) %>%
+  # in the following the ^ means anything not in the list
+  # with the list being all characters and numbers
+  separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+  spread(variable,value) %>%
+  mutate(occ = demt / supt) %>%
+  mutate(revpar = rmrevt / supt)
+
+# takes it from a tidy format and melts it, and then creates the unique
+# variable names and then reads into a zoo object spliting on the 
+# second column
+a <- melt(tb2, id=c("time","seg"), na.rm=FALSE)
+a$variable <- paste(a$seg, "_", a$var, sep='')
+a$seg <- NULL
+ushist_a <- xts(read.zoo(a, split = 2))
+
+# looking at a few graphs
+autoplot(ushist_a$totus_schange)
+autoplot(ushist_a$luxus_revpar)
+autoplot(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2014-01-01")))
 ```
 
 Creating monthly historical databank
@@ -337,12 +319,28 @@ Creating monthly historical databank
 ushist_m <- out_str_m_us
 ```
 
-Writing monthly outputs
+Writing outputs
 ```{r, echo=FALSE}
-# writes csv versions of the output files
-write.zoo(ushist_m, file=paste(fpath,"output_data/ushist_m.csv",sep=""), sep=",")
+# quarterly
+  # writes csv versions of the output files
+  write.zoo(ushist_q, file=paste(fpath, "output_data/ushist_q.csv", sep=""), sep=",")
+  write.zoo(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.csv", sep=""), sep=",")
+  
+  # saves Rdata versions of the output files
+  save(ushist_q, file=paste(fpath, "output_data/ushist_q.Rdata", sep=""))
+  save(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
 
-# saves Rdata versions of the output files
-save(ushist_m, file=paste(fpath,"output_data/ushist_m.Rdata", sep=""))
+# monthly
+  # writes csv versions of the output files
+  write.zoo(ushist_m, file=paste(fpath,"output_data/ushist_m.csv",sep=""), sep=",")
+  
+  # saves Rdata versions of the output files
+  save(ushist_m, file=paste(fpath,"output_data/ushist_m.Rdata", sep=""))
+
+# annual
+  # writes csv versions of the output files
+  write.zoo(ushist_a, file=paste(fpath,"output_data/ushist_a.csv",sep=""), sep=",")
+  
+  # saves Rdata versions of the output files
+  save(ushist_a, file=paste(fpath,"output_data/ushist_a.Rdata", sep=""))
 ```
-

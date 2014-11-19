@@ -1,0 +1,265 @@
+---
+title: "US supply  slides"
+author: "Tourism Economics"
+date: "Sunday, October 12, 2014"
+output:
+  ioslides_presentation:
+    fig_height: 5
+    fig_width: 8.5
+    smaller: yes
+  beamer_presentation: default
+  slidy_presentation: default
+---
+
+## Slide with Bullets
+
+- Bullet 1
+- Bullet 2
+- Bullet 3
+
+## Slide with R Code and Output
+```{r load_files, echo=FALSE, message=FALSE, warning=FALSE}
+require(zoo)
+require(xts)
+require(dplyr)
+require(reshape2)
+require(ggplot2)
+require(RColorBrewer)
+require(gridExtra)
+require(gtable)
+require(tidyr)
+require(knitr)
+
+fpath <- c("~/Project/R projects/lodfor/")
+
+load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
+load(paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
+load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
+load(paste(fpath, "output_data/outf_str_m_us.Rdata", sep=""))
+```
+
+```{r readchunk, echo=FALSE, message=FALSE, warning=FALSE}
+read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
+
+source('~/Project/R projects/lodfor/scripts/functions.R')
+```
+
+```{r first, echo=FALSE, message=FALSE, warning=FALSE}
+<<variablesXY>>
+```
+
+```{r create_dataframes, echo=FALSE, message=FALSE, warning=FALSE}
+# puts the monthly simple forecast data into a melted data frame
+xts1 <- outf_str_m_us
+#xts1 <- window(xts1, end = as.Date("2014-09-01"))
+df1 <- data.frame(time=time(xts1), xts1)
+outf_str_m_us <- df1
+outf_str_m_us_m <- melt(outf_str_m_us, id.vars = c("time"))
+
+# puts the monthly str data into a melted data frame
+xts1 <- ushist_m
+xts1 <- window(xts1, end = as.Date("2014-09-01"))
+df1 <- data.frame(time=time(xts1), xts1)
+ushist_m <- df1
+ushist_m_m <- melt(ushist_m, id.vars = c("time"))
+#ushist_m_m[1:4,]
+
+# puts the quarterly ushist into a melted data frame
+xts1 <- ushist_q
+xts1 <- window(xts1, end = as.Date("2017-10-01"))
+df1 <- data.frame(time=time(xts1), xts1)
+ushist_q_df <- df1
+ushist_q_m <- melt(ushist_q_df, id.vars = c("time"))
+#ushist_q_m[1:4,]
+
+# puts the quarterly ushist indexed into a melted data frame
+xts1 <- ushist_ind_q
+xts1 <- window(xts1, end = as.Date("2014-09-01"))
+df1 <- data.frame(time=time(xts1), xts1)
+ushist_ind_q_df <- df1
+ushist_ind_q_m <- melt(ushist_ind_q_df, id.vars = c("time"))
+#ushist_ind_q_m[1:4,]
+
+# this is if I wanted to do things with a tidy format
+# takes the summed data and spreads it into a tidy format with
+# tidyr and then calculates the occupancy and revpar series
+tidy_ushist_q <- data.frame(time=time(ushist_q), ushist_q)%>%
+  select(-year,-month,-qtr,-days) %>%
+  gather(segvar, value, -time, na.rm = FALSE) %>%
+  # I had difficulty separating by the underscore
+  # because there are more than one underscore in some
+  # so my solution was to mutate the column, applying 
+  # the sub function, which replaces the first occurance of
+  # the underscore with a period
+  mutate(segvar = sub("_",".", segvar)) %>%
+  # then run the separate on the period, using backslashes
+  # to escape out of the second character
+  separate(segvar, c("seg", "variable"), sep = "\\.") 
+```
+
+## Slide with R Code and Output
+Loads code_book_matrix and shows example contents
+```{r load_code_book_matrix, echo=FALSE, message=FALSE, warning=FALSE}
+fname <- c(paste(fpath, "input_data/code_book_matrix.csv", sep=""))
+code_book_matrix <- read.csv(fname, stringsAsFactors=FALSE)
+#head(code_book_matrix)
+rm(fname)
+```
+Displays palette and sets the ts1 theme
+```{r set_theme, echo=FALSE, message=FALSE, warning=FALSE}
+#display.brewer.pal(10, "RdBu")
+mypallete <- brewer.pal( 10 , "RdBu" )
+colors_ts1 <- scale_colour_manual(values = mypallete[c(10, 1, 5, 4)])
+# I don't use the following, was an example I saw somewhere maybe as a way to 
+# interpolate additional palette colors
+#mypal <- colorRampPalette( brewer.pal( 10 , "RdBu" ) )
+theme_ts1 <- function (base_size = 12, base_family = "") {
+  theme_classic(base_size = base_size, base_family = base_family) %+replace%
+    theme(                                 
+      panel.grid.major.x=element_blank(),
+      panel.grid.minor.x=element_blank(),
+      panel.grid.minor.y=element_blank(),
+      axis.ticks.y=element_line(size=.2),
+      axis.ticks.x=element_line(size=.2),
+      panel.background=element_blank(),
+      legend.title=element_blank(),
+      legend.key=element_rect(fill="white", colour = "white"),
+      legend.key.size=unit(1.5, "cm"),
+      legend.text=element_text(size=rel(1.1)),
+      legend.position = c(1, .1),
+      legend.position = "none",
+      legend.justification = "right",
+      axis.line=element_line(size=.2),
+      axis.title.y=element_blank(),
+      axis.title.x=element_blank(),
+      axis.text=element_text(color="black",size=rel(.9)),
+      plot.title=element_text(size=base_size * .8, face="plain",hjust=0,vjust=1)
+  #       theme(plot.title = element_text(lineheight=.8, face="bold"))
+    )
+}
+theme_set(theme_ts1())
+#this is also a useful theme to keep in mind
+#theme_classic()
+# this function gets the settings used by the current theme
+#theme_get()
+```
+
+## Opens seasonal
+```{r opens_nsa, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+
+# looking at it as a ts
+tempa <- na.exclude(ushist_q$totus_oprms)
+tempa_ts <<- ts(as.numeric(tempa), start=c(1987, 1), frequency=4)
+#plot(tempa_ts)
+#head(tempa_ts)
+monthplot(tempa_ts, main="Room openings by quarter", ylab="Room openings")
+
+```
+
+
+## Opens
+```{r opens_sa, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+todo <- c("totus_oprms")
+grtitle <- c("Room openings")
+footnote <- c("Source: Smith Travel Research; Tourism Economics")
+starta <- as.Date("2001-01-01")
+enda <- as.Date("2014-10-01")
+variable_text <- c("Quarterly openings")
+variable_legend_1 <- c("Original series")
+variable_legend_2 <- c("Seasonally adjusted")
+
+temp1 <- ushist_q_m %>% 
+  filter(time >= starta, time <= enda, variable == todo) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("time"))
+
+temp2 <- ushist_q_m %>% 
+  filter(time >= starta, time <= enda, variable == "totus_oprms_sa") %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("time"))
+
+p1 <- ggplot() +
+  geom_line(data = temp1, aes(x = time, y = value, color = variable), size = .6) + 
+  geom_line(data = temp2, aes(x = time, y = value, color = variable), size = .9) +
+  ggtitle(variable_text) +
+  theme(legend.position=c(1, .8)) +
+  scale_color_manual(values = c(mypallete[7:7], "grey40"), labels=c(variable_legend_1,variable_legend_2)) + 
+  scale_y_continuous(labels = comma)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+## Closes
+```{r closes_lt, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+todo <- c("totus_clrms")
+grtitle <- c("Room closures")
+footnote <- c("Source: Smith Travel Research; Tourism Economics")
+starta <- as.Date("1987-01-01")
+enda <- as.Date("2014-10-01")
+variable_text <- c("Quarterly closures")
+
+temp <- ushist_q_m %>% 
+  filter(time >= starta, time <= enda, variable == todo) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("time"))
+
+# calculating mean from a certain date forward
+holdmean <- temp %>%
+  filter(time >= as.Date("2000-01-01"), time <= as.Date("2013-10-01") )
+holdmean <- mean(holdmean$value, na.rm=TRUE)
+
+p1 <- ggplot() +
+ geom_line(data = temp, aes(x = time, y = value, color = variable), size = .7) +
+ ggtitle(variable_text) + 
+ scale_color_manual(values = c(mypallete[10:10], "grey70")) +
+ geom_hline(yintercept = holdmean, colour = "grey50", size = 0.5) +
+ annotate("text", x = as.Date("1995-01-01"), y = holdmean+1000, size=3,
+         label = c(paste("Long-term average: ",
+                         format(holdmean, big.mark=",", nsmall=0), "\n(2000 to 2013)",sep="")))+ 
+  scale_y_continuous(labels = comma)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+## Schange
+```{r schange_lt, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+todo <- c("totus_schange")
+grtitle <- c("Room changes net of opens and closes")
+footnote <- c("Source: Smith Travel Research; Tourism Economics")
+starta <- as.Date("1997-01-01")
+enda <- as.Date("2014-10-01")
+variable_text <- c("Quarterly room changes")
+
+temp <- ushist_q_m %>% 
+  filter(time >= starta, time <= enda, variable == todo) %>%
+  spread(variable, value) %>%
+  mutate(totus_schange = totus_schange*1000000) %>%
+  melt(id.vars = c("time"))
+
+# calculating mean from a certain date forward
+holdmean <- temp %>%
+  filter(time >= as.Date("2000-01-01"), time <= as.Date("2013-10-01") )
+holdmean <- mean(holdmean$value, na.rm=TRUE)
+
+p1 <- ggplot() +
+ geom_line(data = temp, aes(x = time, y = value, color = variable), size = .7) +
+ ggtitle(variable_text) + 
+ scale_color_manual(values = c(mypallete[10:10], "grey70")) +
+ geom_hline(yintercept = holdmean, colour = "grey50", size = 0.5) +
+ annotate("text", x = as.Date("2000-01-01"), y = holdmean+50000, size=3,
+         label = c(paste("Long-term average: ",
+                         format(holdmean, big.mark=",", digits=0, nsmall=0), "\n(2000 to 2013)",sep="")))+ 
+  scale_y_continuous(labels = comma)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+
+## Schange seasonal plot
+```{r schange_seasonal, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+
+# looking at it as a ts
+tempa <- na.exclude(ushist_q$totus_schange*1000000)
+tempa_ts <<- ts(as.numeric(tempa), start=c(1987, 1), frequency=4)
+#plot(tempa_ts)
+#head(tempa_ts)
+monthplot(tempa_ts, main="Room changes net of opens and closes", ylab="")
+
+```

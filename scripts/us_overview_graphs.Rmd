@@ -148,8 +148,8 @@ theme_set(theme_ts1())
 ```{r demand_monthly_gdp, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
 #sets variable and text items
 todo <- c("totus_demd_sa")
-grtitle <- c("Room demand")
-footnote <- c("Source: Smith Travel Research, Tourism Economics")
+grtitle <- c("Room demand (monthly) \nand GDP (quarterly)")
+footnote <- c("Source: STR, Tourism Economics")
 starta <- as.Date("2004-01-01")
 enda <- as.Date("2015-10-01")
 index_year <- as.numeric(2006)
@@ -202,7 +202,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #sets variable and text items
 #todo <- c("totus_demd_sa")
 grtitle <- c("Room demand per capita")
-footnote <- c("Source: Smith Travel Research; Census Bureau; Tourism Economics")
+footnote <- c("Source: STR; Census Bureau; Tourism Economics")
 starta <- as.Date("1987-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Annual room nights per capita \n(working age population)")
@@ -228,7 +228,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #sets variable and text items
 #todo <- c("totus_demd_sa")
 grtitle <- c("Room demand as ratio to total employment")
-footnote <- c("Source: Smith Travel Research; Bureau of Labor Statistics; Tourism Economics")
+footnote <- c("Source: STR; Bureau of Labor Statistics; Tourism Economics")
 starta <- as.Date("1987-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Annual room nights per employed person \n(household survey employment)")
@@ -254,7 +254,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #sets variable and text items
 todo <- c("totus_revpar_sarpc")
 grtitle <- c("Real RevPAR, US")
-footnote <- c("Source: Smith Travel Research; Bureau of Economic Analysis; Tourism Economics")
+footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
 starta <- as.Date("1987-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted")
@@ -285,7 +285,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #sets variable and text items
 todo <- c("totus_revpar_sarpc")
 grtitle <- c("Real RevPAR, US")
-footnote <- c("Source: Smith Travel Research; Bureau of Economic Analysis; Tourism Economics")
+footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
 starta <- as.Date("2001-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted")
@@ -304,12 +304,12 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
 
-## RevPAR, real short-term
-```{r revpar_real_st, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+## RevPAR short-term
+```{r revpar_st, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
 #sets variable and text items
-todo <- c("totus_revpar_sarpc")
-grtitle <- c("Real RevPAR, US")
-footnote <- c("Source: Smith Travel Research; Bureau of Economic Analysis; Tourism Economics")
+todo <- c("totus_revpar_sa")
+grtitle <- c("RevPAR, US")
+footnote <- c("Source: STR; Tourism Economics")
 starta <- as.Date("2006-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted")
@@ -323,6 +323,7 @@ temp <- ushist_q_m %>%
 p1 <- ggplot(data = temp, aes(x = time, y = value, shape = factor(group_date))) + 
  geom_line(aes(x= time, y=value, group=1), size = .7, color=mypallete[10:10]) +
  ggtitle(variable_text) + 
+  geom_point() +
  scale_color_manual(values = c(mypallete[10:10], "grey70"))  + 
  stat_smooth(method="lm", fill = "grey70", 
              color="grey40", alpha=.4, span=.8, se = FALSE)+ 
@@ -335,7 +336,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #sets variable and text items
 todo <- c("totus_adr_sa")
 grtitle <- c("ADR, US")
-footnote <- c("Source: Smith Travel Research; Tourism Economics")
+footnote <- c("Source: STR; Tourism Economics")
 starta <- as.Date("2008-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted")
@@ -374,7 +375,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #sets variable and text items
 todo <- c("totus_occ_sa")
 grtitle <- c("Occupancy")
-footnote <- c("Source: Smith Travel Research; Tourism Economics")
+footnote <- c("Source: STR; Tourism Economics")
 starta <- as.Date("2001-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted")
@@ -396,7 +397,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```{r adr_real_lt, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
 todo <- c("totus_adr_sarpc")
 grtitle <- c("Real ADR, US")
-footnote <- c("Source: Smith Travel Research; Bureau of Economic Analysis; Tourism Economics")
+footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
 starta <- as.Date("1987-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted")
@@ -421,7 +422,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```{r adr_real_mt, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
 todo <- c("totus_adr_sarpc")
 grtitle <- c("Real ADR, US")
-footnote <- c("Source: Smith Travel Research; Bureau of Economic Analysis; Tourism Economics")
+footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
 starta <- as.Date("2001-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted")
@@ -443,7 +444,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```{r adr_real_st, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
 todo <- c("totus_adr_sarpc")
 grtitle <- c("Real ADR, US")
-footnote <- c("Source: Smith Travel Research; Bureau of Economic Analysis; Tourism Economics")
+footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
 starta <- as.Date("2006-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted")
@@ -468,7 +469,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```{r adr_st, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
 todo <- c("totus_adr_sa")
 grtitle <- c("ADR, US")
-footnote <- c("Source: Smith Travel Research; Bureau of Economic Analysis; Tourism Economics")
+footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
 starta <- as.Date("2006-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted")
@@ -593,6 +594,7 @@ p1 <- ggplot(data = temp, aes(x = time, y = pchya)) +
   stat_smooth()
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
+
 ## Chain scales
 
 ## Occupancy, chains upper medium-term
@@ -601,8 +603,8 @@ todo1 <- c("totus_occ_sa")
 todo2 <- c("luxus_occ_sa")
 todo3 <- c("upuus_occ_sa")
 todo4 <- c("upsus_occ_sa")
-grtitle <- c("Occupancy, higher-priced chain scales")
-footnote <- c("Source: Smith Travel Research; Tourism Economics")
+grtitle <- c("Occupancy, higher-priced chain scales, \nquarterly")
+footnote <- c("Source: STR; Tourism Economics")
 starta <- as.Date("1999-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted, \nIndex 2005=100")
@@ -640,8 +642,8 @@ todo1 <- c("totus_occ_sa")
 todo2 <- c("upmus_occ_sa")
 todo3 <- c("midus_occ_sa")
 todo4 <- c("ecous_occ_sa")
-grtitle <- c("Occupancy, lower-priced chain scales")
-footnote <- c("Source: Smith Travel Research; Tourism Economics")
+grtitle <- c("Occupancy, lower-priced chain scales, \nquarterly")
+footnote <- c("Source: STR; Tourism Economics")
 starta <- as.Date("1999-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted, \nIndex 2005=100")
@@ -666,7 +668,7 @@ legendnames <- setNames(c(variable_legend_1, variable_legend_2,
 p1 <- ggplot(data = temp, aes(x = time, y = value, color = variable)) +
  geom_line() +
  ggtitle(variable_text) +
- theme(legend.position=c(1, .2)) +
+ theme(legend.position=c(1, .25)) +
  scale_colour_manual(values=holdnames, labels=legendnames) +
 theme(legend.text = element_text(size=10)) + 
   theme(legend.key.size = unit(1, "cm"))
@@ -680,10 +682,10 @@ todo2 <- c("upmus_occ_sa")
 todo3 <- c("midus_occ_sa")
 todo4 <- c("ecous_occ_sa")
 grtitle <- c("Occupancy, lower-priced chain scales")
-footnote <- c("Source: Smith Travel Research; Tourism Economics")
+footnote <- c("Source: STR; Tourism Economics")
 starta <- as.Date("2010-01-01")
 enda <- as.Date("2014-10-01")
-variable_text <- c("Seasonally adjusted, \nIndex 2005=100")
+variable_text <- c("Seasonally adjusted, monthly, \nIndex 2005=100")
 variable_legend_1 <- c("US")
 variable_legend_2 <- c("Upper midscale")
 variable_legend_3 <- c("Midscale")
@@ -720,15 +722,15 @@ todo2 <- c("luxus_occ_sa")
 todo3 <- c("upuus_occ_sa")
 todo4 <- c("upsus_occ_sa")
 grtitle <- c("Occupancy, higher-priced chain scales")
-footnote <- c("Source: Smith Travel Research; Tourism Economics")
+footnote <- c("Source: STR; Tourism Economics")
 starta <- as.Date("2010-01-01")
 enda <- as.Date("2014-10-01")
-variable_text <- c("Seasonally adjusted, \nIndex 2005=100")
+variable_text <- c("Seasonally adjusted, monthly \nIndex 2005=100")
 variable_legend_1 <- c("US")
 variable_legend_2 <- c("Luxury")
 variable_legend_3 <- c("Upper upscale")
 variable_legend_4 <- c("Upscale")
-names(outf_str_m_us)
+
 temp <- outf_str_m_us_m %>% 
   filter(time >= starta, time <= enda, 
          variable == todo1 | variable == todo2 | variable == todo3 | 
@@ -759,8 +761,8 @@ todo1 <- c("totus_adr_sa")
 #todo2 <- c("luxus_adr_sa")
 todo3 <- c("upuus_adr_sa")
 todo4 <- c("upsus_adr_sa")
-grtitle <- c("ADR, higher-priced chain scales")
-footnote <- c("Source: Smith Travel Research; Tourism Economics")
+grtitle <- c("ADR, higher-priced chain scales, \nmonthly")
+footnote <- c("Source: STR; Tourism Economics")
 starta <- as.Date("2010-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted")
@@ -768,7 +770,7 @@ variable_legend_1 <- c("US")
 variable_legend_2 <- c("Luxury")
 variable_legend_3 <- c("Upper upscale")
 variable_legend_4 <- c("Upscale")
-names(outf_str_m_us)
+#names(outf_str_m_us)
 temp <- outf_str_m_us_m %>% 
   filter(time >= starta, time <= enda, 
          variable == todo1  | variable == todo3 | #| variable == todo2
@@ -795,13 +797,13 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
 
 ## ADR, monthly simple forecast lower
-```{r occ_monthly_simpf_lower, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r adr_monthly_simpf_lower, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
 todo1 <- c("totus_adr_sa")
 todo2 <- c("upmus_adr_sa")
 todo3 <- c("midus_adr_sa")
 todo4 <- c("ecous_adr_sa")
-grtitle <- c("ADR, lower-priced chain scales")
-footnote <- c("Source: Smith Travel Research; Tourism Economics")
+grtitle <- c("ADR, lower-priced chain scales, \nmonthly")
+footnote <- c("Source: STR; Tourism Economics")
 starta <- as.Date("2013-01-01")
 enda <- as.Date("2014-10-01")
 variable_text <- c("Seasonally adjusted")
@@ -841,7 +843,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #sets variable and text items
 todo <- c("totus_demd_sa")
 grtitle <- c("Room demand")
-footnote <- c("Source: Smith Travel Research, Tourism Economics")
+footnote <- c("Source: STR, Tourism Economics")
 
 # filters data frame and loads variable text based on code_book_matrix
 temp <- filter(ushist_m_m,variable == todo)
@@ -871,7 +873,7 @@ grid.draw(grobframe)
 #sets variable and text items
 todo <- c("totus_demd_sa")
 grtitle <- c("Room demand")
-footnote <- c("Source: Smith Travel Research, Tourism Economics")
+footnote <- c("Source: STR, Tourism Economics")
 variable_text <- c("US, demand, average daily in millions, seas. adjusted, \nin log form")
 starta <- as.Date("1987-01-01")
 enda <- as.Date("2014-10-01")
@@ -893,7 +895,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #sets variable and text items
 todo <- c("totus_demd_sa")
 grtitle <- c("Room demand")
-footnote <- c("Source: Smith Travel Research, Tourism Economics")
+footnote <- c("Source: STR, Tourism Economics")
 variable_text <- code_book_matrix[code_book_matrix$variable_name == todo, "variable_text"]
 starta <- as.Date("2004-01-01")
 
@@ -913,7 +915,7 @@ Example of selecting two variables using separate dataframe approach
 #sets variable and text items
 todo <- c("totus_demd_sa")
 grtitle <- c("Room demand")
-footnote <- c("Source: Smith Travel Research, Tourism Economics")
+footnote <- c("Source: STR, Tourism Economics")
 variable_text <- code_book_matrix[code_book_matrix$variable_name == todo, "variable_text"]
 starta <- as.Date("2004-01-01")
 
@@ -934,7 +936,7 @@ Example of filtering to select one variables
 #sets variable and text items
 todo <- c("totus_demd_sa")
 grtitle <- c("Room demand")
-footnote <- c("Source: Smith Travel Research, Tourism Economics")
+footnote <- c("Source: STR, Tourism Economics")
 variable_text <- code_book_matrix[code_book_matrix$variable_name == todo, "variable_text"]
 starta <- as.Date("1987-01-01")
 
