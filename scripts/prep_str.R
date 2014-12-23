@@ -1,7 +1,13 @@
 
+fpath <- c("~/Project/R projects/lodfor/")
+
+load(paste("output_data/raw_str_us.Rdata", sep=""))
+load_m <- raw_str_us
+temp <- load_str(load_m)
+
 # these two data frames are the working data frames and become the outputs
-out_str_m <- lodus_m
-out_str_q <- lodus_q
+out_str_m <- temp[[1]]
+out_str_q <- temp[[2]]
 
 cityl <- c(
   "totus" 
@@ -273,11 +279,11 @@ save(out_str_q_us, file="output_data/out_str_q_us.Rdata")
 #
 # cleaning up
 
-rm(regressvar, temp_seasonal_a, temp_out_m)
-rm(temp_out_uslist, lodus_m, lodus_q)
-#rm(out_str_m, out_str_m_us, out_str_q, out_str_q_us)
-rm(tempdata, tempdata_fct, tempdata_sa, tempdata_sf)
-rm(cityl)
-rm(temp, temp_names, tempdata_ts, tempdate_m, tempdate_q)
-rm(term)
-rm(units)
+# rm(regressvar, temp_seasonal_a, temp_out_m)
+# #rm(temp_out_uslist, lodus_m, lodus_q)
+# #rm(out_str_m, out_str_m_us, out_str_q, out_str_q_us)
+# rm(tempdata, tempdata_fct, tempdata_sa, tempdata_sf)
+# rm(cityl)
+# rm(temp, temp_names, tempdata_ts, tempdate_m, tempdate_q)
+# rm(term)
+# rm(units)

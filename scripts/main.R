@@ -4,6 +4,9 @@
 # before running the next program
 source("scripts/functions.R")
 
+# reads the raw STR us monthly file from a csv file
+source("scripts/read_raw_str_us.R")
+
 # loads STR monthly and quarterly performance data
 source("scripts/load_str.R")
 # as a result, we have two objects in the workspace (lodus_m and lodus_q)

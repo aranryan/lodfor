@@ -4,6 +4,7 @@
 
 require("rmarkdown")
 require("knitr")
+require("plyr") #Hadley said if you load plyr first it should be fine
 require("dplyr")
 require("tidyr")
 require("tframe")
@@ -14,6 +15,15 @@ require("dplyr")
 require("reshape2")
 require("ggplot2")
 require("scales")
+require("zoo")
+require("xts")
+require("seasonal")
+Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
+checkX13()
+require("forecast")
+require("car")
+require("tidyr")
+require("xlsx")
 
 
 #############################
@@ -41,6 +51,27 @@ theme_jack <- function (base_size = 12, base_family = "") {
     )
 }
 
+####################
+#
+# sets up a way to recode a variable, similar to a lookup table approach
+# copied from following link
+# http://susanejohnston.wordpress.com/2012/10/01/find-and-replace-in-
+# r-part-2-how-to-recode-many-values-simultaneously/
+
+recoder_func <- function(data, oldvalue, newvalue) {
+  # convert any factors to characters
+  if (is.factor(data))     data     <- as.character(data)
+  if (is.factor(oldvalue)) oldvalue <- as.character(oldvalue)
+  if (is.factor(newvalue)) newvalue <- as.character(newvalue)
+  
+  # create the return vector
+  newvec <- data
+  # put recoded values into the correct position in the return vector
+  for (i in unique(oldvalue)) newvec[data == i] <- newvalue[oldvalue == i]
+  newvec
+}
+
+
 ##########################
 #
 # converts units to millions, taking a column of a dataframe as input
@@ -67,6 +98,7 @@ seasonal_ad <- function (x,
   x <- na.trim(x)
   # this series y is used in the output, just outputs the original series
   y <- x
+  y <- xts(y)
   
   # http://stackoverflow.com/questions/15393749/get-frequency-for-ts-from-and-xts-for-x12
   freq <- switch(periodicity(x)$scale,
@@ -234,7 +266,9 @@ m_to_q=function(x, type){
   a_q <- as.quarterly(
     ts(as.numeric(x), frequency = 12, start = c(year(start(x)), month(start(x)))), 
     FUN=type,
-    na.rm=TRUE) # remove nas, helpful for vapply as we can anticipate length
+    # changed the following to FALSE as it was causing issues when my
+    # series in a given object weren't all the same length
+    na.rm=TRUE)
   return(a_q)
 }
 # as an example of using this function is the steps I had in 
@@ -346,3 +380,34 @@ plot_title_1=function(plot, grtitle, footnote){
 # ending that might help with issue in knitr
 
 ## @knitr plotXY
+
+####################
+#
+# function to return days in month
+# I modified so you can set leap_impact equal 0 to help with str data
+
+days_in_month <- function(d = Sys.Date(), leap_impact=1){
+  
+  m = substr((as.character(d)),6,7)              # month number as string
+  y = as.numeric(substr((as.character(d)),1,4))  # year number as numeric
+  
+  # Quick check for leap year
+  leap = 0
+  if ((y %% 4 == 0 & y %% 100 != 0) | y %% 400 == 0){leap = leap_impact}
+  
+  # Return the number of days in the month
+  return(switch(m,
+                '01' = 31,
+                '02' = 28 + leap,
+                '03' = 31,
+                '04' = 30,
+                '05' = 31,
+                '06' = 30,
+                '07' = 31,
+                '08' = 31,
+                '09' = 30,
+                '10' = 31,
+                '11' = 30,
+                '12' = 31))
+}
+#days_in_month("2014-11-25")
