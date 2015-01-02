@@ -71,22 +71,28 @@ data_m$date <- as.Date(as.yearmon(format(data_m$date, nsmall =2), "%Y%m"))
 to_keep <- c("totus")
 #to_keep <- c(to_keep, "luxus", "upuus", "upsus", "upmus", "midus", "ecous", "indus")
 
+#    ,"anaheim", "atlanta", "boston", "chicago", "dallas" 
+#    ,"denver", "detroit", "houston", "lalongbeach", "miami" 
+#    ,"minneapolis", "nashville", "neworleans", "newyork", "norfolk"
+#    ,"oahu", "orlando", "philadelphia", "phoenix", "sandiego" 
+#    ,"sanfrancisco", "seattle", "stlouis", "tampa", "washingtondc"
+#)
+
 # puts into tidy format with a seg column that contains the segment code
 # then filters to keep the segments
 a1 <- data_m %>% 
   gather(segvar, value, -date, na.rm = FALSE) %>%
   # separate on anything that is in not in the list of all characters and numbers
   separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+  # filters to keep segments in the list to_keep
   filter(seg %in% to_keep) %>%
   spread(variable,value) %>%
   melt(id=c("date","seg"), na.rm=FALSE) %>%
   mutate(variable = paste(seg, "_", variable, sep='')) %>%
   select(-seg) %>%
   dcast(date ~ variable)
-data_m <- a1
 
-raw_str_us <- data_m
-rm(data_m)
+raw_str_us <- a1
 
 # saves Rdata version of the data
 save(raw_str_us, file="output_data/raw_str_us.Rdata")

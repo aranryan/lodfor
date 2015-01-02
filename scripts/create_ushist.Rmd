@@ -290,13 +290,21 @@ suma <- q_to_a_xts(suma, type="sum")
 
 # takes the summed data and spreads it into a tidy format with
 # tidyr and then calculates the occupancy and revpar series
+# first needs to go from xts to dataframe
 tb2 <- data.frame(time=time(suma), suma)%>% 
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
   gather(segvar, value, -time, na.rm = FALSE) %>%
   # in the following the ^ means anything not in the list
   # with the list being all characters and numbers
+  # so it separates segvar into two colums using sep
   separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+  # keeps seg as a column and spreads variable into multiple columns containing
+  # containint the values
   spread(variable,value) %>%
+  # adds new calculated column
   mutate(occ = demt / supt) %>%
+  # adds another column
   mutate(revpar = rmrevt / supt)
 
 # takes it from a tidy format and melts it, and then creates the unique

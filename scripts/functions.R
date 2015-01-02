@@ -4,16 +4,11 @@
 
 require("rmarkdown")
 require("knitr")
-require("plyr") #Hadley said if you load plyr first it should be fine
-require("dplyr")
-require("tidyr")
+require("xlsx")
 require("tframe")
 require("tframePlus")
 require("lubridate")
 require("stringr")
-require("dplyr")
-require("reshape2")
-require("ggplot2")
 require("scales")
 require("zoo")
 require("xts")
@@ -22,8 +17,11 @@ Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
 checkX13()
 require("forecast")
 require("car")
+require("reshape2")
+require("ggplot2")
 require("tidyr")
-require("xlsx")
+require("plyr") #Hadley said if you load plyr first it should be fine
+require("dplyr")
 
 
 #############################
@@ -263,13 +261,17 @@ return(out_sa)
 #tempc_q <- xts(tempc_q)
 # so this is what I came up with
 m_to_q=function(x, type){
-  a_q <- as.quarterly(
+  out_q <- as.quarterly(
     ts(as.numeric(x), frequency = 12, start = c(year(start(x)), month(start(x)))), 
     FUN=type,
-    # changed the following to FALSE as it was causing issues when my
-    # series in a given object weren't all the same length
-    na.rm=TRUE)
-  return(a_q)
+    # changed the following to FALSE. sometimes the dataframe will have some 
+    # series that start earlier than others. If I did TRUE, I think some were
+    # being dropped, leading to errors when used in a vapply, where I had to 
+    # specify the length of what would come back, as it wasn't the same for all
+    # so I changed this to FALSE, and then in the vapply I used ceiling to round
+    # to include the last quarter
+    na.rm=FALSE)
+  return(out_q)
 }
 # as an example of using this function is the steps I had in 
 # load_str_openclose, which are as follows
@@ -357,7 +359,475 @@ index_m=function(x, index_year){
   return(x_index)
 }
 
-########################33
+
+#######
+#
+# function takes a data frame of monthly str data
+# and returns a list containing a monthly data frame
+# and a quarterly data frame
+
+load_str <- function(load_m){
+  
+  # spreads into a tidy format with
+  # tidyr and then calculates the occupancy and revpar series
+  # first needs to go from xts to dataframe
+  # b1 <- data.frame(date=time(lodus_m), lodus_m) %>% 
+  b1 <- load_m %>% 
+    # creates column called segvar that contains the column names, and one next to 
+    # it with the values, dropping the time column
+    gather(segvar, value, -date, na.rm = FALSE) %>%
+    # in the following the ^ means anything not in the list
+    # with the list being all characters and numbers
+    # so it separates segvar into two colums using sep
+    separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+    # keeps seg as a column and spreads variable into multiple columns containing
+    # the values
+    spread(variable,value) %>%
+    # days_in_month is a function I borrowed. leap_impact=0 ignores leap year
+    # this uses transform to create a new column where the new column is
+    # created by using sapply on the date column to apply the days_in_month
+    # function with the leap_impact argument set to 0
+    transform(days = sapply(date, days_in_month,leap_impact=0)) %>%
+    # adds several new calculated columns
+    mutate(occ = demt / supt) %>%
+    mutate(revpar = rmrevt / supt) %>%
+    mutate(adr = rmrevt / demt) %>%
+    # converts several concepts to millions
+    mutate(supt = supt / 1000000) %>%
+    mutate(demt = demt / 1000000) %>%
+    mutate(rmrevt = rmrevt / 1000000) %>%
+    mutate(demd = demt / days) %>%
+    mutate(supd = supt / days) 
+  
+  load_m <- b1
+  
+  #############################
+  #
+  # creates quarterly by summing monthly
+  #
+  
+  # get it ready to convert
+  # takes it from a tidy format and melts it creating a dataframe with the
+  # following columns (date, seg, variable, value), and then creates the unique
+  # variable names and then reads into a zoo object spliting on the 
+  # second column
+  m_z <- load_m %>%
+    select(-occ, -adr, -revpar, -demd, -supd) %>%
+    melt(id=c("date","seg"), na.rm=FALSE) %>%
+    mutate(variable = paste(seg, "_", variable, sep='')) %>%
+    select(-seg) %>%
+    read.zoo(split = 2) 
+  
+  # convert to quarterly
+  # I couldn't use apply because the object is 
+  # a xts, not a dataframe, see 
+  # http://codereview.stackexchange.com/questions/39180/best-way-to-apply-across-an-xts-object
+  
+  # sets up the start of the index that will be used for the quarterly object
+  # uses vapply to essentially run an apply across the xts object because
+  # apply doesn't work on an xts object
+  # for vapply we need to give the expected length in FUN.VALUE and a
+  # start date and quarterly frequency
+  # The function that I'm applying to each column is m_to_q, which I wrote, the type="sum"
+  # is giving the type of aggregation to use in it
+  
+  # as a temp fix, I shortened a_mz to end at the end of a quarter. 
+  # I need to come up with a better fix. The issue was that the 
+  # function was expecting something length 111, but getting 112. 
+  # might be an issue because I changed na.rm to FALSE in the 
+  # m_to_q function because it was causing issues for the Mexico
+  # series that were different lengths. So I put that back to na.rm=TRUE and it worked
+  
+  
+  # head(raw_str_us)
+  # head(tempa)
+  # tempa <- read.zoo(raw_str_us)
+  # head(tempa)
+  # tempd <- tempa$totus_demt
+  # str(tempd)
+  # tail(tempd)
+  # tempd2 <- m_to_q(tempd,type=sum)
+  # tempd2 <- zoo(tempd2)
+  # tail(tempd2)
+  # str(tempd2)
+  # 
+  # nrow(tempd2)
+  # nrow(tempa)/3
+  # ceiling(nrow(tempa)/3)
+  # start <- as.yearqtr((start(tempa)))
+  # 
+  # temp_q <- zooreg(vapply(tempa, m_to_q, FUN.VALUE = 
+  #                           numeric(ceiling(nrow(tempa)/3)), 
+  #                         type="sum"), start=start, frequency=4)
+  # head(temp_q)
+  # tail(temp_q)
+  
+  
+  start <- as.yearqtr((start(m_z)))
+  load_q <- zooreg(vapply(m_z, m_to_q, FUN.VALUE = 
+                            numeric(ceiling(nrow(m_z)/3)), 
+                          type="sum"), start=start, frequency=4)
+  head(load_q)
+  
+  # turn into a data frame with a date column
+  load_q <- data.frame(date=time(load_q), load_q) 
+  load_q$date <- as.Date(load_q$date)
+  row.names(load_q) <- NULL
+  
+  # goes into tidy format and then adds some calculated series
+  b1q <- load_q %>% 
+    # creates column called segvar that contains the column names, and one next to 
+    # it with the values, dropping the time column
+    gather(segvar, value, -date, na.rm = FALSE) %>%
+    # in the following the ^ means anything not in the list
+    # with the list being all characters and numbers
+    # so it separates segvar into two colums using sep
+    separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+    # keeps seg as a column and spreads variable into multiple columns containing
+    # the values
+    spread(variable,value) %>%
+    # adds several new calculated columns
+    mutate(occ = demt / supt) %>%
+    mutate(revpar = rmrevt / supt) %>%
+    mutate(adr = rmrevt / demt) %>%
+    mutate(demd = demt / days) %>%
+    mutate(supd = supt / days) 
+  
+  load_q <- b1q
+  
+  #############################
+  #
+  # puts back to wide format
+  #
+  
+  # puts it back into a wide data frame, with one column for each series
+  # days is a series for each segment/market\
+  load_m <- load_m %>%
+    melt(id=c("date","seg"), na.rm=FALSE) %>%
+    mutate(variable = paste(seg, "_", variable, sep='')) %>%
+    select(-seg) %>%
+    spread(variable,value)
+  # if instead I had wanted a zoo object, I could have done
+  #read.zoo(split = 2) 
+  
+  # converts to xts from dataframe
+  #lodus_m <- lodus_m %>%
+  #  read.zoo() %>%
+  #  as.xts
+  
+  # puts it back into a wide zoo object, with one column for each series
+  # days is a series for each segment/market\
+  load_q <- load_q %>%
+    melt(id=c("date","seg"), na.rm=FALSE) %>%
+    mutate(variable = paste(seg, "_", variable, sep='')) %>%
+    select(-seg) %>%
+    spread(variable,value)
+  # if instead I had wanted a zz object, I could have done
+  #read.zoo(split = 2
+  
+  return(list(load_m,load_q))
+}
+
+
+#######################
+#
+# function takes a monthly data frame with monthly data and seasonal factors
+# and creates monthly sa
+
+create_sa_str_m <- function(str_m){
+  
+  # following converts to a tidy format, uses seasonal factors to calculate sa
+  # series, then converts back to a wide dataframe
+  str_m <- str_m %>% 
+    # creates column called segvar that contains the column names, and one next to 
+    # it with the values, dropping the time column
+    gather(segvar, value, -date, na.rm = FALSE) %>%
+    # in the following the ^ means anything not in the list
+    # with the list being all characters and numbers
+    # so it separates segvar into two colums using sep
+    # it separates on the _, as long as it's not followed by sf
+    # the not followed piece uses a Negative Lookahead from
+    # http://www.regular-expressions.info/lookaround.html
+    separate(segvar, c("seg", "variable"), sep = "_(?!sf)") %>%
+    # keeps seg as a column and spreads variable into multiple columns containing
+    # the values
+    spread(variable,value) %>%
+    mutate(occ_sa = occ / occ_sf) %>%
+    mutate(revpar_sa = revpar / revpar_sf) %>%
+    mutate(adr_sa = adr / adr_sf) %>%
+    mutate(demd_sa = demd / demd_sf) %>%
+    mutate(supd_sa = supd / supd_sf) %>%
+    mutate(demar_sa = demd_sa * 365) %>% # creates demand at an annual rate
+    # puts it back into a wide data frame, with one column for each series
+    # days is a series for each segment/market\
+    melt(id=c("date","seg"), na.rm=FALSE) %>%
+    mutate(variable = paste(seg, "_", variable, sep='')) %>%
+    select(-seg) %>%
+    spread(variable,value)
+  # if instead I had wanted an xts object, I could have done
+  #read.zoo(split = 2) %>%
+  #xts()
+  return(str_m)
+}
+
+#######################
+#
+# function takes a monthly data frame with monthly data and seasonal factors
+# and creates monthly sa
+
+create_sa_str_q <- function(str_q){
+  
+  # create quarterly sa from seasonal factors
+  # following converts to a tidy format, uses seasonal factors to calculate sa
+  # series, then converts back to a wide dataframe
+  str_q <- str_q %>% 
+    # creates column called segvar that contains the column names, and one next to 
+    # it with the values, dropping the time column
+    gather(segvar, value, -date, na.rm = FALSE) %>%
+    # in the following the ^ means anything not in the list
+    # with the list being all characters and numbers
+    # so it separates segvar into two colums using sep
+    # it separates on the _, as long as it's not followed by sf
+    # the not followed piece uses a Negative Lookahead from
+    # http://www.regular-expressions.info/lookaround.html
+    separate(segvar, c("seg", "variable"), sep = "_(?!sf)") %>%
+    # keeps seg as a column and spreads variable into multiple columns containing
+    # the values
+    spread(variable,value) %>%
+    mutate(occ_sa = occ / occ_sf) %>%
+    mutate(revpar_sa = revpar / revpar_sf) %>%
+    mutate(adr_sa = adr / adr_sf) %>%
+    mutate(demd_sa = demd / demd_sf) %>%
+    mutate(supd_sa = supd / supd_sf) %>%
+    mutate(demar_sa = demd_sa * 365) %>% # creates demand at an annual rate
+    # puts it back into a wide data frame, with one column for each series
+    # days is a series for each segment/market\
+    melt(id=c("date","seg"), na.rm=FALSE) %>%
+    mutate(variable = paste(seg, "_", variable, sep='')) %>%
+    select(-seg) %>%
+    spread(variable,value)
+  # if instead I had wanted an xts object, I could have done
+  #read.zoo(split = 2) %>%
+  #xts()
+  return(str_q)
+}
+
+
+
+#######
+#
+# function takes a data frame of monthly str data
+# and returns a set of monthly seasonal factors, including future months
+
+
+seas_factors_m <- function(str_m){
+  
+  # gets ready to create monthly seasonal factors
+  print("get ready to create monthly seasonal factors")
+  
+  # drop concepts that shouldn't be seasonally adjusted
+  toadj_m <- select(str_m, 
+                    -ends_with("_days"), 
+                    -ends_with("_demt"), 
+                    -ends_with("_rmrevt"), 
+                    -ends_with("_supt"))
+  # drop series that have given errors when seasonally adjusting in past
+  dont_m_cols <- c("anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
+  #dont_m_cols <- c("totus_demd|totus_occ|totus_revpar|totus_supd|anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
+  
+  # put the matching series into a dataframe
+  dontadj_m <- toadj_m %>% 
+    select(date, matches(dont_m_cols))
+  
+  # if there is anything in addition to the date column in the dontadj_m data frame, then 
+  if (ncol(dontadj_m) > 1) {
+    # also, removes the matching series from the full dataframe
+    toadj_m  <- toadj_m  %>%
+      select(-matches(dont_m_cols))
+    print("there are series being excluded from adjustment")
+  } else {
+    print("nothing in dataframe being excluded from adjustment")
+  }
+  #########
+  #
+  # create monthly seasonal factors
+  #
+  
+  head(toadj_m)
+  print("line37")
+  
+  # convert to xts
+  toadj_m <- toadj_m %>%
+    read.zoo(drop=FALSE) %>%
+    xts()
+  
+  # creates a blank object with just a dummy series
+  # this is used to hold the output of seasonal adjustment
+  sf_m <- xts(order.by=index(toadj_m))
+  sf_m <- merge(sf_m, dummy=1)
+  
+  # monthly seasonal adj of all columns in xts object
+  # I would have used vapply, but hard to know how many rows in output
+  for (i in 1:ncol(toadj_m)){
+    current_series <- colnames(toadj_m[,i])
+    print(paste("starting monthly adjustment of", current_series, sep=" "))
+    temphold <- seasonal_ad(toadj_m[,i], 
+                            meffects =  c("const", "easter[8]", "thank[5]"))
+    sf_m <- merge(sf_m, temphold)  
+  }
+  
+  print("line56")
+  
+  
+  # turn into a data frame with a date column
+  sf_m <- data.frame(date=time(sf_m), sf_m) 
+  sf_m$date <- as.Date(sf_m$date)
+  row.names(sf_m) <- NULL
+  # full copy of seasonally adjusted, factors, and irreg 
+  full_sf_m <- select(sf_m, -dummy)
+  # takes just the seasonal factors
+  sf_m <- sf_m %>%
+    select(date, ends_with("_sf"))
+  
+  #########
+  #
+  # create seasonal factors for those that were specifically not adjusted
+  
+  temp_a <- sf_m %>%
+    read.zoo(drop=FALSE) %>%
+    xts()
+  tempc <- index(temp_a)
+  head(tempc)
+  
+  print("line76")
+  # create a matrix of ones with sufficient number of columns
+  m <- matrix(rep(1), nrow = nrow(sf_m), ncol = ncol(dontadj_m)) %>%
+    data.frame()
+  # get column names, add sf to names for seasonal factor
+  colnames(m) <- paste(colnames(dontadj_m),"_sf", sep="")
+  # drop the date_sf column
+  m <- select(m, -date_sf)
+  # create dataframe with date as first column
+  sf_m_dontadj <- cbind(tempc, m) %>% 
+    dplyr::rename(date = tempc)
+  
+  print("line87")
+  ########
+  #
+  # combines seasonal factors from adjustments and skipped
+  #
+  
+  sf_m <- merge(sf_m, sf_m_dontadj, by= "date")
+  
+  return(sf_m)
+}
+
+
+#######
+#
+# function takes a data frame of quarterly str data
+# and returns a set of quarterly seasonal factors, including future months
+
+
+seas_factors_q <- function(str_q){
+  
+  # gets ready to create quarterly seasonal factors
+  print("get ready to create quarterly seasonal factors")
+  
+  # drop concepts that shouldn't be seasonally adjusted
+  toadj_q <- select(str_q, 
+                    -ends_with("_days"), 
+                    -ends_with("_demt"), 
+                    -ends_with("_rmrevt"), 
+                    -ends_with("_supt"))
+  
+  # drop series that have given errors when seasonally adjusting in past
+  dont_q_cols <- c("anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
+  #dont_q_cols <- c("totus_demd|totus_occ|totus_revpar|totus_supd|anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
+  
+  # put the matching series into a dataframe
+  dontadj_q <- toadj_q %>% 
+    select(date, matches(dont_q_cols))
+  
+  # if there is anything in addition to the date column in the dontadj_m data frame, then 
+  if (ncol(dontadj_q) > 1) {
+    # also, removes the matching series from the full dataframe
+    toadj_q  <- toadj_q  %>%
+      select(-matches(dont_q_cols))
+    print("there are series being excluded from adjustment")
+  } else {
+    print("nothing in dataframe being excluded from adjustment")
+  }
+  
+  #########
+  #
+  # create quarterly seasonal factors
+  #
+  
+  # convert to xts
+  toadj_q <- toadj_q %>%
+    read.zoo(drop=FALSE) %>%
+    xts()
+  
+  # creates a blank object with just a dummy series
+  # this is used to hold the output of seasonal adjustment
+  sf_q <- xts(order.by=index(toadj_q))
+  sf_q <- merge(sf_q, dummy=1)
+  
+  # quarterly seasonal adj of all columns in xts object
+  # I would have used vapply, but hard to know how many rows in output
+  for (i in 1:ncol(toadj_q)){
+    current_series <- colnames(toadj_q[,i])
+    print(paste("starting quarterly adjustment of", current_series, sep=" "))
+    # take out thanksgiving variable for quarterly
+    temphold <- seasonal_ad(toadj_q[,i], 
+                            qeffects =  c("const", "easter[8]"))
+    sf_q <- merge(sf_q, temphold)  
+  }
+  
+  # turn into a data frame with a date column
+  sf_q <- data.frame(date=time(sf_q), sf_q) 
+  sf_q$date <- as.Date(sf_q$date)
+  row.names(sf_q) <- NULL
+  # full copy of seasonally adjusted, factors, and irreg 
+  full_sf_q <- select(sf_q, -dummy)
+  # takes just the seasonal factors
+  sf_q <- sf_q %>%
+    select(date, ends_with("_sf"))
+  
+  #########
+  #
+  # create seasonal factors for those that were specifically not adjusted
+  
+  temp_a <- sf_q %>%
+    read.zoo(drop=FALSE) %>%
+    xts()
+  tempc <- index(temp_a)
+  head(tempc)
+  
+  # create a matrix of ones with sufficient number of columns
+  m <- matrix(rep(1), nrow = nrow(sf_q), ncol = ncol(dontadj_q)) %>%
+    data.frame()
+  # get column names, add sf to names for seasonal factor
+  colnames(m) <- paste(colnames(dontadj_q),"_sf", sep="")
+  # drop the date_sf column
+  m <- select(m, -date_sf)
+  # create dataframe with date as first column
+  sf_q_dontadj <- cbind(tempc, m) %>% 
+    dplyr::rename(date = tempc)
+  
+  ########
+  #
+  # combines seasonal factors from adjustments and skipped
+  #
+  
+  sf_q <- merge(sf_q, sf_q_dontadj, by= "date")
+  
+  return(sf_q)
+}
+
+
+########################
 #
 # functions for plots
 #

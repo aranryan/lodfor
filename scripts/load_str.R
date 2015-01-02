@@ -1,5 +1,4 @@
 
-
 #######
 #
 # function takes a data frame of monthly str data
@@ -78,9 +77,34 @@ m_z <- load_m %>%
 # m_to_q function because it was causing issues for the Mexico
 # series that were different lengths. So I put that back to na.rm=TRUE and it worked
 
+
+# head(raw_str_us)
+# head(tempa)
+# tempa <- read.zoo(raw_str_us)
+# head(tempa)
+# tempd <- tempa$totus_demt
+# str(tempd)
+# tail(tempd)
+# tempd2 <- m_to_q(tempd,type=sum)
+# tempd2 <- zoo(tempd2)
+# tail(tempd2)
+# str(tempd2)
+# 
+# nrow(tempd2)
+# nrow(tempa)/3
+# ceiling(nrow(tempa)/3)
+# start <- as.yearqtr((start(tempa)))
+# 
+# temp_q <- zooreg(vapply(tempa, m_to_q, FUN.VALUE = 
+#                           numeric(ceiling(nrow(tempa)/3)), 
+#                         type="sum"), start=start, frequency=4)
+# head(temp_q)
+# tail(temp_q)
+
+
 start <- as.yearqtr((start(m_z)))
 load_q <- zooreg(vapply(m_z, m_to_q, FUN.VALUE = 
-                           numeric(floor(nrow(m_z)/3)), 
+                           numeric(ceiling(nrow(m_z)/3)), 
                          type="sum"), start=start, frequency=4)
 head(load_q)
 
@@ -115,16 +139,15 @@ load_q <- b1q
 # puts back to wide format
 #
 
-# puts it back into a wide zoo object, with one column for each series
+# puts it back into a wide data frame, with one column for each series
 # days is a series for each segment/market\
 load_m <- load_m %>%
   melt(id=c("date","seg"), na.rm=FALSE) %>%
   mutate(variable = paste(seg, "_", variable, sep='')) %>%
   select(-seg) %>%
   spread(variable,value)
-  # if instead I had wanted a zz object, I could have done
+  # if instead I had wanted a zoo object, I could have done
   #read.zoo(split = 2) 
-
 
 # converts to xts from dataframe
 #lodus_m <- lodus_m %>%
@@ -142,4 +165,88 @@ load_q <- load_q %>%
   #read.zoo(split = 2
 
 return(list(load_m,load_q))
+}
+
+
+#######################
+#
+# function takes a monthly data frame with monthly data and seasonal factors
+# and creates monthly sa
+
+create_sa_str_m <- function(str_m){
+  
+# following converts to a tidy format, uses seasonal factors to calculate sa
+# series, then converts back to a wide dataframe
+str_m <- str_m %>% 
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+  gather(segvar, value, -date, na.rm = FALSE) %>%
+  # in the following the ^ means anything not in the list
+  # with the list being all characters and numbers
+  # so it separates segvar into two colums using sep
+  # it separates on the _, as long as it's not followed by sf
+  # the not followed piece uses a Negative Lookahead from
+  # http://www.regular-expressions.info/lookaround.html
+  separate(segvar, c("seg", "variable"), sep = "_(?!sf)") %>%
+  # keeps seg as a column and spreads variable into multiple columns containing
+  # the values
+  spread(variable,value) %>%
+  mutate(occ_sa = occ / occ_sf) %>%
+  mutate(revpar_sa = revpar / revpar_sf) %>%
+  mutate(adr_sa = adr / adr_sf) %>%
+  mutate(demd_sa = demd / demd_sf) %>%
+  mutate(supd_sa = supd / supd_sf) %>%
+  mutate(demar_sa = demd_sa * 365) %>% # creates demand at an annual rate
+  # puts it back into a wide data frame, with one column for each series
+  # days is a series for each segment/market\
+  melt(id=c("date","seg"), na.rm=FALSE) %>%
+  mutate(variable = paste(seg, "_", variable, sep='')) %>%
+  select(-seg) %>%
+  spread(variable,value)
+  # if instead I had wanted an xts object, I could have done
+  #read.zoo(split = 2) %>%
+  #xts()
+return(str_m)
+}
+
+#######################
+#
+# function takes a monthly data frame with monthly data and seasonal factors
+# and creates monthly sa
+
+create_sa_str_q <- function(str_q){
+
+  # create quarterly sa from seasonal factors
+# following converts to a tidy format, uses seasonal factors to calculate sa
+# series, then converts back to a wide dataframe
+str_q <- str_q %>% 
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+  gather(segvar, value, -date, na.rm = FALSE) %>%
+  # in the following the ^ means anything not in the list
+  # with the list being all characters and numbers
+  # so it separates segvar into two colums using sep
+  # it separates on the _, as long as it's not followed by sf
+  # the not followed piece uses a Negative Lookahead from
+  # http://www.regular-expressions.info/lookaround.html
+  separate(segvar, c("seg", "variable"), sep = "_(?!sf)") %>%
+  # keeps seg as a column and spreads variable into multiple columns containing
+  # the values
+  spread(variable,value) %>%
+  mutate(occ_sa = occ / occ_sf) %>%
+  mutate(revpar_sa = revpar / revpar_sf) %>%
+  mutate(adr_sa = adr / adr_sf) %>%
+  mutate(demd_sa = demd / demd_sf) %>%
+  mutate(supd_sa = supd / supd_sf) %>%
+  mutate(demar_sa = demd_sa * 365) %>% # creates demand at an annual rate
+  # puts it back into a wide data frame, with one column for each series
+  # days is a series for each segment/market\
+  melt(id=c("date","seg"), na.rm=FALSE) %>%
+  mutate(variable = paste(seg, "_", variable, sep='')) %>%
+  select(-seg) %>%
+  spread(variable,value)
+  # if instead I had wanted an xts object, I could have done
+  #read.zoo(split = 2) %>%
+  #xts()
+return(str_q)
 }

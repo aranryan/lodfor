@@ -1,18 +1,25 @@
 
-# my thinking is that functions loads functions that should be available at 
+# my thinking is that functions file loads functions that should be available at 
 # at any point. If I clear the workspace, I need to run fuctions again
 # before running the next program
+
+# I have a couple auxillary function files
+# load_str just contains a function
+# also seasonal_factors contains functions to create monthly and 
+# quarterly seasonal factors
+
 source("scripts/functions.R")
 
-# reads the raw STR us monthly file from a csv file
+# reads the raw STR monthly files creates Rdata files
 source("scripts/read_raw_str_us.R")
+source("scripts/read_raw_str_ihg_mex.R")
 
-# loads STR monthly and quarterly performance data
-source("scripts/load_str.R")
-# as a result, we have two objects in the workspace (lodus_m and lodus_q)
+# create monthly and quarterly seasonal factors, only run if necessary
+source("scripts/create_seasonal.R")
 
-# preps the STR data, including unit conversion of a couple series and seasonal adjustment
+# preps the STR data, including creating seasonal adjusted from factors
 source("scripts/prep_str.R")
+
 # as a result, four R data files saved (as well as csv versions) 
 # # the first two include the metro data
 # out_str_m out_str_q
