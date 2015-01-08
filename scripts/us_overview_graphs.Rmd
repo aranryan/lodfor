@@ -19,23 +19,19 @@ output:
 
 ## Slide with R Code and Output
 ```{r load_files, echo=FALSE, message=FALSE, warning=FALSE}
-require(zoo)
-require(xts)
-require(reshape2)
-require(dplyr)
-require(ggplot2)
+
+require(rmarkdown)
+require(knitr)
 require(RColorBrewer)
 require(gridExtra)
 require(gtable)
-require(tidyr)
-require(knitr)
+require(Cairo)
 
 fpath <- c("~/Project/R projects/lodfor/")
 
 load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
-load(paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
 load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
-load(paste(fpath, "output_data/outf_str_m_us.Rdata", sep=""))
+load(paste(fpath, "output_data/outf_str_us_m.Rdata", sep=""))
 ```
 
 ```{r readchunk, echo=FALSE, message=FALSE, warning=FALSE}
@@ -50,11 +46,11 @@ source('~/Project/R projects/lodfor/scripts/functions.R')
 
 ```{r create_dataframes, echo=FALSE, message=FALSE, warning=FALSE}
 # puts the monthly simple forecast data into a melted data frame
-xts1 <- outf_str_m_us
-#xts1 <- window(xts1, end = as.Date("2014-09-01"))
+xts1 <- outf_str_us_m 
+xts1 <- window(xts1, end = as.Date("2014-09-01"))
 df1 <- data.frame(time=time(xts1), xts1)
-outf_str_m_us <- df1
-outf_str_m_us_m <- melt(outf_str_m_us, id.vars = c("time"))
+outf_str_us_m <- df1
+outf_str_us_m <- melt(outf_str_us_m, id.vars = c("time"))
 
 # puts the monthly str data into a melted data frame
 xts1 <- ushist_m
@@ -65,26 +61,16 @@ ushist_m_m <- melt(ushist_m, id.vars = c("time"))
 #ushist_m_m[1:4,]
 
 # puts the quarterly ushist into a melted data frame
-xts1 <- ushist_q
+xts1 <- ushist_q 
 xts1 <- window(xts1, end = as.Date("2017-10-01"))
 df1 <- data.frame(time=time(xts1), xts1)
 ushist_q_df <- df1
 ushist_q_m <- melt(ushist_q_df, id.vars = c("time"))
 #ushist_q_m[1:4,]
 
-# puts the quarterly ushist indexed into a melted data frame
-xts1 <- ushist_ind_q
-xts1 <- window(xts1, end = as.Date("2014-10-01"))
-df1 <- data.frame(time=time(xts1), xts1)
-ushist_ind_q_df <- df1
-ushist_ind_q_m <- melt(ushist_ind_q_df, id.vars = c("time"))
-#ushist_ind_q_m[1:4,]
-
 # this is if I wanted to do things with a tidy format
-# takes the summed data and spreads it into a tidy format with
-# tidyr and then calculates the occupancy and revpar series
 tidy_ushist_q <- data.frame(time=time(ushist_q), ushist_q)%>%
-  select(-year,-month,-qtr,-days) %>%
+  # select(-year,-month,-qtr,-days) %>%
   gather(segvar, value, -time, na.rm = FALSE) %>%
   # I had difficulty separating by the underscore
   # because there are more than one underscore in some
@@ -148,43 +134,22 @@ theme_set(theme_ts1())
 ```{r demand_monthly_gdp, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
 #sets variable and text items
 todo <- c("totus_demd_sa")
-grtitle <- c("US room demand (monthly) \nand US GDP (quarterly)")
+grtitle <- c("US room demand and GDP")
 footnote <- c("Note: Room demand through October 2014 \nSource: STR, Tourism Economics")
 starta <- as.Date("2004-01-01")
 enda <- as.Date("2015-10-01")
 index_year <- as.numeric(2006)
-variable_text <- c(paste("Index ",index_year,"=100",sep=""))
+variable_text <- c(paste("Demand monthly, GDP quarterly,\nseasonally adjusted,\nindex ",index_year,"=100",sep=""))
 variable_legend_1 <- c("Room demand")
 variable_legend_2 <- c("GDP")
-# filters
-temp <- filter(ushist_m_m, variable == todo, time >= starta, time <= enda) 
-temp2 <- filter(ushist_q_m, variable == "us_gdp", time >= starta, time <= enda) 
 
-# takes filtered dataframe converts to xts to calculate index, 
-# then back to dataframe
-# seems like a lot of work, but my index function requires xts
-temp <- temp %>% 
-  spread(variable, value) %>% 
-  read.zoo(drop=FALSE) %>% 
-  xts() %>%
-  index_m(index_year=index_year) %>%
-  data.frame() 
-temp <- melt(as.matrix(temp))
-temp <- dplyr::rename(temp, time=Var1, variable=Var2)
-temp$time <- as.Date(temp$time)
-
-# takes filtered dataframe converts to xts to calculate index, 
-# then back to dataframe
-# seems like a lot of work, but my index function requires xts
-temp2 <- temp2 %>% 
-  spread(variable, value) %>% 
-  read.zoo(drop=FALSE) %>% 
-  xts() %>%
-  index_m(index_year=index_year) %>%
-  data.frame() 
-temp2 <- melt(as.matrix(temp2))
-temp2 <- dplyr::rename(temp2, time=Var1, variable=Var2)
-temp2$time <- as.Date(temp2$time)
+# filters and uses function to convert to index
+temp <- ushist_m_m %>%
+  filter(variable == todo, time >= starta, time <= enda) %>%
+  index_m_melted(index_year=index_year)
+temp2 <- ushist_q_m %>%
+  filter(variable == "us_gdp", time >= starta, time <= enda) %>%
+  index_q_melted(index_year=index_year)
 
 p1 <- ggplot() +
   geom_line(data = temp, aes(x = time, y = value, color = variable), size = .6) + 
@@ -246,5 +211,27 @@ p1 <- ggplot() +
  ggtitle(variable_text) + 
 scale_color_manual(values = c(mypallete[10:10], "grey70")) +
   stat_smooth(data = temp, aes(x = time, y = value), method=lm, fill = "grey90", color="grey40", alpha=.4, span=.7)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+
+## Occupancy 
+```{r occupancy, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+#sets variable and text items
+todo <- c("totus_occ_sa")
+grtitle <- c("Occupancy")
+footnote <- c("Source: STR; Tourism Economics")
+starta <- as.Date("2002-01-01")
+enda <- as.Date("2014-10-01")
+variable_text <- c("Occupancy,\nseasonally adjusted, quarterly")
+#variable_legend_1 <- c("Text")
+
+temp <- ushist_q_m %>% 
+  filter(variable == todo, time >= starta, time <= enda)
+  
+p1 <- ggplot() +
+  geom_line(data = temp, aes(x = time, y = value, color = variable), size = .7) +
+  scale_color_manual(values = c(mypallete[10:10], "grey70")) +
+  ggtitle(variable_text)  
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```

@@ -4,6 +4,7 @@
 
 require("rmarkdown")
 require("knitr")
+require("grid")
 require("xlsx")
 require("tframe")
 require("tframePlus")
@@ -24,12 +25,13 @@ require("plyr") #Hadley said if you load plyr first it should be fine
 require("dplyr")
 
 
+
+
 #############################
 #
 # sets a theme
-# requires the grid package
 #
-require(grid)
+#require(grid)
 
 theme_jack <- function (base_size = 12, base_family = "") {
   theme_grey(base_size = base_size, base_family = base_family) %+replace%
@@ -349,6 +351,21 @@ index_q_xts=function(x, index_year){
   return(h)
 }
 
+# creates an index of a single quarterly series that is in a melted dataframe
+index_q_melted=function(x, index_year){
+  x_index <- x %>%
+    spread(variable, value) %>% 
+    read.zoo(drop=FALSE) %>% 
+    xts() %>%
+    index_q(index_year=index_year) %>%
+    data.frame() %>%
+    as.matrix() %>%
+    melt() %>%
+    rename(time=Var1, variable=Var2, value=value)
+    x_index$time <- as.Date(x_index$time)
+    return(x_index)
+}
+
 
 # creates an index of a _monthly_ xts or maybe zoo series
 index_m=function(x, index_year){
@@ -358,6 +375,22 @@ index_m=function(x, index_year){
   x_index <- (x / temp_mean)*100
   return(x_index)
 }
+
+# creates an index of a single monthly series that is in a melted dataframe
+index_m_melted=function(x, index_year){
+  x_index <- x %>%
+     spread(variable, value) %>% 
+     read.zoo(drop=FALSE) %>% 
+     xts()  %>%
+     index_m(index_year=index_year) %>%
+     data.frame() %>%
+     as.matrix() %>%
+     melt() %>%
+  rename(time=Var1, variable=Var2, value=value)
+  x_index$time <- as.Date(x_index$time)
+  return(x_index)
+}
+
 
 
 #######

@@ -6,29 +6,29 @@ output: html_document
 ---
 
 Creates a us historical databank. Combines the STR data with selected macro data and calculates a few series
-```{r}
-require("tidyr")
-require("zoo")
-require("xts")
-require("ggplot2")
-require("tframePlus")
-require("seasonal")
-Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
-checkX13()
+```{r load}
+# require("tidyr")
+# require("zoo")
+# require("xts")
+# require("ggplot2")
+# require("tframePlus")
+# require("seasonal")
+# Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
+# checkX13()
 
 fpath <- c("~/Project/R projects/lodfor/") 
 #macro data
   load(paste(fpath,"output_data/oe_usmac_q.Rdata", sep=""))
 # str data
-  load(paste(fpath,"output_data/out_str_q_us.Rdata", sep=""))
-  load(paste(fpath,"output_data/out_str_m_us.Rdata", sep=""))
+  load(paste(fpath,"output_data/out_str_us_q.Rdata", sep="")) 
+  load(paste(fpath,"output_data/out_str_us_m.Rdata", sep=""))
 # open close data
   load(paste(fpath,"output_data/out_opcl_q.Rdata", sep=""))
   load(paste(fpath,"output_data/out_opcl_m.Rdata", sep=""))
 ```
 
 The initial steps do the quarterly databank. Monthly is done further below.
-```{r}
+```{r create_q}
 # selects certain series to bring in. Others just stay in macro in case they 
 # are needed in future.
 temp <- oe_usmac_q %>%
@@ -55,7 +55,7 @@ head(temp)
 
 # merges dataframes. the all.=TRUE piece ensures all the rows
 # in the first dataframe are included
-ushist_q <- merge(temp, out_str_q_us, all=TRUE) 
+ushist_q <- merge(temp, out_str_us_q, all=TRUE) 
 
 ######################
 #
@@ -123,8 +123,8 @@ Calculate sups for quarterly data by taking supd of the first month of the quart
 supe is the end of the quarter, so it should be set equal to the start of
 supply from the next quarter
 
-```{r}
-# process is to create a quarterly object with open close andstart/end of 
+```{r add_opencl}
+# process is to create a quarterly object with open close and start/end of 
 # period supply, and then merge it onto the quarterly object we're building
 
 # just select the series we want
@@ -142,9 +142,9 @@ head(temp_opcl)
 
 # use monthly supply to calculate start of quarter supply
 # this approach is based on the help for aggregate.zoo 
-#function which returns corresponding first "Date" of quarter
+# function which returns corresponding first "Date" of quarter
 first.of.quarter <- function(tt) as.Date(as.yearqtr(tt))
-sup_qtr <- aggregate(out_str_m_us$totus_supd, first.of.quarter, first) %>%
+sup_qtr <- aggregate(out_str_us_m$totus_supd, first.of.quarter, first) %>%
   xts()
 # had to mannually add back the column names, not sure what happened
 colnames(sup_qtr) <- c("totus_sups")
@@ -154,7 +154,7 @@ colnames(sup_qtr) <- c("totus_sups")
 sup_qtr$totus_supe <- lag(sup_qtr$totus_sups, -1)
 
 # as a check
-head(out_str_m_us$totus_supd) #monthly
+head(out_str_us_m$totus_supd) #monthly
 head(sup_qtr$totus_sups) # based on start of quarter
 head(sup_qtr$totus_supe) # based on start of quarter
 
@@ -260,7 +260,7 @@ autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2014-10-01"))
 ```
 
 Looking at what's in quarterly databank
-```{r}
+```{r look_q}
 # which segments or markets are in the data frame, just for observation
 # not used anywhere
 a <- grep(pattern="_demt", colnames(ushist_q), value=TRUE)
@@ -273,7 +273,7 @@ b
 ```
 
 Create annual databank
-```{r}
+```{r create_a}
 # start with those that should be summed
 
 # select series that should be converted to annual by summing
@@ -322,13 +322,13 @@ autoplot(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("20
 ```
 
 Creating monthly historical databank
-```{r}
+```{r create_m}
 # not that much that needs to be done
-ushist_m <- out_str_m_us
+ushist_m <- out_str_us_m
 ```
 
 Writing outputs
-```{r, echo=FALSE}
+```{r write_output, echo=FALSE}
 # quarterly
   # writes csv versions of the output files
   write.zoo(ushist_q, file=paste(fpath, "output_data/ushist_q.csv", sep=""), sep=",")

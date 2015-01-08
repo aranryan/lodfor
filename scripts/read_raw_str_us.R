@@ -69,9 +69,10 @@ data_m$date <- as.Date(as.yearmon(format(data_m$date, nsmall =2), "%Y%m"))
 
 # list of segments to keep
 to_keep <- c("totus")
-#to_keep <- c(to_keep, "luxus", "upuus", "upsus", "upmus", "midus", "ecous", "indus")
+to_keep <- c(to_keep, "luxus", "upuus", "upsus", "upmus", "midus", "ecous", "indus")
 
-#    ,"anaheim", "atlanta", "boston", "chicago", "dallas" 
+# to_keep <- c(to_keep,
+#      "anaheim", "atlanta", "boston", "chicago", "dallas" 
 #    ,"denver", "detroit", "houston", "lalongbeach", "miami" 
 #    ,"minneapolis", "nashville", "neworleans", "newyork", "norfolk"
 #    ,"oahu", "orlando", "philadelphia", "phoenix", "sandiego" 

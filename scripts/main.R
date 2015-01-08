@@ -7,32 +7,27 @@
 # load_str just contains a function
 # also seasonal_factors contains functions to create monthly and 
 # quarterly seasonal factors
-
 source("scripts/functions.R")
 
-# reads the raw STR monthly files creates Rdata files
+# read raw STR monthly files
+# results saved in Rdata file (dataframe)
 source("scripts/read_raw_str_us.R")
 source("scripts/read_raw_str_ihg_mex.R")
 
-# create monthly and quarterly seasonal factors, only run if necessary
+# create monthl and quarterly seasonal factors, only run if necessary
+# results saved in Rdata files (dataframe)
 source("scripts/create_seasonal.R")
 
 # preps the STR data, including creating seasonal adjusted from factors
+# results saved in Rdata (xts) and csv files 
 source("scripts/prep_str.R")
 
-# as a result, four R data files saved (as well as csv versions) 
-# # the first two include the metro data
-# out_str_m out_str_q
-# these second two are just US data
-# out_str_m_us out_str_q_us
-
 # reads STR opens and closes directly from Excel source file
+# results saved in Rdata (xts) and csv files
 source("scripts/load_str_openclose.R")
-# as a result, two R files are saved (as well as csv versions)
-# out_opcl_m
-# out_opcl_q
 
 # reads macro source file
+# results saved in Rdata (xts) and csv files
 knit("scripts/load_usmacro.Rmd")
 
 # creates the ushist file

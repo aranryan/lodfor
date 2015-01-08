@@ -9,14 +9,14 @@ As an input, this expects a csv file. This csv file can be created using the
 select file that I've set up and the OE macro model
 
 
-```{r}
-require("stringr")
-require("dplyr")
-require("reshape2")
-require("zoo")
-require("xts")
-require("lubridate")
-require("ggplot2")
+```{r load_macro}
+# require("stringr")
+# require("dplyr")
+# require("reshape2")
+# require("zoo")
+# require("xts")
+# require("lubridate")
+# require("ggplot2")
 
 fname <- c("input_data/LODFOR_OEF_USMACRO_2014_10_15.csv")
 temp <- read.csv(fname, header=TRUE, stringsAsFactors=FALSE)
@@ -71,7 +71,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end)
 
 A few plots
 
-```{r, echo=FALSE}
+```{r plots, echo=FALSE}
 
 autoplot(oe_usmac_q$us_gdp)
 
@@ -94,14 +94,14 @@ tempa <- merge(temp, tempdiff, tempcagr)
 ```
 
 Cleans up
-```{r}
+```{r clean}
 rm(temp, temp1, tempa, fname, hold, temp_names)
 ```
 
 
 Writing out files
 
-```{r}
+```{r write_output}
 # writes csv versions of the output files
 write.zoo(oe_usmac_q, file="output_data/oe_usmac_q.csv", sep=",")
 # saves Rdata versions of the output files

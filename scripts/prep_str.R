@@ -40,7 +40,9 @@ out_str_us_m <- out_str_us_m %>%
   filter(seg %in% uslist) %>%
   mutate(variable = paste(seg, "_", variable, sep='')) %>%
   select(-seg) %>%
-  spread(variable,value)
+  spread(variable,value) %>%
+  read.zoo() %>%
+  xts()
 
 # quarterly
 out_str_us_q <- out_str_us_q %>% 
@@ -49,7 +51,9 @@ out_str_us_q <- out_str_us_q %>%
   filter(seg %in% uslist) %>%
   mutate(variable = paste(seg, "_", variable, sep='')) %>%
   select(-seg) %>%
-  spread(variable,value)
+  spread(variable,value) %>%
+  read.zoo() %>%
+  xts()
 
 # temp_out_uslist <- c("year", "month", "qtr", "days")
 
@@ -70,11 +74,17 @@ load("output_data/str_ihg_mex_q_factors.Rdata")
 
 # create monthly sa from seasonal factors using a function
 str_ihg_mex_m1 <- merge(str_ihg_mex_m, str_ihg_mex_m_factors, all=TRUE)
-out_str_ihg_mex_m <- create_sa_str_m(str_ihg_mex_m1)
+out_str_ihg_mex_m <- str_ihg_mex_m1 %>%
+  create_sa_str_m() %>%
+  read.zoo() %>%
+  xts()
 
 # create quarterly sa from seasonal factors using a function
 str_ihg_mex_q1 <- merge(str_ihg_mex_q, str_ihg_mex_q_factors, all=TRUE)
-out_str_ihg_mex_q <- create_sa_str_q(str_ihg_mex_q1)
+out_str_ihg_mex_q <- str_ihg_mex_q1 %>%
+  create_sa_str_q() %>%
+  read.zoo() %>%
+  xts()
 
 #########################
 #
@@ -94,3 +104,4 @@ save(out_str_us_q, file="output_data/out_str_us_q.Rdata")
 
 save(out_str_ihg_mex_m, file="output_data/out_str_ihg_mex_m.Rdata")
 save(out_str_ihg_mex_q, file="output_data/out_str_ihg_mex_q.Rdata")
+
