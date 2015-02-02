@@ -31,6 +31,11 @@ source("scripts/load_str_openclose.R")
 knit("scripts/load_usmacro.Rmd")
 
 # creates the ushist file
+# I have to do this manually by stepping through each chunk because
+# right now it won't save the output file if I just
+# unit it using knit. I'm not sure why not. Could search
+# for examples of people maintaining code in Rmd format
+# maybe they don't
 knit("scripts/create_ushist.Rmd")
 
 # runs simple forecast 
