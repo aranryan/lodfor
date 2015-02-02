@@ -11,15 +11,13 @@ output:
   slidy_presentation: default
 ---
 
-## Slide with Bullets
+## Contents
 
 - Bullet 1
 - Bullet 2
 - Bullet 3
 
-## Slide with R Code and Output
 ```{r load_files, echo=FALSE, message=FALSE, warning=FALSE}
-
 require(directlabels)
 require(rmarkdown)
 require(knitr)
@@ -28,48 +26,47 @@ require(gridExtra)
 require(gtable)
 require(Cairo)
 
-# when kniting from the button, I had to add "../" in front of each
-load(paste("output_data/ushist_q.Rdata", sep=""))
-load(paste("output_data/ushist_m.Rdata", sep=""))
-load(paste("output_data/outf_str_us_m.Rdata", sep=""))
+fpath <- c("~/Project/R projects/lodfor/")
+
+# when kniting from the button, I either needed the full path or to add "../" in front of each
+load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
+load(paste(fpath, "output_data/outf_str_us_m.Rdata", sep=""))
+load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
 ```
 
 ```{r readchunk, echo=FALSE, message=FALSE, warning=FALSE}
-read_chunk('scripts/functions.R')
-
-source('scripts/functions.R')
+read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
+source('~/Project/R projects/lodfor/scripts/functions.R')
 ```
 
 ```{r first, echo=FALSE, message=FALSE, warning=FALSE}
+# I forget what this does
 <<variablesXY>>
 ```
 
 ```{r create_dataframes, echo=FALSE, message=FALSE, warning=FALSE}
-# puts the monthly simple forecast data into a melted data frame
-xts1 <- outf_str_us_m 
-xts1 <- window(xts1, end = as.Date("2014-09-01"))
-df1 <- data.frame(date=time(xts1), xts1)
-outf_str_us_m <- df1
-outf_str_us_m <- melt(outf_str_us_m, id.vars = c("date"))
-
 # puts the monthly str data into a melted data frame
-xts1 <- ushist_m
-xts1 <- window(xts1, end = as.Date("2014-12-01"))
-df1 <- data.frame(date=time(xts1), xts1)
-ushist_m <- df1
-ushist_m_m <- melt(ushist_m, id.vars = c("date"))
-#ushist_m_m[1:4,]
+ushist_m_m <- ushist_m %>%
+  window(end = as.Date("2014-12-01")) %>%
+  data.frame(date=index(.),.) %>%
+  melt(id.vars = c("date"))
+# I used to have a version of ushist_m as a dataframe, but I'm not sure
+# I need it, so I've stopped creating it and left ushist_m as an xts object
+
+# puts the monthly simple forecast data into a melted data frame
+outf_str_us_m_m <- outf_str_us_m %>%
+  window(end = as.Date("2014-09-01")) %>%
+  data.frame(date=index(.),.) %>%
+  melt(id.vars = c("date"))
 
 # puts the quarterly ushist into a melted data frame
-xts1 <- ushist_q 
-xts1 <- window(xts1, end = as.Date("2017-10-01"))
-df1 <- data.frame(date=time(xts1), xts1)
-ushist_q_df <- df1
-ushist_q_m <- melt(ushist_q_df, id.vars = c("date"))
-#ushist_q_m[1:4,]
+ushist_q_m <- ushist_q %>%
+window(end = as.Date("2017-10-01")) %>%
+data.frame(date=index(.), .) %>%
+melt(id.vars = c("date"))
 
 # this is if I wanted to do things with a tidy format
-tidy_ushist_q <- data.frame(date=time(ushist_q), ushist_q)%>%
+ushist_q_tidy <- data.frame(date=time(ushist_q), ushist_q)%>%
   # select(-year,-month,-qtr,-days) %>%
   gather(segvar, value, -date, na.rm = FALSE) %>%
   # I had difficulty separating by the underscore
@@ -83,16 +80,17 @@ tidy_ushist_q <- data.frame(date=time(ushist_q), ushist_q)%>%
   separate(segvar, c("seg", "variable"), sep = "\\.") 
 ```
 
-## Slide with R Code and Output
-Loads code_book_matrix and shows example contents
 ```{r load_code_book_matrix, echo=FALSE, message=FALSE, warning=FALSE}
-fname <- c(paste("input_data/code_book_matrix.csv", sep=""))
+#Loads code_book_matrix and shows example contents
+fname <- c(paste("~/Project/R projects/lodfor/input_data/code_book_matrix.csv", sep=""))
 code_book_matrix <- read.csv(fname, stringsAsFactors=FALSE)
 #head(code_book_matrix)
 rm(fname)
 ```
-Displays palette and sets the ts1 theme
+
 ```{r set_theme, echo=FALSE, message=FALSE, warning=FALSE}
+#Displays palette and sets the ts1 theme
+
 #display.brewer.pal(10, "RdBu")
 mypallete <- brewer.pal( 10 , "RdBu" )
 colors_ts1 <- scale_colour_manual(values = mypallete[c(10, 1, 5, 4)])
@@ -135,7 +133,7 @@ theme_set(theme_ts1())
 #sets variable and text items
 todo <- c("totus_demd_sa")
 grtitle <- c("US room demand and GDP")
-footnote <- c("Note: Room demand through October 2014 \nSource: STR, Tourism Economics")
+footnote <- c("Note: Room demand through December 2014 \nSource: STR, Tourism Economics")
 starta <- as.Date("2004-01-01")
 enda <- as.Date("2015-10-01")
 index_year <- as.numeric(2006)
@@ -163,10 +161,9 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
 
 # take a look at GDP growth rate as a check
-a <- ushist_q$us_gdp
-# this is one way to calculate a CAGR on an xts object
-a$us_gdp_cagr <- ((a$us_gdp/lag(a$us_gdp,1))^4-1)
-window(a, start=as.Date("2013-01-01"), end=as.Date("2015-01-01"))
+#a <- ushist_q$us_gdp
+#a$us_gdp_cagr <- ((a$us_gdp/lag(a$us_gdp,1))^4-1)
+#window(a, start=as.Date("2013-01-01"), end=as.Date("2015-01-01"))
 ```
 
 ## Demand, ratio to population 
@@ -221,9 +218,8 @@ scale_color_manual(values = c(mypallete[10:10], "grey70")) +
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
-
-## Occupancy 
-```{r occupancy, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+## Occupancy labled
+```{r occupancy_labled, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
 #sets variable and text items
 todo <- c("totus_occ_sa")
 grtitle <- c("Occupancy")
@@ -231,11 +227,9 @@ grtitle <- c("Occupancy")
 footnote <- c("Source: STR; Tourism Economics")
 start_mean <- as.Date("2002-01-01") # for mean
 
-
-start_xaxis <- as.Date("2004-01-01") # for x-axis
-#end_xaxis <- as.Date("2013-12-01") # for x-axis
+start_xaxis <- as.Date("1995-01-01") # for x-axis
 end_xaxis <- as.Date(max(temp$date)) # for x-axis
-variable_text <- c("Occupancy,\nseasonally adjusted, quarterly")
+variable_text <- c("Seasonally adjusted, quarterly")
 note <- paste("Average", year(start_mean), "to", year(end_xaxis), sep=" ")
 #variable_legend_1 <- c("Text")
 
@@ -248,34 +242,122 @@ temp <- ushist_q_m %>%
   gather(measure, value, value:value_mean)
 levels(temp$measure)[levels(temp$measure)=="value"] <- "Occupancy"
 levels(temp$measure)[levels(temp$measure)=="value_mean"] <- "Average"
-  
-p1 <- ggplot() +
-  geom_line(data = temp, aes(x = date, y = value, color=measure), size = .7) +
-  scale_color_manual(values = c(mypallete[10:10], "grey70")) +
-  coord_cartesian(xlim = c(start_xaxis, end_xaxis)) +
-  ggtitle(variable_text)  
-#direct.label(p1,"lines2")
-plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
-p <- ggplot(data = temp, aes(x = date, y=value, color = measure)) +
+p1 <- ggplot(data = temp, aes(x = date, y=value, color = measure)) +
   geom_line(aes(group = measure)) + 
+  coord_cartesian(xlim = c(start_xaxis, end_xaxis)) +
+    ggtitle(variable_text) +
   scale_color_manual(values = c(mypallete[10:10], "grey70")) 
-#theme(plot.margin=unit(c(0,4,0,0),"cm"))
-p
-
-direct.label (p,
-list ("lines2" ,
-hjust = -.5 ,
-vjust = 1 ,
-cex = 1 ))
+p1 <- direct.label (p1,
+list ("lines2" , hjust = 0 , vjust = 1 , cex = 1 ))
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
 # direct.label(p,"lines2")
 # direct.label(p,"first.qp")
 # direct.label(p,"last.bumpup")
 # direct.label(p,"last.qp", cex=2)
-# direct.label(p,"maxvar.qp", cex=2)
+# direct.label(p,"maxvar.qp", cex=2)  
+```
 
-  
+
+##Following graphs are based on code from around the STR presentation in November
+
+## ADR, real long-term
+```{r adr_real_lt, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+todo <- c("totus_adr_sarpc")
+grtitle <- c("Real ADR, US")
+footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
+starta <- as.Date("1987-01-01")
+enda <- as.Date("2015-01-01")
+variable_text <- c("Seasonally adjusted")
+
+temp <- ushist_q_m %>% 
+  filter(date >= starta, date <= enda, variable == todo) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("date"))%>%
+  mutate(group_date = cut(date, breaks = as.Date(c("1987-01-01", "1998-01-01","2015-01-01"))))
+
+p1 <- ggplot(data = temp, aes(x = date, y = value, color = variable, shape = factor(group_date))) +
+  geom_line(aes(x= date, y=value, group=1), size = .7) +
+  ggtitle(variable_text) + 
+  scale_color_manual(values = c(mypallete[10:10], "grey70")) +
+  stat_smooth(method="lm", fill = "grey90", 
+              color="grey40", span=.7, se = FALSE)+ 
+  scale_y_continuous(labels = dollar)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+
+## ADR, real medium-term
+```{r adr_real_mt, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+todo <- c("totus_adr_sarpc")
+grtitle <- c("Real ADR, US")
+footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
+starta <- as.Date("2001-01-01")
+enda <- as.Date("2014-01-01")
+variable_text <- c("Seasonally adjusted")
+
+temp <- ushist_q_m %>% 
+  filter(date >= starta, date <= enda, variable == todo) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("date"))
+
+p1 <- ggplot() +
+  geom_line(data = temp, aes(x = date, y = value, color = variable), size = .7) +
+ ggtitle(variable_text) + 
+scale_color_manual(values = c(mypallete[10:10], "grey70")) + 
+  scale_y_continuous(labels = dollar)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+## ADR, real short-term
+```{r adr_real_st, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+todo <- c("totus_adr_sarpc")
+grtitle <- c("Real ADR, US")
+footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
+starta <- as.Date("2006-01-01")
+enda <- as.Date("2015-01-01")
+variable_text <- c("Seasonally adjusted")
+
+temp <- ushist_q_m %>% 
+  filter(date >= starta, date <= enda, variable == todo) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("date")) %>%
+  mutate(group_date = cut(date, breaks = as.Date(c("2004-01-01", "2008-04-01", "2010-01-01","2015-01-01"))))
+
+p1 <- ggplot(data = temp, aes(x = date, y = value, shape = factor(group_date))) + 
+ geom_line(aes(x= date, y=value, group=1), size = .7, color=mypallete[10:10]) +
+ ggtitle(variable_text) + 
+ scale_color_manual(values = c(mypallete[10:10], "grey70"))  + 
+ stat_smooth(method="lm", fill = "grey70", 
+             color="grey40", alpha=.4, span=.8, se = FALSE)+ 
+  scale_y_continuous(labels = dollar)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+## ADR, short-term
+```{r adr_st, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+todo <- c("totus_adr_sa")
+grtitle <- c("ADR, US")
+footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
+starta <- as.Date("2006-01-01")
+enda <- as.Date("2015-01-01")
+variable_text <- c("Seasonally adjusted")
+
+temp <- ushist_q_m %>% 
+  filter(date >= starta, date <= enda, variable == todo) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("date")) %>%
+  mutate(group_date = cut(date, breaks = as.Date(c("2004-01-01", "2008-04-01", "2010-01-01","2015-01-01"))))
+
+p1 <- ggplot(data = temp, aes(x = date, y = value, shape = factor(group_date))) + 
+ geom_line(aes(x= date, y=value, group=1), size = .7, color=mypallete[10:10]) +
+ ggtitle(variable_text) + 
+ scale_color_manual(values = c(mypallete[10:10], "grey70"))  + 
+ stat_smooth(method="lm", fill = "grey70", 
+             color="grey40", alpha=.4, span=.8, se = FALSE)+ 
+  scale_y_continuous(labels = dollar)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
 
@@ -288,9 +370,8 @@ todo <- c("totus_adr_sa")
 grtitle <- c("ADR, US")
 footnote <- c("Source: STR; Tourism Economics")
  
-starta <- as.Date("2008-01-01")
-enda <- as.Date("2014-10-01")
- 
+# starta <- as.Date("2008-01-01")
+# enda <- as.Date("2015-01-01")
 variable_text <- c("Seasonally adjusted")
  
 temp <- ushist_q_m %>% 
@@ -301,10 +382,12 @@ temp <- ushist_q_m %>%
   mutate(group_date = cut(date, breaks = as.Date(c("2004-01-01", "2008-01-01", "2009-10-01","2015-01-01")))) %>%
   mutate(cagr = (value / lag(value))^4 -1, pchya = (value/lag(value, 4)) -1) %>%
   select(-value) %>%
-  filter(date >= starta, date <= enda) %>%
+ # filter(date >= starta, date <= enda) %>%
   melt(id.vars = c("date", "group_date")) %>%
   transform(value = as.numeric(value))
 
+start_xaxis <- as.Date("2008-01-01") # for x-axis
+end_xaxis <- as.Date("2015-01-01") # for x-axis
 p1 <- ggplot(data = temp, aes(x = date, y = value, group=variable)) + 
  geom_line(size = .7, color=mypallete[10:10]) +
   geom_point() +
@@ -313,6 +396,7 @@ p1 <- ggplot(data = temp, aes(x = date, y = value, group=variable)) +
  stat_smooth(method="loess", fill = "grey70", 
              color="grey40", alpha=.4, span=.8, se = TRUE) +
  scale_y_continuous(labels = percent)  + 
+    coord_cartesian(xlim = c(start_xaxis, end_xaxis)) +
  facet_wrap(~ variable, ncol=1, scales = "free")+
 # doesn't add minor tick marks, just for grid I guess 
  scale_x_date(labels = date_format("%Y"), breaks = "1 year", minor_breaks = "3 months") 
@@ -320,5 +404,46 @@ p1 <- ggplot(data = temp, aes(x = date, y = value, group=variable)) +
 #http://stackoverflow.com/questions/10151123/how-to-specify-columns-in-facet-grid-or-how-to-change-labels-in-facet-wrap
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
+```
+
+
+## ADR, growth cagr, short-term 
+```{r adr_gr_cagr_st, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+#sets variable and text items
+ 
+todo <- c("totus_adr_sa")
+grtitle <- c("ADR, US")
+footnote <- c("Source: STR; Tourism Economics")
+variable_text <- c("Seasonally adjusted, compound annual growth rate")
+ 
+temp <- ushist_q_m %>% 
+  filter(variable == todo) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("date")) %>%
+  select(-variable) %>%
+#  mutate(group_date = cut(date, breaks = as.Date(c("2004-01-01", "2008-01-01", "2009-10-01","2015-01-01")))) %>%
+  mutate(cagr = (value / lag(value))^4 -1) %>%
+  select(-value) %>%
+ # filter(date >= starta, date <= enda) %>%
+  melt(id.vars = c("date")) %>%
+  transform(value = as.numeric(value))
+
+start_xaxis <- as.Date("2003-01-01") # for x-axis
+end_xaxis <- as.Date("2015-01-01") # for x-axis
+p1 <- ggplot(data = temp, aes(x = date, y = value, group=variable)) + 
+ geom_line(size = .7, color=mypallete[10:10]) +
+  geom_point() +
+ ggtitle(variable_text) + 
+ scale_color_manual(values = c(mypallete[10:10], "grey70"))  + 
+ stat_smooth(method="loess", fill = "grey70", 
+             color="grey40", alpha=.4, span=.25, se = TRUE) +
+ scale_y_continuous(labels = percent)  + 
+    coord_cartesian(xlim = c(start_xaxis, end_xaxis), ylim = c(-.1,.1)) +
+# facet_wrap(~ variable, ncol=1, scales = "free")+
+# doesn't add minor tick marks, just for grid I guess 
+ scale_x_date(labels = date_format("%Y"), breaks = "1 year", minor_breaks = "3 months") 
+# useful
+#http://stackoverflow.com/questions/10151123/how-to-specify-columns-in-facet-grid-or-how-to-change-labels-in-facet-wrap
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
 ```
