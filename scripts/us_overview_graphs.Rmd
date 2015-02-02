@@ -277,3 +277,48 @@ cex = 1 ))
 
   
 ```
+
+
+
+## ADR, growth, short-term 
+```{r adr_gr_st, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+#sets variable and text items
+ 
+todo <- c("totus_adr_sa")
+grtitle <- c("ADR, US")
+footnote <- c("Source: STR; Tourism Economics")
+ 
+starta <- as.Date("2008-01-01")
+enda <- as.Date("2014-10-01")
+ 
+variable_text <- c("Seasonally adjusted")
+ 
+temp <- ushist_q_m %>% 
+  filter(variable == todo) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("date")) %>%
+  select(-variable) %>%
+  mutate(group_date = cut(date, breaks = as.Date(c("2004-01-01", "2008-01-01", "2009-10-01","2015-01-01")))) %>%
+  mutate(cagr = (value / lag(value))^4 -1, pchya = (value/lag(value, 4)) -1) %>%
+  select(-value) %>%
+  filter(date >= starta, date <= enda) %>%
+  melt(id.vars = c("date", "group_date")) %>%
+  transform(value = as.numeric(value))
+
+p1 <- ggplot(data = temp, aes(x = date, y = value, group=variable)) + 
+ geom_line(size = .7, color=mypallete[10:10]) +
+  geom_point() +
+ ggtitle(variable_text) + 
+ scale_color_manual(values = c(mypallete[10:10], "grey70"))  + 
+ stat_smooth(method="loess", fill = "grey70", 
+             color="grey40", alpha=.4, span=.8, se = TRUE) +
+ scale_y_continuous(labels = percent)  + 
+ facet_wrap(~ variable, ncol=1, scales = "free")+
+# doesn't add minor tick marks, just for grid I guess 
+ scale_x_date(labels = date_format("%Y"), breaks = "1 year", minor_breaks = "3 months") 
+# useful
+#http://stackoverflow.com/questions/10151123/how-to-specify-columns-in-facet-grid-or-how-to-change-labels-in-facet-wrap
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+
+
+```
