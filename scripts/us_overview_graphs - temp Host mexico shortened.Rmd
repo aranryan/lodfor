@@ -19,25 +19,29 @@ output:
 
 ## Slide with R Code and Output
 ```{r load_files, echo=FALSE, message=FALSE, warning=FALSE}
-
-require(directlabels)
-require(rmarkdown)
-require(knitr)
+require(zoo)
+require(xts)
+require(reshape2)
+require(dplyr)
+require(ggplot2)
 require(RColorBrewer)
 require(gridExtra)
 require(gtable)
-require(Cairo)
+require(tidyr)
+require(knitr)
 
-# when kniting from the button, I had to add "../" in front of each
-load(paste("output_data/ushist_q.Rdata", sep=""))
-load(paste("output_data/ushist_m.Rdata", sep=""))
-load(paste("output_data/outf_str_us_m.Rdata", sep=""))
+fpath <- c("~/Project/R projects/lodfor/")
+
+load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
+load(paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
+load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
+load(paste(fpath, "output_data/outf_str_m_us.Rdata", sep=""))
 ```
 
 ```{r readchunk, echo=FALSE, message=FALSE, warning=FALSE}
-read_chunk('scripts/functions.R')
+read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
 
-source('scripts/functions.R')
+source('~/Project/R projects/lodfor/scripts/functions.R')
 ```
 
 ```{r first, echo=FALSE, message=FALSE, warning=FALSE}
@@ -46,32 +50,42 @@ source('scripts/functions.R')
 
 ```{r create_dataframes, echo=FALSE, message=FALSE, warning=FALSE}
 # puts the monthly simple forecast data into a melted data frame
-xts1 <- outf_str_us_m 
-xts1 <- window(xts1, end = as.Date("2014-09-01"))
-df1 <- data.frame(date=time(xts1), xts1)
-outf_str_us_m <- df1
-outf_str_us_m <- melt(outf_str_us_m, id.vars = c("date"))
+xts1 <- outf_str_m_us
+#xts1 <- window(xts1, end = as.Date("2014-09-01"))
+df1 <- data.frame(time=time(xts1), xts1)
+outf_str_m_us <- df1
+outf_str_m_us_m <- melt(outf_str_m_us, id.vars = c("time"))
 
 # puts the monthly str data into a melted data frame
 xts1 <- ushist_m
-xts1 <- window(xts1, end = as.Date("2014-12-01"))
-df1 <- data.frame(date=time(xts1), xts1)
+xts1 <- window(xts1, end = as.Date("2014-10-01"))
+df1 <- data.frame(time=time(xts1), xts1)
 ushist_m <- df1
-ushist_m_m <- melt(ushist_m, id.vars = c("date"))
+ushist_m_m <- melt(ushist_m, id.vars = c("time"))
 #ushist_m_m[1:4,]
 
 # puts the quarterly ushist into a melted data frame
-xts1 <- ushist_q 
+xts1 <- ushist_q
 xts1 <- window(xts1, end = as.Date("2017-10-01"))
-df1 <- data.frame(date=time(xts1), xts1)
+df1 <- data.frame(time=time(xts1), xts1)
 ushist_q_df <- df1
-ushist_q_m <- melt(ushist_q_df, id.vars = c("date"))
+ushist_q_m <- melt(ushist_q_df, id.vars = c("time"))
 #ushist_q_m[1:4,]
 
+# puts the quarterly ushist indexed into a melted data frame
+xts1 <- ushist_ind_q
+xts1 <- window(xts1, end = as.Date("2014-10-01"))
+df1 <- data.frame(time=time(xts1), xts1)
+ushist_ind_q_df <- df1
+ushist_ind_q_m <- melt(ushist_ind_q_df, id.vars = c("time"))
+#ushist_ind_q_m[1:4,]
+
 # this is if I wanted to do things with a tidy format
-tidy_ushist_q <- data.frame(date=time(ushist_q), ushist_q)%>%
-  # select(-year,-month,-qtr,-days) %>%
-  gather(segvar, value, -date, na.rm = FALSE) %>%
+# takes the summed data and spreads it into a tidy format with
+# tidyr and then calculates the occupancy and revpar series
+tidy_ushist_q <- data.frame(time=time(ushist_q), ushist_q)%>%
+  select(-year,-month,-qtr,-days) %>%
+  gather(segvar, value, -time, na.rm = FALSE) %>%
   # I had difficulty separating by the underscore
   # because there are more than one underscore in some
   # so my solution was to mutate the column, applying 
@@ -86,7 +100,7 @@ tidy_ushist_q <- data.frame(date=time(ushist_q), ushist_q)%>%
 ## Slide with R Code and Output
 Loads code_book_matrix and shows example contents
 ```{r load_code_book_matrix, echo=FALSE, message=FALSE, warning=FALSE}
-fname <- c(paste("input_data/code_book_matrix.csv", sep=""))
+fname <- c(paste(fpath, "input_data/code_book_matrix.csv", sep=""))
 code_book_matrix <- read.csv(fname, stringsAsFactors=FALSE)
 #head(code_book_matrix)
 rm(fname)
@@ -134,39 +148,53 @@ theme_set(theme_ts1())
 ```{r demand_monthly_gdp, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
 #sets variable and text items
 todo <- c("totus_demd_sa")
-grtitle <- c("US room demand and GDP")
+grtitle <- c("US room demand (monthly) \nand US GDP (quarterly)")
 footnote <- c("Note: Room demand through October 2014 \nSource: STR, Tourism Economics")
 starta <- as.Date("2004-01-01")
 enda <- as.Date("2015-10-01")
 index_year <- as.numeric(2006)
-variable_text <- c(paste("Demand monthly, GDP quarterly,\nseasonally adjusted,\nindex ",index_year,"=100",sep=""))
+variable_text <- c(paste("Index ",index_year,"=100",sep=""))
 variable_legend_1 <- c("Room demand")
 variable_legend_2 <- c("GDP")
+# filters
+temp <- filter(ushist_m_m, variable == todo, time >= starta, time <= enda) 
+temp2 <- filter(ushist_q_m, variable == "us_gdp", time >= starta, time <= enda) 
 
-# filters and uses function to convert to index
-temp <- ushist_m_m %>%
-  filter(variable == todo, date >= starta, date <= enda) %>%
-  index_m_melted(index_year=index_year)
-temp2 <- ushist_q_m %>%
-  filter(variable == "us_gdp", date >= starta, date <= enda) %>%
-  index_q_melted(index_year=index_year)
+# takes filtered dataframe converts to xts to calculate index, 
+# then back to dataframe
+# seems like a lot of work, but my index function requires xts
+temp <- temp %>% 
+  spread(variable, value) %>% 
+  read.zoo(drop=FALSE) %>% 
+  xts() %>%
+  index_m(index_year=index_year) %>%
+  data.frame() 
+temp <- melt(as.matrix(temp))
+temp <- dplyr::rename(temp, time=Var1, variable=Var2)
+temp$time <- as.Date(temp$time)
+
+# takes filtered dataframe converts to xts to calculate index, 
+# then back to dataframe
+# seems like a lot of work, but my index function requires xts
+temp2 <- temp2 %>% 
+  spread(variable, value) %>% 
+  read.zoo(drop=FALSE) %>% 
+  xts() %>%
+  index_m(index_year=index_year) %>%
+  data.frame() 
+temp2 <- melt(as.matrix(temp2))
+temp2 <- dplyr::rename(temp2, time=Var1, variable=Var2)
+temp2$time <- as.Date(temp2$time)
 
 p1 <- ggplot() +
-  geom_line(data = temp, aes(x = date, y = value, color = variable), size = .6) + 
-  geom_line(data = temp2, aes(x = date, y = value, color = variable), size = .9) +
+  geom_line(data = temp, aes(x = time, y = value, color = variable), size = .6) + 
+  geom_line(data = temp2, aes(x = time, y = value, color = variable), size = .9) +
   ggtitle(variable_text) +
   theme(legend.position=c(1, .2)) +
   scale_color_manual(values = c(mypallete[7:7], "grey40"), labels=c(variable_legend_1,variable_legend_2)) + 
-  stat_smooth(data = temp, aes(x = date, y = value), method="loess", 
+  stat_smooth(data = temp, aes(x = time, y = value), method="loess", 
               color=mypallete[9:9], alpha=.4, span=.2, se = FALSE, fullrange=FALSE, size=.9, show_guide=FALSE)
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
-
-
-# take a look at GDP growth rate as a check
-a <- ushist_q$us_gdp
-# this is one way to calculate a CAGR on an xts object
-a$us_gdp_cagr <- ((a$us_gdp/lag(a$us_gdp,1))^4-1)
-window(a, start=as.Date("2013-01-01"), end=as.Date("2015-01-01"))
 ```
 
 ## Demand, ratio to population 
@@ -181,17 +209,17 @@ variable_text <- c("Annual room nights per capita \n(working age population)")
 variable_legend_1 <- c("Room demand")
 
 temp <- ushist_q_m %>% 
-  filter(variable == "totus_demd_sa" | variable == "us_popw", date >= starta, date <= enda) %>%
+  filter(variable == "totus_demd_sa" | variable == "us_popw", time >= starta, time <= enda) %>%
   spread(variable, value) %>%
   mutate(dem_popw = totus_demd_sa * 365 / us_popw*1000) %>%
-  select(date, dem_popw) %>%
-  melt(id.vars = c("date"))
+  select(time, dem_popw) %>%
+  melt(id.vars = c("time"))
 
 p1 <- ggplot() +
-  geom_line(data = temp, aes(x = date, y = value, color = variable), size = .7) +
+  geom_line(data = temp, aes(x = time, y = value, color = variable), size = .7) +
  ggtitle(variable_text) + 
 scale_color_manual(values = c(mypallete[10:10], "grey70")) +
-  stat_smooth(data = temp, aes(x = date, y = value), method=lm, fill = "grey90", color="grey40", alpha=.4, span=.7)
+  stat_smooth(data = temp, aes(x = time, y = value), method=lm, fill = "grey90", color="grey40", alpha=.4, span=.7)
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
@@ -207,73 +235,16 @@ variable_text <- c("Annual room nights per employed person \n(household survey e
 variable_legend_1 <- c("Room demand")
 
 temp <- ushist_q_m %>% 
-  filter(variable == "totus_demd_sa" | variable == "us_et", date >= starta, date <= enda) %>%
+  filter(variable == "totus_demd_sa" | variable == "us_et", time >= starta, time <= enda) %>%
   spread(variable, value) %>%
   mutate(dem_et = totus_demd_sa * 365 / us_et*1000) %>%
-  select(date, dem_et) %>%
-  melt(id.vars = c("date"))
+  select(time, dem_et) %>%
+  melt(id.vars = c("time"))
 
 p1 <- ggplot() +
-  geom_line(data = temp, aes(x = date, y = value, color = variable), size = .7) +
+  geom_line(data = temp, aes(x = time, y = value, color = variable), size = .7) +
  ggtitle(variable_text) + 
 scale_color_manual(values = c(mypallete[10:10], "grey70")) +
-  stat_smooth(data = temp, aes(x = date, y = value), method=lm, fill = "grey90", color="grey40", alpha=.4, span=.7)
+  stat_smooth(data = temp, aes(x = time, y = value), method=lm, fill = "grey90", color="grey40", alpha=.4, span=.7)
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
-```
-
-
-## Occupancy 
-```{r occupancy, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
-#sets variable and text items
-todo <- c("totus_occ_sa")
-grtitle <- c("Occupancy")
-
-footnote <- c("Source: STR; Tourism Economics")
-start_mean <- as.Date("2002-01-01") # for mean
-
-
-start_xaxis <- as.Date("2004-01-01") # for x-axis
-#end_xaxis <- as.Date("2013-12-01") # for x-axis
-end_xaxis <- as.Date(max(temp$date)) # for x-axis
-variable_text <- c("Occupancy,\nseasonally adjusted, quarterly")
-note <- paste("Average", year(start_mean), "to", year(end_xaxis), sep=" ")
-#variable_legend_1 <- c("Text")
-
-temp <- ushist_q_m %>% 
-  filter(variable == todo, !is.na(value)) %>%
-  group_by(variable) %>% 
-  mutate(value_mean=mean(value)) %>%
-  # gather is tidyr version of melt, creates measure and value columns, 
-  # in a sense by gathering value to value_mean columns
-  gather(measure, value, value:value_mean)
-levels(temp$measure)[levels(temp$measure)=="value"] <- "Occupancy"
-levels(temp$measure)[levels(temp$measure)=="value_mean"] <- "Average"
-  
-p1 <- ggplot() +
-  geom_line(data = temp, aes(x = date, y = value, color=measure), size = .7) +
-  scale_color_manual(values = c(mypallete[10:10], "grey70")) +
-  coord_cartesian(xlim = c(start_xaxis, end_xaxis)) +
-  ggtitle(variable_text)  
-#direct.label(p1,"lines2")
-plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
-
-p <- ggplot(data = temp, aes(x = date, y=value, color = measure)) +
-  geom_line(aes(group = measure)) + 
-  scale_color_manual(values = c(mypallete[10:10], "grey70")) 
-#theme(plot.margin=unit(c(0,4,0,0),"cm"))
-p
-
-direct.label (p,
-list ("lines2" ,
-hjust = -.5 ,
-vjust = 1 ,
-cex = 1 ))
-
-# direct.label(p,"lines2")
-# direct.label(p,"first.qp")
-# direct.label(p,"last.bumpup")
-# direct.label(p,"last.qp", cex=2)
-# direct.label(p,"maxvar.qp", cex=2)
-
-  
 ```

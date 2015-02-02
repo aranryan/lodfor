@@ -3,8 +3,8 @@
 # I used it because I found a way to use that format in reading the data
 # would have liked to avoid it, as I later conver it with as.Date
 f <- function(x) as.yearmon(format(x, nsmall = 2), "%Y%m")
-fname_opens <- c("input_data/coopopen2014-12-18.txt")
-fname_closes <- c("input_data/coopclose2014-12-18.txt")
+fname_opens <- c("input_data/coopopen2015-01-21.txt")
+fname_closes <- c("input_data/coopclose2015-01-21.txt")
 
 # handles opens
 
@@ -149,6 +149,12 @@ tail(opcl_q)
 
 out_opcl_q <- opcl_q
 out_opcl_m <- opcl_m
+
+########
+#
+# set up for seasonal adjustment
+# just adjusted US opens. need to work on it to get 
+# adjustments going for segments sometime
 
 # just did opens, closes wouldn't adjust
 segl <- c("tot") #, "lux", "upu", "ups", "upm", "mid", "eco")

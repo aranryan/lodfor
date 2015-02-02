@@ -3,7 +3,7 @@
 #
 # name of file to read
 
-fname <- c("input_data/str_us_top25.csv")
+fname <- c("input_data/str_us_top25-2015-01-23.csv")
 
 ########
 #
@@ -43,15 +43,16 @@ series_names <- c("date", series_names)
 head(series_names)
 
 # now read in the table without headers
-data_m <- read.csv(fname, header = FALSE, sep = ",", skip = 2,
-                    na.strings = c("NA", ""), stringsAsFactors=FALSE)
 # in the source file there is a footnote that happens at first and second column,
-# row 11,000 or so
-# this removes rows that are NA in the third column
+# row 11,000 or so, so this reads in a maximu of 5000 rows
+data_m <- read.csv(fname, header = FALSE, sep = ",", skip = 2, nrows=5000,
+                    na.strings = c("NA", ""), stringsAsFactors=FALSE)
+
+# this removes rows that are NA in the first column
 # effectively it takes those rows that are not NA and keeps them
 # based on 
 # https://heuristically.wordpress.com/2009/10/08/delete-rows-from-r-data-frame/
-data_m <- data_m[!is.na(data_m[,3]),]
+data_m <- data_m[!is.na(data_m[,1]),]
 
 # still have the issue that there are commas in the data, this removes them
 col2cvt <- 2:ncol(data_m) # columns from 2 to the end
@@ -68,16 +69,17 @@ data_m$date <- as.Date(as.yearmon(format(data_m$date, nsmall =2), "%Y%m"))
 # does a quick filter on the data, for example if I just want to keep ustot
 
 # list of segments to keep
-to_keep <- c("totus")
-to_keep <- c(to_keep, "luxus", "upuus", "upsus", "upmus", "midus", "ecous", "indus")
 
-# to_keep <- c(to_keep,
-#      "anaheim", "atlanta", "boston", "chicago", "dallas" 
-#    ,"denver", "detroit", "houston", "lalongbeach", "miami" 
-#    ,"minneapolis", "nashville", "neworleans", "newyork", "norfolk"
-#    ,"oahu", "orlando", "philadelphia", "phoenix", "sandiego" 
-#    ,"sanfrancisco", "seattle", "stlouis", "tampa", "washingtondc"
-#)
+to_keep <- c("totus")
+ to_keep <- c(to_keep, "luxus", "upuus", "upsus", "upmus", "midus", "ecous", "indus")
+# 
+ to_keep <- c(to_keep
+    ,   "anaheim", "atlanta", "boston", "chicago", "dallas" 
+     ,"denver", "detroit", "houston", "lalongbeach", "miami" 
+     ,"minneapolis", "nashville", "neworleans", "newyork", "norfolk"
+     ,"oahu", "orlando", "philadelphia", "phoenix", "sandiego" 
+     ,"sanfrancisco", "seattle", "stlouis", "tampa", "washingtondc"
+ )
 
 # puts into tidy format with a seg column that contains the segment code
 # then filters to keep the segments

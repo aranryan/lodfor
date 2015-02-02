@@ -32,8 +32,8 @@ The initial steps do the quarterly databank. Monthly is done further below.
 # selects certain series to bring in. Others just stay in macro in case they 
 # are needed in future.
 temp <- oe_usmac_q %>%
-  data.frame(time=time(oe_usmac_q), oe_usmac_q) %>%
-  select(time, 
+  data.frame(date=time(oe_usmac_q), oe_usmac_q) %>%
+  select(date, 
          us_gdp,
          us_if,
          us_cd,
@@ -61,21 +61,21 @@ ushist_q <- merge(temp, out_str_us_q, all=TRUE)
 #
 # indexes everything in ushist_q
 #
-ushist_ind_q <- index_q_xts(ushist_q,index_year=2005)
-
-# look at a graph
-tempa <- ushist_ind_q$totus_occ_sa
-tempb <- ushist_ind_q$upsus_occ_sa
-tempc <- merge(tempa,tempb)
-autoplot(window(tempc, start="2000-01-01", end="2014-10-01"), facets=NULL)
+# ushist_ind_q <- index_q_xts(ushist_q,index_year=2005)
+# 
+# # look at a graph
+# tempa <- ushist_ind_q$totus_occ_sa
+# tempb <- ushist_ind_q$upsus_occ_sa
+# tempc <- merge(tempa,tempb)
+# autoplot(window(tempc, start="2000-01-01", end="2014-10-01"), facets=NULL)
 
 ######################
 #
 # converts some series to real
 #
 
-# first index the personal cons price deflator to average 100 in 2013
-us_pc_index <- index_q(ushist_q$us_pc, index_year=2013)
+# first index the personal cons price deflator to average 100 in 2014
+us_pc_index <- index_q(ushist_q$us_pc, index_year=2014)
 names(us_pc_index) <- "us_pc_index"
 ushist_q <- merge(ushist_q, us_pc_index)
 autoplot(ushist_q$us_pc_index)
@@ -89,7 +89,7 @@ real_df <- data.frame(ushist_q) %>%
   select(matches("_adr$|_adr_sa|_revpar$|_revpar_sa")) %>% 
   mutate_each(funs(ind = ( . / us_pc_index)*100))
 # adds on a time index to get it back to xts
-temp <- data.frame(time=time(ushist_q)) 
+temp <- data.frame(date=time(ushist_q)) 
 real_df <- cbind(temp,real_df)
 real <- read.zoo(real_df)
 real <- xts(real)
@@ -128,8 +128,8 @@ supply from the next quarter
 # period supply, and then merge it onto the quarterly object we're building
 
 # just select the series we want
-temp_opcl <- data.frame(time=time(out_opcl_q), out_opcl_q) %>%
-  select(time, 
+temp_opcl <- data.frame(date=time(out_opcl_q), out_opcl_q) %>%
+  select(date, 
          totus_oprms_sa, 
          totus_oprms_sf, 
          totus_oprms, 
@@ -164,7 +164,7 @@ temp_opcl <- merge(temp_opcl, sup_qtr)
 ushist_q <- merge(ushist_q, temp_opcl)
 
 # calculate the schange and schanger
-ushist_q <- data.frame(time=time(ushist_q), ushist_q) %>%
+ushist_q <- data.frame(date=time(ushist_q), ushist_q) %>%
   mutate(totus_schange = 
            totus_supe - totus_sups - totus_oprms /1000000 + totus_clrms/1000000,
          totus_schanger = totus_schange / totus_sups) %>%
@@ -242,8 +242,8 @@ mp <- seas(y,
   out_sa <- merge(tempa, tempdata_sa, tempdata_sf, tempdata_fct, tempdata_irreg)
 
   # select a few that I want to add
-  temp_schanger <- data.frame(time=time(out_sa), out_sa) %>%
-  select(time, 
+  temp_schanger <- data.frame(date=time(out_sa), out_sa) %>%
+  select(date, 
          totus_schanger_sa,
          totus_schanger_sf) %>%
   read.zoo %>%
@@ -291,10 +291,10 @@ suma <- q_to_a_xts(suma, type="sum")
 # takes the summed data and spreads it into a tidy format with
 # tidyr and then calculates the occupancy and revpar series
 # first needs to go from xts to dataframe
-tb2 <- data.frame(time=time(suma), suma)%>% 
+tb2 <- data.frame(date=time(suma), suma)%>% 
   # creates column called segvar that contains the column names, and one next to 
   # it with the values, dropping the time column
-  gather(segvar, value, -time, na.rm = FALSE) %>%
+  gather(segvar, value, -date, na.rm = FALSE) %>%
   # in the following the ^ means anything not in the list
   # with the list being all characters and numbers
   # so it separates segvar into two colums using sep
@@ -310,7 +310,7 @@ tb2 <- data.frame(time=time(suma), suma)%>%
 # takes it from a tidy format and melts it, and then creates the unique
 # variable names and then reads into a zoo object spliting on the 
 # second column
-a <- melt(tb2, id=c("time","seg"), na.rm=FALSE)
+a <- melt(tb2, id=c("date","seg"), na.rm=FALSE)
 a$variable <- paste(a$seg, "_", a$var, sep='')
 a$seg <- NULL
 ushist_a <- xts(read.zoo(a, split = 2))
@@ -332,11 +332,11 @@ Writing outputs
 # quarterly
   # writes csv versions of the output files
   write.zoo(ushist_q, file=paste(fpath, "output_data/ushist_q.csv", sep=""), sep=",")
-  write.zoo(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.csv", sep=""), sep=",")
+  #write.zoo(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.csv", sep=""), sep=",")
   
   # saves Rdata versions of the output files
   save(ushist_q, file=paste(fpath, "output_data/ushist_q.Rdata", sep=""))
-  save(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
+  #save(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
 
 # monthly
   # writes csv versions of the output files

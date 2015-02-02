@@ -18,7 +18,7 @@ select file that I've set up and the OE macro model
 # require("lubridate")
 # require("ggplot2")
 
-fname <- c("input_data/LODFOR_OEF_USMACRO_2014_10_15.csv")
+fname <- c("input_data/LODFOR_OEF_USMACRO_2015_01_13.csv")
 temp <- read.csv(fname, header=TRUE, stringsAsFactors=FALSE)
 # sets up column names
 temp_names <- colnames(temp)
@@ -89,8 +89,11 @@ tempcagr <- (temp/lag(temp))^4-1
 autoplot(window(tempcagr, start=as.Date("2013-01-01"), end=as.Date("2015-01-01")))
 tempa <- merge(temp, tempdiff, tempcagr)
 
-
-
+# take a look at GDP growth rate as a check
+a <- oe_usmac_q$us_gdp
+# this is one way to calculate a CAGR on an xts object
+a$us_gdp_cagr <- ((a$us_gdp/lag(a$us_gdp,1))^4-1)
+window(a, start=as.Date("2013-01-01"), end=as.Date("2015-01-01"))
 ```
 
 Cleans up

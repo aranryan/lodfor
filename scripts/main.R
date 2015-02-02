@@ -1,5 +1,5 @@
 
-# my thinking is that functions file loads functions that should be available at 
+# functions file loads functions that should be available at 
 # at any point. If I clear the workspace, I need to run fuctions again
 # before running the next program
 
@@ -16,7 +16,7 @@ source("scripts/read_raw_str_ihg_mex.R")
 
 # create monthl and quarterly seasonal factors, only run if necessary
 # results saved in Rdata files (dataframe)
-source("scripts/create_seasonal.R")
+#source("scripts/create_seasonal.R")
 
 # preps the STR data, including creating seasonal adjusted from factors
 # results saved in Rdata (xts) and csv files 

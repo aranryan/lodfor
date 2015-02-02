@@ -2,6 +2,7 @@
 # names this as a code chunk so I can run it from knitr
 ## @knitr variablesXY
 
+#require("car")
 require("rmarkdown")
 require("knitr")
 require("grid")
@@ -361,8 +362,8 @@ index_q_melted=function(x, index_year){
     data.frame() %>%
     as.matrix() %>%
     melt() %>%
-    rename(time=Var1, variable=Var2, value=value)
-    x_index$time <- as.Date(x_index$time)
+    rename(date=Var1, variable=Var2, value=value)
+    x_index$date <- as.Date(x_index$date)
     return(x_index)
 }
 
@@ -386,8 +387,8 @@ index_m_melted=function(x, index_year){
      data.frame() %>%
      as.matrix() %>%
      melt() %>%
-  rename(time=Var1, variable=Var2, value=value)
-  x_index$time <- as.Date(x_index$time)
+  rename(date=Var1, variable=Var2, value=value)
+  x_index$date <- as.Date(x_index$date)
   return(x_index)
 }
 
@@ -665,7 +666,7 @@ seas_factors_m <- function(str_m){
                     -ends_with("_rmrevt"), 
                     -ends_with("_supt"))
   # drop series that have given errors when seasonally adjusting in past
-  dont_m_cols <- c("anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
+  dont_m_cols <- c("anaheim_supd|dallas_supd|detroit_supd|neworleans_supd|oahu_supd|sanfrancisco_supd|tampa_supd")
   #dont_m_cols <- c("totus_demd|totus_occ|totus_revpar|totus_supd|anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
   
   # put the matching series into a dataframe
