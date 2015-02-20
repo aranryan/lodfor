@@ -25,9 +25,13 @@ require(RColorBrewer)
 require(gridExtra)
 require(gtable)
 require(Cairo)
-require(quantmod)
+#require(quantmod)
 
-knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', autodep=TRUE)
+# If I put autodep=TRUE as an argument in the following then I get
+# some issues with the graphs, such as grey backgrounds and changes
+# in labeling. Maybe it somehow impacts the theme?
+knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/')
+
 fpath_graphs <- c("output_data/us_overviewgraphs/")
 ```
 
@@ -39,7 +43,8 @@ source('~/Project/R projects/lodfor/scripts/functions.R')
 ```{r load_files, echo=FALSE, message=FALSE, warning=FALSE}
 fpath <- c("~/Project/R projects/lodfor/")
 
-# when kniting from the button, I either needed the full path or to add "../" in front of each
+# when kniting from the button, I either needed the full path or to add "../" 
+# in front of each
 load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
 load(paste(fpath, "output_data/outf_str_us_m.Rdata", sep=""))
 load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
@@ -141,14 +146,10 @@ usfor_q_m <- usfor_q %>%
   melt(id.vars = c("date"))
 ```
 
-
-
-
 ```{r load_code_book_matrix, echo=FALSE, message=FALSE, warning=FALSE}
 #Loads code_book_matrix and shows example contents
 fname <- c(paste("~/Project/R projects/lodfor/input_data/code_book_matrix.csv", sep=""))
 code_book_matrix <- read.csv(fname, stringsAsFactors=FALSE)
-#head(code_book_matrix)
 rm(fname)
 ```
 
