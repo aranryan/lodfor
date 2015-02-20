@@ -1,7 +1,7 @@
 ---
 title: "US overview  slides"
 author: "Tourism Economics"
-date: "Sunday, October 12, 2014"
+date: "Insert date"
 output:
   ioslides_presentation:
     fig_height: 5
@@ -17,7 +17,7 @@ output:
 - Bullet 2
 - Bullet 3
 
-```{r load_files, echo=FALSE, message=FALSE, warning=FALSE}
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
 require(directlabels)
 require(rmarkdown)
 require(knitr)
@@ -25,13 +25,10 @@ require(RColorBrewer)
 require(gridExtra)
 require(gtable)
 require(Cairo)
+require(quantmod)
 
-fpath <- c("~/Project/R projects/lodfor/")
-
-# when kniting from the button, I either needed the full path or to add "../" in front of each
-load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
-load(paste(fpath, "output_data/outf_str_us_m.Rdata", sep=""))
-load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
+knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', autodep=TRUE)
+fpath_graphs <- c("output_data/us_overviewgraphs/")
 ```
 
 ```{r readchunk, echo=FALSE, message=FALSE, warning=FALSE}
@@ -39,9 +36,15 @@ read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
 source('~/Project/R projects/lodfor/scripts/functions.R')
 ```
 
-```{r first, echo=FALSE, message=FALSE, warning=FALSE}
-# I forget what this does
-<<variablesXY>>
+```{r load_files, echo=FALSE, message=FALSE, warning=FALSE}
+fpath <- c("~/Project/R projects/lodfor/")
+
+# when kniting from the button, I either needed the full path or to add "../" in front of each
+load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
+load(paste(fpath, "output_data/outf_str_us_m.Rdata", sep=""))
+load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
+load(paste(fpath, "output_data/usfor_q.Rdata", sep=""))
+load(paste(fpath, "output_data/recession_df_m.Rdata", sep=""))
 ```
 
 ```{r create_dataframes, echo=FALSE, message=FALSE, warning=FALSE}
@@ -61,9 +64,9 @@ outf_str_us_m_m <- outf_str_us_m %>%
 
 # puts the quarterly ushist into a melted data frame
 ushist_q_m <- ushist_q %>%
-window(end = as.Date("2017-10-01")) %>%
-data.frame(date=index(.), .) %>%
-melt(id.vars = c("date"))
+  window(end = as.Date("2017-10-01")) %>%
+  data.frame(date=index(.), .) %>%
+  melt(id.vars = c("date"))
 
 # this is if I wanted to do things with a tidy format
 ushist_q_tidy <- data.frame(date=time(ushist_q), ushist_q)%>%
@@ -79,6 +82,67 @@ ushist_q_tidy <- data.frame(date=time(ushist_q), ushist_q)%>%
   # to escape out of the second character
   separate(segvar, c("seg", "variable"), sep = "\\.") 
 ```
+
+
+```{r create_forecastdataframe, echo=FALSE, message=FALSE, warning=FALSE}
+
+# appends history onto the forecast dataframe
+# only adds the columns that are in both data frames
+# a bit of a tortured approach
+e1 <- ushist_q %>%
+  window(end = as.Date("2004-10-01")) %>%
+  data.frame(date=index(.),.) 
+
+f1 <- usfor_q %>%
+   window(start = as.Date("2005-01-01")) %>%
+  data.frame(date=index(.),.) 
+
+e2 <- e1[, which(names(e1) %in% colnames(f1))]
+f2 <- f1[, which(names(f1) %in% colnames(e1))]
+
+usfor_q <- rbind(e2,f2)
+usfor_q <- usfor_q %>%
+    read.zoo() %>%
+  xts()
+
+# calculates some real series using the data in usfor_q
+# first index the personal cons price deflator to average 100 in 2014
+us_pc_index <- index_q(ushist_q$us_pc, index_year=2014)
+names(us_pc_index) <- "us_pc_index"
+usfor_q <- merge(usfor_q, us_pc_index)
+
+# select the series that contain adr or revpar and convert to real
+# the way this works is that matches works on a regular expression
+# I wrote a regular expression that is taking _adr_ or _revpar_
+# for reference on writing regular expressions, see
+# http://www.regular-expressions.info/quickstart.html
+real_df <- data.frame(usfor_q) %>%
+  select(matches("_adr$|_adr_sa|_revpar$|_revpar_sa")) %>% 
+  mutate_each(funs(ind = ( . / us_pc_index)*100))
+# adds on a time index to get it back to xts
+temp <- data.frame(date=time(usfor_q)) 
+real_df <- cbind(temp,real_df)
+real <- read.zoo(real_df)
+real <- xts(real)
+
+# renames series 
+tempnames <- names(real)
+tempnames <- paste(tempnames,"rpc",sep="")
+names(real) <- tempnames
+rm(tempnames)
+# merges onto ushist_q
+usfor_q <- merge(usfor_q, real)
+#autoplot(window(usfor_q$ecous_adr_sarpc, start="2000-01-01", end="2014-10-01"))
+
+# then melts the dataframe
+usfor_q_m <- usfor_q %>%
+  window(end = as.Date("2017-10-01")) %>%
+  data.frame(date=index(.), .) %>%
+  melt(id.vars = c("date"))
+```
+
+
+
 
 ```{r load_code_book_matrix, echo=FALSE, message=FALSE, warning=FALSE}
 #Loads code_book_matrix and shows example contents
@@ -108,17 +172,18 @@ theme_ts1 <- function (base_size = 12, base_family = "") {
       panel.background=element_blank(),
       legend.title=element_blank(),
       legend.key=element_rect(fill="white", colour = "white"),
-      legend.key.size=unit(1.5, "cm"),
-      legend.text=element_text(size=rel(1.1)),
+      legend.key.size=unit(1, "cm"),
+      legend.text=element_text(size=rel(1)),
       legend.position = c(1, .1),
       legend.position = "none",
       legend.justification = "right",
       axis.line=element_line(size=.2),
       axis.title.y=element_blank(),
       axis.title.x=element_blank(),
-      axis.text=element_text(color="black",size=rel(.9)),
+      axis.text=element_text(color="black",size=rel(.7)),
+      # following seems to adjust y-axis title
       plot.title=element_text(size=base_size * .8, face="plain",hjust=0,vjust=1)
-  #       theme(plot.title = element_text(lineheight=.8, face="bold"))
+    #theme(plot.title = element_text(lineheight=.8, face="bold"))
     )
 }
 theme_set(theme_ts1())
@@ -137,7 +202,7 @@ footnote <- c("Note: Room demand through December 2014 \nSource: STR, Tourism Ec
 starta <- as.Date("2004-01-01")
 enda <- as.Date("2015-10-01")
 index_year <- as.numeric(2006)
-variable_text <- c(paste("Demand monthly, GDP quarterly,\nseasonally adjusted,\nindex ",index_year,"=100",sep=""))
+variable_text <- c(paste("Demand monthly, GDP quarterly,\nseasonally adjusted, index ",index_year,"=100",sep=""))
 variable_legend_1 <- c("Room demand")
 variable_legend_2 <- c("GDP")
 
@@ -157,14 +222,62 @@ p1 <- ggplot() +
   scale_color_manual(values = c(mypallete[7:7], "grey40"), labels=c(variable_legend_1,variable_legend_2)) + 
   stat_smooth(data = temp, aes(x = date, y = value), method="loess", 
               color=mypallete[9:9], alpha=.4, span=.2, se = FALSE, fullrange=FALSE, size=.9, show_guide=FALSE)
-plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
+# png(filename=paste(fpath_graphs,"demand_monthly_gdp.png",sep=""), 
+#     type="cairo",
+#     units="in", 
+#     width=9, 
+#     height=5.7, 
+#     pointsize=10, 
+#     res=800)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+# dev.off()
 
 # take a look at GDP growth rate as a check
 #a <- ushist_q$us_gdp
 #a$us_gdp_cagr <- ((a$us_gdp/lag(a$us_gdp,1))^4-1)
 #window(a, start=as.Date("2013-01-01"), end=as.Date("2015-01-01"))
 ```
+
+
+## Demand and GDP with forecast 
+```{r demand_gdp_forecast, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+#sets variable and text items
+todo <- c("totus_demd_sa")
+grtitle <- c("US room demand and GDP")
+footnote <- c("Note: Historical room demand through fourth quarter 2014 \nSource: STR, Tourism Economics")
+starta <- as.Date("2004-01-01")
+enda <- as.Date("2016-10-01")
+index_year <- as.numeric(2006)
+variable_text <- c(paste("Demand and GDP quarterly,\nseasonally adjusted,\nindex ",index_year,"=100",sep=""))
+variable_legend_1 <- c("Room demand")
+variable_legend_3 <- c("Room demand forecast")
+variable_legend_2 <- c("GDP")
+
+# filters and uses function to convert to index
+temp <- usfor_q_m %>%
+  filter(variable == todo, date >= starta, date <= enda) %>%
+  index_m_melted(index_year=index_year)
+temp2 <- usfor_q_m %>%
+  filter(variable == "us_gdp", date >= starta, date <= enda) %>%
+  index_q_melted(index_year=index_year)
+
+p1 <- ggplot() +
+  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], aes(x = date, y = value, color=variable), size = .9) + 
+  geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], aes(x = date, y = value), color=mypallete[10:10], size=.9, lty=2) + 
+  geom_line(data = temp2, aes(x = date, y = value, color=variable), size = .9) +
+  ggtitle(variable_text) +
+  theme(legend.position=c(1, .2)) +
+  scale_color_manual(values = c(mypallete[9:9], "grey40"), labels=c(variable_legend_1,variable_legend_2)) 
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+
+# take a look at GDP growth rate as a check
+# a <- usfor_q$us_gdp
+# head(a)
+# a$us_gdp_cagr <- ((a$us_gdp/lag(a$us_gdp,1))^4-1)
+# window(a, start=as.Date("2013-01-01"), end=as.Date("2015-01-01"))
+```
+
 
 ## Demand, ratio to population 
 ```{r demand_ratio_pop, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
@@ -246,6 +359,7 @@ levels(temp$measure)[levels(temp$measure)=="value_mean"] <- "Average"
 p1 <- ggplot(data = temp, aes(x = date, y=value, color = measure)) +
   geom_line(aes(group = measure)) + 
   coord_cartesian(xlim = c(start_xaxis, end_xaxis)) +
+    scale_y_continuous(labels=percent) +
     ggtitle(variable_text) +
   scale_color_manual(values = c(mypallete[10:10], "grey70")) 
 p1 <- direct.label (p1,
@@ -257,6 +371,42 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 # direct.label(p,"last.bumpup")
 # direct.label(p,"last.qp", cex=2)
 # direct.label(p,"maxvar.qp", cex=2)  
+```
+
+## Occupancy with forecast
+```{r occupancy_forecast, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+#sets variable and text items
+todo <- c("totus_occ_sa")
+grtitle <- c("Occupancy")
+
+footnote <- c("Note: History through fourth quarter 2014, forecast through fourth quarter 2017\nSource: STR; Tourism Economics")
+start_mean <- as.Date("2000-01-01") # for mean
+end_mean <- as.Date("2014-10-01")
+start_xaxis <- as.Date("1995-01-01") # for x-axis
+variable_text <- c("Seasonally adjusted, quarterly")
+note <- paste("Average", year(start_mean), "to", year(end_xaxis), sep=" ")
+#variable_legend_1 <- c("Text")
+
+# calculates mean over selected period
+holdmean <- usfor_q_m %>% 
+  filter(variable == todo, !is.na(value), date >= start_mean, date <= end_mean) 
+holdmean <- mean(holdmean$value, na.rm=TRUE)
+
+temp <- usfor_q_m %>% 
+  filter(variable == todo, !is.na(value)) 
+end_xaxis <- as.Date(max(temp$date)) # needs to happen after series is in temp
+
+p1 <- ggplot(temp, aes(x = date, y=value)) +
+  ggtitle(variable_text) +
+  coord_cartesian(xlim = c(start_xaxis, end_xaxis)) +
+  scale_y_continuous(labels=percent) +
+  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], color=mypallete[10:10]) + 
+  geom_hline(aes(yintercept=holdmean), color="grey40") +
+  geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], color=mypallete[10:10], size=.8, lty=2) +
+  annotate("text", x = as.Date("1998-01-01"), y = holdmean+.008, size=3,
+        label = c(paste("Long-term average: ",sprintf("%.1f%%", holdmean*100), "\n(2000 to 2014)",sep="")))
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+ 
 ```
 
 
@@ -360,6 +510,31 @@ p1 <- ggplot(data = temp, aes(x = date, y = value, shape = factor(group_date))) 
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
+## ADR, short-term with forecast
+```{r adr_st_forecast, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+todo <- c("totus_adr_sa")
+grtitle <- c("ADR, US")
+footnote <- c("Source: STR; Tourism Economics")
+starta <- as.Date("2004-01-01")
+enda <- as.Date("2016-10-01")
+variable_text <- c("Seasonally adjusted")
+
+temp <- usfor_q_m %>% 
+  filter(date >= starta, date <= enda, variable == todo) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("date")) %>%
+  mutate(group_date = cut(date, breaks = as.Date(c("2000-01-01", "2008-04-01", "2010-01-01","2017-01-01"))))
+
+p1 <- ggplot(data = temp, aes(x = date, y = value, shape = factor(group_date))) + 
+ geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], aes(x= date, y=value, group=1), size = .8, color=mypallete[10:10]) +
+geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], aes(x= date, y=value, group=1), color=mypallete[10:10], size=.9, lty=2) +
+ ggtitle(variable_text) + 
+ scale_color_manual(values = c(mypallete[10:10], "grey70"))  + 
+ stat_smooth(method="lm", fill = "grey70", 
+             color="grey40", alpha=.4, span=.8, se = FALSE)+ 
+  scale_y_continuous(labels = dollar)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
 
 
 ## ADR, growth, short-term 
@@ -446,4 +621,120 @@ p1 <- ggplot(data = temp, aes(x = date, y = value, group=variable)) +
 #http://stackoverflow.com/questions/10151123/how-to-specify-columns-in-facet-grid-or-how-to-change-labels-in-facet-wrap
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
+```
+
+## RevPAR, real long-term
+```{r revpar_real_lt, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+#sets variable and text items
+todo <- c("totus_revpar_sarpc")
+grtitle <- c("Real RevPAR, US")
+footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
+starta <- as.Date("1987-01-01")
+enda <- as.Date("2015-01-01")
+variable_text <- c("Seasonally adjusted")
+
+temp <- ushist_q_m %>% 
+  filter(date >= starta, date <= enda, variable == todo) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("date"))
+
+# calculating mean from a certain date forward
+holdmean <- temp %>%
+  filter(date >= as.Date("2000-01-01"), date <= as.Date("2014-10-01") )
+holdmean <- mean(holdmean$value, na.rm=TRUE)
+
+p1 <- ggplot() +
+ geom_line(data = temp, aes(x = date, y = value, color = variable), size = .7) +
+ ggtitle(variable_text) + 
+ scale_color_manual(values = c(mypallete[10:10], "grey70")) +
+ geom_hline(yintercept = holdmean, colour = "grey50", size = 0.5) +
+ annotate("text", x = as.Date("1988-01-01"), y = holdmean+1.5, size=3,
+         label = c(paste("Long-term average:\n$",sprintf("%.2f", holdmean), " (2000 to 2014)",sep="")))+ 
+  scale_y_continuous(labels = dollar, limits=c(50,80))
+p1 <- p1 + geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #trims length
+            aes(xmin=start_rec
+                ,xmax=end_rec
+                ,ymin=-Inf  # to bottom of graph
+                ,ymax=Inf), # to top of graph
+                 fill="grey40", alpha=0.2)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+
+## RevPAR, real long-term, with forecast
+```{r revpar_real_lt_fcst, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+#sets variable and text items
+todo <- c("totus_revpar_sarpc")
+grtitle <- c("Real RevPAR, US")
+footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
+starta <- as.Date("1987-01-01")
+enda <- as.Date("2017-10-01")
+variable_text <- c("Seasonally adjusted")
+
+temp <- usfor_q_m %>% 
+  filter(date >= starta, date <= enda, variable == todo) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("date"))
+
+# calculating mean from a certain date forward
+holdmean <- temp %>%
+  filter(date >= as.Date("2000-01-01"), date <= as.Date("2014-10-01") )
+holdmean <- mean(holdmean$value, na.rm=TRUE)
+
+p1 <- ggplot() +
+   geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], 
+             aes(x = date, y = value), color=mypallete[10:10], size=.7) + 
+   geom_hline(yintercept = holdmean, colour = "grey50", size = 0.5) +
+   geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], 
+             aes(x = date, y = value), color=mypallete[10:10], size=.8, lty=2) +
+ ggtitle(variable_text) + 
+ scale_color_manual(values = c(mypallete[10:10], "grey70")) +
+ annotate("text", x = as.Date("1988-01-01"), y = holdmean+1.5, size=3,
+         label = c(paste("Long-term average:\n$",sprintf("%.2f", holdmean), " (2000 to 2014)",sep="")))+ 
+  scale_y_continuous(labels = dollar, limits=c(40,85))
+p1 <- p1 +
+geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #trims length
+            aes(xmin=start_rec
+                ,xmax=end_rec
+                ,ymin=-Inf  # to bottom of graph
+                ,ymax=Inf), # to top of graph
+                fill="grey40", alpha=0.2)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+
+```
+
+## Unemployment
+```{r unemployment, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+#sets variable and text items
+todo <- c("us_up")
+grtitle <- c("Unemployment rate, US")
+footnote <- c("Source: Bureau of Labor Statistics; Oxford Economics")
+starta <- as.Date("2000-01-01")
+enda <- as.Date("2017-10-01")
+variable_text <- c("Seasonally adjusted")
+
+temp <- ushist_q_m %>% 
+  filter(date >= starta, date <= enda, variable == todo) %>%
+  spread(variable, value) %>%
+  melt(id.vars = c("date")) %>%
+  mutate(value = value / 100)
+
+p1 <- ggplot() + 
+  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], 
+            aes(x = date, y = value), color=mypallete[10:10]) + 
+  geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], 
+            aes(x = date, y = value), color=mypallete[10:10], size=.8, lty=2) +
+ ggtitle(variable_text) + 
+ scale_color_manual(values = c(mypallete[10:10], "grey70")) +
+  scale_y_continuous(labels = percent, limits=c(0,.10)) +
+   scale_x_date(labels = date_format("%y"), breaks = "1 year")
+# add recession
+p1 <- p1+
+  geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #trims length
+            aes(xmin=start_rec
+                ,xmax=end_rec
+                ,ymin=-Inf  # to bottom of graph
+                ,ymax=Inf), # to top of graph
+                 fill="grey40", alpha=0.2)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```

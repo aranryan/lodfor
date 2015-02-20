@@ -6,7 +6,16 @@ output: html_document
 ---
 
 As an input, this expects a csv file. This csv file can be created using the
-select file that I've set up and the OE macro model
+select file that I've set up and the OE macro model.
+Also, I've modified it to pull FRED data using a quandl package.
+
+```{r load_macro}
+#sets up to later shorten data based on current date 
+cur_year <- year(Sys.time())
+end_year <- cur_year +15
+end_year <- round(end_year,-1) -1
+end_date <- paste(end_year,"-10-01",sep="")
+```
 
 
 ```{r load_macro}
@@ -18,15 +27,20 @@ select file that I've set up and the OE macro model
 # require("lubridate")
 # require("ggplot2")
 
-fname <- c("input_data/LODFOR_OEF_USMACRO_2015_01_13.csv")
+require("quantmod")
+
+fname <- c("input_data/LODFOR_OEF_USMACRO_2015_02_13.csv")
 temp <- read.csv(fname, header=TRUE, stringsAsFactors=FALSE)
 # sets up column names
 temp_names <- colnames(temp)
 # removes periods in column names
 temp_names <- gsub(".", "", temp_names, fixed = TRUE) 
 # changes part of column names
-temp_names <- gsub("XUS", "US", temp_names) 
 temp_names <- tolower(temp_names)
+temp_names <- gsub("xus", "us", temp_names) 
+temp_names <- gsub("xca", "can", temp_names) 
+temp_names <- gsub("xmx", "mex", temp_names) 
+
 # replaces the existing column names
 colnames(temp) <- temp_names
 
@@ -61,16 +75,11 @@ temp1 <- as.xts(temp1, frequency=4)
 head(temp1)
 oe_usmac_q <- temp1
 
-#shortens future period based on current date 
-cur_year <- year(Sys.time())
-end_year <- cur_year +15
-end_year <- round(end_year,-1) -1
-end <- paste(end_year,"-10-01",sep="")
-oe_usmac_q <- window(oe_usmac_q, end = end)
+# shortens data based on end date established at start of script
+oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ```
 
 A few plots
-
 ```{r plots, echo=FALSE}
 
 autoplot(oe_usmac_q$us_gdp)
@@ -94,6 +103,43 @@ a <- oe_usmac_q$us_gdp
 # this is one way to calculate a CAGR on an xts object
 a$us_gdp_cagr <- ((a$us_gdp/lag(a$us_gdp,1))^4-1)
 window(a, start=as.Date("2013-01-01"), end=as.Date("2015-01-01"))
+```
+
+Load FRED data
+```{r fred_data, echo=FALSE}
+# new environment for data
+data <- new.env()
+# set dates
+fredstart_date <- "1980-01-01"
+# end is set up at start of script
+fredend_date <- end_date
+
+# set tickers
+tickers <- c("FEDFUNDS", "GDPPOT", "USRECQ")
+
+# import data from FRED database
+getSymbols( tickers 
+            ,src = "FRED"
+            , env = data)
+
+
+# based on 
+# http://stackoverflow.com/questions/15980985/get-xts-objects-from-within-an-environment
+# I looked at using gsa as follows, but it required another package qmao, that wasn't on Cran
+data2 <- as.environment(eapply(data, "[", paste(fredstart_date, fredend_date, sep="/")))
+
+#I should redo this, very clumsy
+us_usrecq <- get("USRECQ", envir = data2)
+us_usrecq <- as.data.frame(us_usrecq)
+us_usrecq$date <- as.Date(row.names(us_usrecq))
+us_usrecq <- us_usrecq %>%
+  rename(us_usrecq = USRECQ)
+us_usrecq <- us_usrecq %>%
+  read.zoo(index.column = 2, drop=FALSE) %>%
+  xts()
+
+oe_usmac_q <- merge(oe_usmac_q, us_usrecq)
+autoplot(oe_usmac_q$us_usrecq)
 ```
 
 Cleans up

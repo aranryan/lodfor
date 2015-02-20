@@ -11,8 +11,8 @@
 # history is from STR trend reports supplied by IHG
 
 fname1 <- c("input_data/IHG Mexico upm consistent reporters - history from supermodel.xlsx")
-fname2 <- c("input_data/IHG Mexico upm consistent reporters - 604834_UPPERMIDSCALECO_PESOS.xls")
-fname3 <- c("input_data/IHG Mexico upm consistent reporters - 604834_UPPERMIDSCALECO_USD.xls")
+fname2 <- c("input_data/IHG Mexico upm consistent reporters - 652401_UPPERMIDSCALECO_PESOS.xls")
+fname3 <- c("input_data/IHG Mexico upm consistent reporters - 652398_UPPERMIDSCALECO_USD.xls")
 
 ########
 #
@@ -75,7 +75,7 @@ plot(raw_str_ihg_mex$upmmex_demt)
 
 ################
 #
-# does a quick filter on the data, for example if I just want to keep ustot
+# does a quick filter on the data
 
 # list of segments to keep
 to_keep <- c("upmmex")

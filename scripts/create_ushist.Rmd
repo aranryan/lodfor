@@ -22,6 +22,12 @@ fpath <- c("~/Project/R projects/lodfor/")
 # str data
   load(paste(fpath,"output_data/out_str_us_q.Rdata", sep="")) 
   load(paste(fpath,"output_data/out_str_us_m.Rdata", sep=""))
+
+  load(paste(fpath,"output_data/out_str_ihg_mex_q.Rdata", sep="")) 
+  load(paste(fpath,"output_data/out_str_ihg_mex_m.Rdata", sep=""))
+
+  load(paste(fpath,"output_data/out_str_ihg_can_q.Rdata", sep="")) 
+  load(paste(fpath,"output_data/out_str_ihg_can_m.Rdata", sep=""))
 # open close data
   load(paste(fpath,"output_data/out_opcl_q.Rdata", sep=""))
   load(paste(fpath,"output_data/out_opcl_m.Rdata", sep=""))
@@ -47,7 +53,12 @@ temp <- oe_usmac_q %>%
          us_pedy,
          us_penw,
          us_cogtp,
-         us_cpi
+         us_cpi,
+         us_usrecq,
+         can_gdp,
+         can_cpi,
+         mex_gdp,
+         mex_cpi
          ) %>%
   read.zoo %>%
   as.xts
@@ -107,7 +118,14 @@ autoplot(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2014-10-01"))
 # merges onto ushist_q
 ushist_q <- merge(ushist_q, real)
 autoplot(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2014-10-01"))
+```
 
+
+```{r add_ihg_mex_can}
+# merges onto ushist_q
+ushist_q <- merge(ushist_q, out_str_ihg_mex_q,out_str_ihg_can_q)
+autoplot(window(ushist_q$totcan_adr_sa, start="2000-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$totcan_demd_sa, start="2000-01-01", end="2014-10-01"))
 ```
 
 Adds open close data
@@ -272,6 +290,68 @@ b <- grep(pattern="totus_", colnames(ushist_q), value=TRUE)
 b
 ```
 
+
+Create a sum of top 25 metros
+```{r top25}
+
+top25list <- c("anaheim", "atlanta", "boston", "chicago", 
+               "dallas", "denver", "detroit", "houston", 
+               "lalongbeach",  "miami", "minneapolis",  "nashville",
+               "neworleans", "newyork", "norfolk", "oahu", 
+               "orlando", "philadelphia", "phoenix", "sandiego", 
+               "sanfrancisco", "seattle", "stlouis", "tampa", 
+               "washingtondc")
+
+top25cols <- unique (grep(paste(top25list,collapse="|"), 
+                        colnames(ushist_q), value=TRUE))
+
+# follows the code for creating the annual databank, see comments in next code chunk
+top25sum <- data.frame(ushist_q) %>%
+  select(matches("_demt|_supt|_rmrevt")) %>%
+  select(matches(paste(top25cols, collapse="|"))) %>%
+  as.xts()
+
+  # takes the summed data and spreads it into a tidy format with tidyr
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+top25sum <- data.frame(date=time(top25sum), top25sum)%>% 
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+  gather(segvar, value, -date, na.rm = FALSE) %>%
+  # in the following the ^ means anything not in the list
+  # with the list being all characters and numbers
+  # so it separates segvar into two colums using sep
+  separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+  # keeps seg as a column and spreads variable into multiple columns containing
+  # containint the values
+  spread(variable,value) 
+
+top25sum <- top25sum %>%
+  # sets up in dplyr that it will summarize by quarters
+  group_by(date) %>%
+  # calculates top25us as the sum of the markets in the dataframe
+  summarize(top25us_demt=sum(demt), top25us_supt=sum(supt), 
+            top25us_rmrevt=sum(rmrevt)) %>%
+  mutate(top25us_occ = top25us_demt / top25us_supt) %>%
+  mutate(top25us_revpar = top25us_rmrevt / top25us_supt) %>%
+  mutate(top25us_adr = top25us_rmrevt / top25us_demt) 
+
+top25sum <- top25sum %>%
+  # there's a bit of a bug in dplyr in that the data frame
+  # can't be directly read by read.zoo, something about a
+  # bad entry error that happens. So the short term solution
+  # is to have the as.data.frame step. Here's the bug report
+  # which will presumably be fixed at some point
+  # https://github.com/hadley/dplyr/issues/686
+  as.data.frame() %>%
+  read.zoo() %>%
+  xts()
+
+ushist_q <- merge(ushist_q, top25sum)
+
+```
+
+
 Create annual databank
 ```{r create_a}
 # start with those that should be summed
@@ -305,7 +385,8 @@ tb2 <- data.frame(date=time(suma), suma)%>%
   # adds new calculated column
   mutate(occ = demt / supt) %>%
   # adds another column
-  mutate(revpar = rmrevt / supt)
+  mutate(revpar = rmrevt / supt) %>%
+  mutate(adr = rmrevt / demt)
 
 # takes it from a tidy format and melts it, and then creates the unique
 # variable names and then reads into a zoo object spliting on the 
@@ -325,6 +406,29 @@ Creating monthly historical databank
 ```{r create_m}
 # not that much that needs to be done
 ushist_m <- out_str_us_m
+ushist_m <- merge(ushist_m, out_str_ihg_mex_m, out_str_ihg_can_m)
+```
+
+Create monthly, annual and quarterly databank with just US, mexico and canada
+```{r create_a}
+# this is to a historical databank with just US data, so the markets aren't in it
+
+usihg_list <-   c("us_", "ecous", "indus", "luxus", "midus", "upmus", "upsus", "upuus", "totus", "upmmex", "totcan", "mex_", "can_")
+# this accidentally also grabs the top25us series, but that's ok
+# extracts anything in the series list
+
+usihghist_q <- data.frame(ushist_q) %>%
+  select(matches(paste(usihg_list,collapse="|"))) %>%
+  as.xts()
+
+usihghist_m <- data.frame(ushist_m) %>%
+  select(matches(paste(usihg_list,collapse="|"))) %>%
+  as.xts()
+
+usihghist_a <- data.frame(ushist_a) %>%
+  select(matches(paste(usihg_list,collapse="|"))) %>%
+  as.xts()
+
 ```
 
 Writing outputs
@@ -332,6 +436,7 @@ Writing outputs
 # quarterly
   # writes csv versions of the output files
   write.zoo(ushist_q, file=paste(fpath, "output_data/ushist_q.csv", sep=""), sep=",")
+  write.zoo(usihghist_q, file=paste(fpath, "output_data/usihghist_q.csv", sep=""), sep=",")
   #write.zoo(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.csv", sep=""), sep=",")
   
   # saves Rdata versions of the output files
@@ -341,6 +446,7 @@ Writing outputs
 # monthly
   # writes csv versions of the output files
   write.zoo(ushist_m, file=paste(fpath,"output_data/ushist_m.csv",sep=""), sep=",")
+ write.zoo(usihghist_m, file=paste(fpath,"output_data/usihghist_m.csv",sep=""), sep=",")
   
   # saves Rdata versions of the output files
   save(ushist_m, file=paste(fpath,"output_data/ushist_m.Rdata", sep=""))
@@ -348,6 +454,7 @@ Writing outputs
 # annual
   # writes csv versions of the output files
   write.zoo(ushist_a, file=paste(fpath,"output_data/ushist_a.csv",sep=""), sep=",")
+  write.zoo(usihghist_a, file=paste(fpath,"output_data/usihghist_a.csv",sep=""), sep=",")
   
   # saves Rdata versions of the output files
   save(ushist_a, file=paste(fpath,"output_data/ushist_a.Rdata", sep=""))

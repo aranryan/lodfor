@@ -39,3 +39,20 @@ save(str_ihg_mex_m_factors, file="output_data/str_ihg_mex_m_factors.Rdata")
 # quarterly
 str_ihg_mex_q_factors <- seas_factors_q(str_ihg_mex_q)
 save(str_ihg_mex_q_factors, file="output_data/str_ihg_mex_q_factors.Rdata")
+
+# IHG canada
+
+load("output_data/raw_str_ihg_can.Rdata")
+temp_str_ihg_can <- load_str(raw_str_ihg_can)
+
+# these two data frames are the working data frames and become the outputs
+str_ihg_can_m <- temp_str_ihg_can[[1]]
+str_ihg_can_q <- temp_str_ihg_can[[2]]
+
+# creates seasonal factors and saves as Rdata files
+# monthly
+str_ihg_can_m_factors <- seas_factors_m(str_ihg_can_m)
+save(str_ihg_can_m_factors, file="output_data/str_ihg_can_m_factors.Rdata")
+# quarterly
+str_ihg_can_q_factors <- seas_factors_q(str_ihg_can_q)
+save(str_ihg_can_q_factors, file="output_data/str_ihg_can_q_factors.Rdata")

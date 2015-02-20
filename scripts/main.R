@@ -13,6 +13,7 @@ source("scripts/functions.R")
 # results saved in Rdata file (dataframe)
 source("scripts/read_raw_str_us.R")
 source("scripts/read_raw_str_ihg_mex.R")
+source("scripts/read_raw_str_ihg_can.R")
 
 # create monthl and quarterly seasonal factors, only run if necessary
 # results saved in Rdata files (dataframe)
@@ -40,6 +41,12 @@ knit("scripts/create_ushist.Rmd")
 
 # runs simple forecast 
 source("scripts/simple_forecast.R")
+
+# runs simple forecast 
+source("scripts/read_usfor.R")
+
+# creates a Rdata file with Fred data used in graphs
+source("scripts/pull_fred_data.R")
 
 # runs the markdown file
 rmarkdown::render("scripts/us_overview_graphs.Rmd") #, output_dir = "/output_data/")

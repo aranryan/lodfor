@@ -149,6 +149,37 @@ out_str_ihg_mex_q <- str_ihg_mex_q1 %>%
   read.zoo() %>%
   xts()
 
+#########################################
+#
+# IHG Canada
+
+load("output_data/raw_str_ihg_can.Rdata")
+temp_str_ihg_can <- load_str(raw_str_ihg_can)
+
+# these two data frames are the working data frames and become the outputs
+str_ihg_can_m <- temp_str_ihg_can[[1]]
+str_ihg_can_q <- temp_str_ihg_can[[2]]
+
+# loads seasonal factors
+load("output_data/str_ihg_can_m_factors.Rdata")
+load("output_data/str_ihg_can_q_factors.Rdata")
+
+# create monthly sa from seasonal factors using a function
+str(str_ihg_can_m)
+str(str_ihg_can_m_factors)
+str_ihg_can_m1 <- merge(str_ihg_can_m, str_ihg_can_m_factors, all=TRUE, by="date")
+out_str_ihg_can_m <- str_ihg_can_m1 %>%
+  create_sa_str_m() %>%
+  read.zoo() %>%
+  xts()
+
+# create quarterly sa from seasonal factors using a function
+str_ihg_can_q1 <- merge(str_ihg_can_q, str_ihg_can_q_factors, all=TRUE)
+out_str_ihg_can_q <- str_ihg_can_q1 %>%
+  create_sa_str_q() %>%
+  read.zoo() %>%
+  xts()
+
 #########################
 #
 # writing outputs
@@ -161,10 +192,16 @@ write.zoo(out_str_us_q, file="output_data/out_str_us_q.csv", sep=",")
 write.zoo(out_str_ihg_mex_m, file="output_data/out_str_ihg_mex_m.csv", sep=",")
 write.zoo(out_str_ihg_mex_q, file="output_data/out_str_ihg_mex_q.csv", sep=",")
 
+write.zoo(out_str_ihg_can_m, file="output_data/out_str_ihg_can_m.csv", sep=",")
+write.zoo(out_str_ihg_can_q, file="output_data/out_str_ihg_can_q.csv", sep=",")
+
 # saves Rdata versions of the output files
 save(out_str_us_m, file="output_data/out_str_us_m.Rdata")
 save(out_str_us_q, file="output_data/out_str_us_q.Rdata")
 
 save(out_str_ihg_mex_m, file="output_data/out_str_ihg_mex_m.Rdata")
 save(out_str_ihg_mex_q, file="output_data/out_str_ihg_mex_q.Rdata")
+
+save(out_str_ihg_can_m, file="output_data/out_str_ihg_can_m.Rdata")
+save(out_str_ihg_can_q, file="output_data/out_str_ihg_can_q.Rdata")
 
