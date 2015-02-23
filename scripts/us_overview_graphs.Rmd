@@ -17,7 +17,7 @@ output:
 - Bullet 2
 - Bullet 3
 
-```{r setup}
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
 require(directlabels)
 require(rmarkdown)
 require(knitr)
@@ -25,13 +25,14 @@ require(RColorBrewer)
 require(gridExtra)
 require(gtable)
 require(Cairo)
+require(ggplot2)
 #require(quantmod)
 
 # If I put autodep=TRUE as an argument in the following then I get
 # some issues with the graphs, such as grey backgrounds and changes
 # in labeling. Maybe it somehow impacts the theme?
 #knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
-knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, fig.path='../output_data/figure_us_overview_graphs/fig-', dev="CairoPNG", dev.args = list(res = 800) )
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_us_overview_graphs/fig-', dev='png', out.width='9in', dpi=400)
 ```
 
 ```{r readchunk}
@@ -150,7 +151,7 @@ code_book_matrix <- read.csv(fname, stringsAsFactors=FALSE)
 rm(fname)
 ```
 
-```{r set_theme}
+```{r define_theme}
 #Displays palette and sets the ts1 theme
 
 #display.brewer.pal(10, "RdBu")
@@ -184,6 +185,9 @@ theme_ts1 <- function (base_size = 12, base_family = "") {
     #theme(plot.title = element_text(lineheight=.8, face="bold"))
     )
 }
+```
+
+```{r set_theme}
 theme_set(theme_ts1())
 #this is also a useful theme to keep in mind
 #theme_classic()
@@ -242,11 +246,11 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #sets variable and text items
 todo <- c("totus_demd_sa")
 grtitle <- c("US room demand and GDP")
-footnote <- c("Note: Seasonally adjusted. Historical room demand through fourth quarter 2014. \nSource: STR, Tourism Economics")
+footnote <- c("Note: Seasonally adjusted, quarterly. Historical room demand through fourth quarter 2014. \nSource: STR, Tourism Economics")
 starta <- as.Date("2004-01-01")
 enda <- as.Date("2016-10-01")
 index_year <- as.numeric(2006)
-variable_text <- c(paste("Demand and GDP quarterly,\nindex ",index_year,"=100",sep=""))
+variable_text <- c(paste("Index (",index_year,"=100)",sep=""))
 variable_legend_1 <- c("Room demand")
 variable_legend_3 <- c("Room demand forecast")
 variable_legend_2 <- c("GDP")
@@ -261,7 +265,7 @@ temp2 <- usfor_q_m %>%
 
 p1 <- ggplot() +
   geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], aes(x = date, y = value, color=variable), size = .9) + 
-  geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], aes(x = date, y = value), color=mypallete[9:9], size=.9, lty=2) + 
+  geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], aes(x = date, y = value), color=mypallete[9:9], size=.9, lty=4) + 
   geom_line(data = temp2, aes(x = date, y = value, color=variable), size = .9) +
   ggtitle(variable_text) +
   theme(legend.position=c(1, .2)) +
@@ -638,10 +642,10 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #sets variable and text items
 todo <- c("totus_revpar_sarpc")
 grtitle <- c("Real RevPAR, US")
-footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
+footnote <- c("Note: Seasonally adjusted.\nSource: STR; Bureau of Economic Analysis; Tourism Economics")
 starta <- as.Date("1987-01-01")
 enda <- as.Date("2015-01-01")
-variable_text <- c("Seasonally adjusted")
+variable_text <- c("")
 
 temp <- ushist_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
@@ -676,10 +680,10 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #sets variable and text items
 todo <- c("totus_revpar_sarpc")
 grtitle <- c("Real RevPAR, US")
-footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
+footnote <- c("Note: Seasonally adjusted./nSource: STR; Bureau of Economic Analysis; Tourism Economics")
 starta <- as.Date("1987-01-01")
 enda <- as.Date("2017-10-01")
-variable_text <- c("Seasonally adjusted")
+variable_text <- c("")
 
 temp <- usfor_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
