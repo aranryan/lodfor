@@ -4,8 +4,8 @@ author: "Tourism Economics"
 date: "Insert date"
 output:
   ioslides_presentation:
-    fig_height: 5
-    fig_width: 8.5
+    fig_height: 5.7
+    fig_width: 9
     smaller: yes
   beamer_presentation: default
   slidy_presentation: default
@@ -17,7 +17,7 @@ output:
 - Bullet 2
 - Bullet 3
 
-```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+```{r setup}
 require(directlabels)
 require(rmarkdown)
 require(knitr)
@@ -30,17 +30,16 @@ require(Cairo)
 # If I put autodep=TRUE as an argument in the following then I get
 # some issues with the graphs, such as grey backgrounds and changes
 # in labeling. Maybe it somehow impacts the theme?
-knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/')
-
-fpath_graphs <- c("output_data/us_overviewgraphs/")
+#knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, fig.path='../output_data/figure_us_overview_graphs/fig-', dev="CairoPNG", dev.args = list(res = 800) )
 ```
 
-```{r readchunk, echo=FALSE, message=FALSE, warning=FALSE}
+```{r readchunk}
 read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
 source('~/Project/R projects/lodfor/scripts/functions.R')
 ```
 
-```{r load_files, echo=FALSE, message=FALSE, warning=FALSE}
+```{r load_files}
 fpath <- c("~/Project/R projects/lodfor/")
 
 # when kniting from the button, I either needed the full path or to add "../" 
@@ -52,7 +51,7 @@ load(paste(fpath, "output_data/usfor_q.Rdata", sep=""))
 load(paste(fpath, "output_data/recession_df_m.Rdata", sep=""))
 ```
 
-```{r create_dataframes, echo=FALSE, message=FALSE, warning=FALSE}
+```{r create_dataframes}
 # puts the monthly str data into a melted data frame
 ushist_m_m <- ushist_m %>%
   window(end = as.Date("2014-12-01")) %>%
@@ -88,9 +87,7 @@ ushist_q_tidy <- data.frame(date=time(ushist_q), ushist_q)%>%
   separate(segvar, c("seg", "variable"), sep = "\\.") 
 ```
 
-
-```{r create_forecastdataframe, echo=FALSE, message=FALSE, warning=FALSE}
-
+```{r create_forecastdataframe}
 # appends history onto the forecast dataframe
 # only adds the columns that are in both data frames
 # a bit of a tortured approach
@@ -146,14 +143,14 @@ usfor_q_m <- usfor_q %>%
   melt(id.vars = c("date"))
 ```
 
-```{r load_code_book_matrix, echo=FALSE, message=FALSE, warning=FALSE}
+```{r load_code_book_matrix}
 #Loads code_book_matrix and shows example contents
 fname <- c(paste("~/Project/R projects/lodfor/input_data/code_book_matrix.csv", sep=""))
 code_book_matrix <- read.csv(fname, stringsAsFactors=FALSE)
 rm(fname)
 ```
 
-```{r set_theme, echo=FALSE, message=FALSE, warning=FALSE}
+```{r set_theme}
 #Displays palette and sets the ts1 theme
 
 #display.brewer.pal(10, "RdBu")
@@ -195,15 +192,15 @@ theme_set(theme_ts1())
 ```
 
 ## Demand, monthly + GDP 
-```{r demand_monthly_gdp, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r demand_monthly_gdp}
 #sets variable and text items
 todo <- c("totus_demd_sa")
 grtitle <- c("US room demand and GDP")
-footnote <- c("Note: Room demand through December 2014 \nSource: STR, Tourism Economics")
+footnote <- c("Note: Seasonally adjusted. GDP quarterly. Room demand monthly through December 2014.\nSource: STR, Tourism Economics")
 starta <- as.Date("2004-01-01")
 enda <- as.Date("2015-10-01")
 index_year <- as.numeric(2006)
-variable_text <- c(paste("Demand monthly, GDP quarterly,\nseasonally adjusted, index ",index_year,"=100",sep=""))
+variable_text <- c(paste("Index (",index_year,"=100)",sep=""))
 variable_legend_1 <- c("Room demand")
 variable_legend_2 <- c("GDP")
 
@@ -223,15 +220,15 @@ p1 <- ggplot() +
   scale_color_manual(values = c(mypallete[7:7], "grey40"), labels=c(variable_legend_1,variable_legend_2)) + 
   stat_smooth(data = temp, aes(x = date, y = value), method="loess", 
               color=mypallete[9:9], alpha=.4, span=.2, se = FALSE, fullrange=FALSE, size=.9, show_guide=FALSE)
-
-# png(filename=paste(fpath_graphs,"demand_monthly_gdp.png",sep=""), 
-#     type="cairo",
-#     units="in", 
-#     width=9, 
-#     height=5.7, 
-#     pointsize=10, 
-#     res=800)
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+# png(filename=paste(fpath_graphs,"demand_gdp.png",sep=""),
+#      type="cairo",
+#      units="in", 
+#      width=9, 
+#      height=5.7, 
+#      pointsize=10, 
+#      res=800)
+# plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 # dev.off()
 
 # take a look at GDP growth rate as a check
@@ -240,17 +237,16 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #window(a, start=as.Date("2013-01-01"), end=as.Date("2015-01-01"))
 ```
 
-
 ## Demand and GDP with forecast 
-```{r demand_gdp_forecast, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r demand_gdp_forecast}
 #sets variable and text items
 todo <- c("totus_demd_sa")
 grtitle <- c("US room demand and GDP")
-footnote <- c("Note: Historical room demand through fourth quarter 2014 \nSource: STR, Tourism Economics")
+footnote <- c("Note: Seasonally adjusted. Historical room demand through fourth quarter 2014. \nSource: STR, Tourism Economics")
 starta <- as.Date("2004-01-01")
 enda <- as.Date("2016-10-01")
 index_year <- as.numeric(2006)
-variable_text <- c(paste("Demand and GDP quarterly,\nseasonally adjusted,\nindex ",index_year,"=100",sep=""))
+variable_text <- c(paste("Demand and GDP quarterly,\nindex ",index_year,"=100",sep=""))
 variable_legend_1 <- c("Room demand")
 variable_legend_3 <- c("Room demand forecast")
 variable_legend_2 <- c("GDP")
@@ -265,12 +261,25 @@ temp2 <- usfor_q_m %>%
 
 p1 <- ggplot() +
   geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], aes(x = date, y = value, color=variable), size = .9) + 
-  geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], aes(x = date, y = value), color=mypallete[10:10], size=.9, lty=2) + 
+  geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], aes(x = date, y = value), color=mypallete[9:9], size=.9, lty=2) + 
   geom_line(data = temp2, aes(x = date, y = value, color=variable), size = .9) +
   ggtitle(variable_text) +
   theme(legend.position=c(1, .2)) +
   scale_color_manual(values = c(mypallete[9:9], "grey40"), labels=c(variable_legend_1,variable_legend_2)) 
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+a <- recordPlot()
+replayPlot(a)
+#print(plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote))
+# save image
+# png(filename=paste(fpath_graphs,"demand_gdp_forecast.png",sep=""), 
+#      type="cairo",
+#      units="in", 
+#      width=9, 
+#      height=5.7, 
+#      pointsize=10, 
+#      res=800)
+# plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+# dev.off()
 
 # take a look at GDP growth rate as a check
 # a <- usfor_q$us_gdp
@@ -281,7 +290,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
 
 ## Demand, ratio to population 
-```{r demand_ratio_pop, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r demand_ratio_pop}
 #sets variable and text items
 #todo <- c("totus_demd_sa")
 grtitle <- c("Room demand per capita")
@@ -307,7 +316,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
 ## Demand, ratio to employment 
-```{r demand_ratio_emp, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r demand_ratio_emp}
 #sets variable and text items
 #todo <- c("totus_demd_sa")
 grtitle <- c("Room demand as ratio to total employment")
@@ -333,7 +342,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
 ## Occupancy labled
-```{r occupancy_labled, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r occupancy_labled}
 #sets variable and text items
 todo <- c("totus_occ_sa")
 grtitle <- c("Occupancy")
@@ -375,7 +384,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
 ## Occupancy with forecast
-```{r occupancy_forecast, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r occupancy_forecast}
 #sets variable and text items
 todo <- c("totus_occ_sa")
 grtitle <- c("Occupancy")
@@ -414,7 +423,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ##Following graphs are based on code from around the STR presentation in November
 
 ## ADR, real long-term
-```{r adr_real_lt, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r adr_real_lt}
 todo <- c("totus_adr_sarpc")
 grtitle <- c("Real ADR, US")
 footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
@@ -440,7 +449,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
 
 ## ADR, real medium-term
-```{r adr_real_mt, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r adr_real_mt}
 todo <- c("totus_adr_sarpc")
 grtitle <- c("Real ADR, US")
 footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
@@ -462,7 +471,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
 ## ADR, real short-term
-```{r adr_real_st, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r adr_real_st}
 todo <- c("totus_adr_sarpc")
 grtitle <- c("Real ADR, US")
 footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
@@ -487,7 +496,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
 ## ADR, short-term
-```{r adr_st, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r adr_st}
 todo <- c("totus_adr_sa")
 grtitle <- c("ADR, US")
 footnote <- c("Source: STR; Bureau of Economic Analysis; Tourism Economics")
@@ -512,7 +521,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
 ## ADR, short-term with forecast
-```{r adr_st_forecast, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r adr_st_forecast}
 todo <- c("totus_adr_sa")
 grtitle <- c("ADR, US")
 footnote <- c("Source: STR; Tourism Economics")
@@ -539,7 +548,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
 
 ## ADR, growth, short-term 
-```{r adr_gr_st, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r adr_gr_st}
 #sets variable and text items
  
 todo <- c("totus_adr_sa")
@@ -584,7 +593,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
 
 ## ADR, growth cagr, short-term 
-```{r adr_gr_cagr_st, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r adr_gr_cagr_st}
 #sets variable and text items
  
 todo <- c("totus_adr_sa")
@@ -605,7 +614,7 @@ temp <- ushist_q_m %>%
   transform(value = as.numeric(value))
 
 start_xaxis <- as.Date("2003-01-01") # for x-axis
-end_xaxis <- as.Date("2015-01-01") # for x-axis
+end_xaxis <- as.Date("2015-10-01") # for x-axis
 p1 <- ggplot(data = temp, aes(x = date, y = value, group=variable)) + 
  geom_line(size = .7, color=mypallete[10:10]) +
   geom_point() +
@@ -625,7 +634,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
 ## RevPAR, real long-term
-```{r revpar_real_lt, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r revpar_real_lt}
 #sets variable and text items
 todo <- c("totus_revpar_sarpc")
 grtitle <- c("Real RevPAR, US")
@@ -663,7 +672,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
 
 ## RevPAR, real long-term, with forecast
-```{r revpar_real_lt_fcst, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r revpar_real_lt_fcst}
 #sets variable and text items
 todo <- c("totus_revpar_sarpc")
 grtitle <- c("Real RevPAR, US")
@@ -705,7 +714,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
 ## Unemployment
-```{r unemployment, echo=FALSE, message=FALSE, warning=FALSE, dev='CairoPNG'}
+```{r unemployment}
 #sets variable and text items
 todo <- c("us_up")
 grtitle <- c("Unemployment rate, US")
