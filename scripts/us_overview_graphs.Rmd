@@ -262,27 +262,32 @@ starta <- as.Date("2004-01-01")
 enda <- as.Date("2016-10-01")
 index_year <- as.numeric(2006)
 variable_text <- c(paste("Index (",index_year,"=100)",sep=""))
-variable_legend_1 <- c("Room demand")
-variable_legend_3 <- c("Room demand forecast")
-variable_legend_2 <- c("GDP")
 
 # filters and uses function to convert to index
 temp <- usfor_q_m %>%
   filter(variable == todo, date >= starta, date <= enda) %>%
-  index_m_melted(index_year=index_year)
+  index_m_melted(index_year=index_year) %>%
+  mutate(variable=c("Room demand")) %>%
+  mutate(forecast = cut(date, breaks = c(as.Date("1987-01-01"), as.Date("2014-10-01"), enda),
+                          labels=c("History", "Forecast"),
+                          right=TRUE)) 
 temp2 <- usfor_q_m %>%
-  filter(variable == "us_gdp", date >= starta, date <= enda) %>%
-  index_q_melted(index_year=index_year)
+  filter(variable == "us_gdp") %>%
+  index_q_melted(index_year=index_year) %>%
+  mutate(variable=c("GDP")) %>%
+  filter(date >= starta, date <= enda) %>%
+  mutate(forecast = "History")
+temp3 <- rbind(temp, temp2)
 
-p1 <- ggplot() +
-  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], aes(x = date, y = value, color=variable), size = .9) + 
-  geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], aes(x = date, y = value), color="grey60", size=.9) + 
-  geom_line(data = temp2, aes(x = date, y = value, color=variable), size = .9) +
-  ggtitle(variable_text) +
+p1 <- ggplot(temp3, aes(x = date, y = value, color=variable)) +
+  geom_line(aes(color=variable))  + 
+  geom_point(aes(shape=forecast), show_guide=FALSE, cex=2) +
+  scale_color_manual(values = c("grey40", mypallete[9:9])) +
   theme(legend.position=c(1, .2)) +
-  scale_x_date(breaks = "1 year", labels = date_format("%Y")) +
-  scale_color_manual(values = c(mypallete[9:9], "grey40"), labels=c(variable_legend_1,variable_legend_2)) 
+  scale_shape_manual(values=c(27,1)) +
+  scale_x_date(breaks = "1 year", labels = date_format("%Y"))
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+
 a <- recordPlot()
 replayPlot(a)
 #print(plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote))
@@ -427,9 +432,9 @@ p1 <- ggplot(temp, aes(x = date, y=value)) +
   ggtitle(variable_text) +
   coord_cartesian(xlim = c(start_xaxis, end_xaxis)) +
   scale_y_continuous(labels=percent) +
-  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], color=mypallete[10:10], size=.8) + 
+  geom_line(color=mypallete[10:10], size=.8)+ 
   geom_hline(aes(yintercept=holdmean), color="grey40") +
-  geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], color="grey60", size=.8) +
+  geom_point(data = temp[temp$date>=as.Date("2015-01-01"),], color=mypallete[10:10], pch=1, cex=3) +
   annotate("text", x = as.Date("1998-01-01"), y = holdmean+.006, size=3,
         label = c(paste("Long-term average: ",sprintf("%.1f%%", holdmean*100), "\n(2000 to 2014)",sep="")))
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
@@ -681,7 +686,7 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #sets variable and text items
 todo <- c("totus_revpar_sarpc")
 grtitle <- c("Real RevPAR, US")
-footnote <- c("Note: Seasonally adjusted.\nSource: STR; Bureau of Economic Analysis; Tourism Economics")
+footnote <- c("Note: Seasonally adjusted, 2014 dollars.\nSource: STR; Bureau of Economic Analysis; Tourism Economics")
 starta <- as.Date("1987-01-01")
 enda <- as.Date("2015-01-01")
 variable_text <- c("")
@@ -773,12 +778,11 @@ temp <- ushist_q_m %>%
   mutate(value = value / 100)
 
 p1 <- ggplot() + 
-  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], 
+  geom_line(data = temp, 
             aes(x = date, y = value), color=mypallete[10:10]) + 
-  geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], 
-            aes(x = date, y = value), color="grey60", size=.8) +
+      geom_point(data = temp[temp$date>=as.Date("2014-10-01"),], 
+            aes(x = date, y = value), color=mypallete[10:10], pch=1, cex=2) +
  ggtitle(variable_text) + 
- scale_color_manual(values = c(mypallete[10:10], "grey70")) +
   scale_y_continuous(labels = percent, limits=c(0,.10)) +
    scale_x_date(labels = date_format("%y"), breaks = "1 year")
 # add recession
@@ -819,13 +823,14 @@ temp <- temp %>%
 
 p1 <- ggplot() + 
   geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], 
-            aes(x = date, y = value), color=mypallete[10:10]) + 
+            aes(x = date, y = value), color=mypallete[10:10], size=.5) + 
   geom_line(data = temp[temp$date>=as.Date("2014-10-01"),], 
-            aes(x = date, y = value), color="grey60", size=.8) +
+            aes(x = date, y = value), color=mypallete[10:10], size=.5) +
+    geom_point(data = temp[temp$date>=as.Date("2014-10-01"),], 
+            aes(x = date, y = value), color=mypallete[10:10], pch=1, cex=2) +
     geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], 
             aes(x = date, y = value_max), color="grey40") +
  ggtitle(variable_text) + 
- scale_color_manual(values = c(mypallete[10:10], "grey70")) +
   scale_y_continuous(labels = dollar, limits=c(0,100)) +
    scale_x_date(labels = date_format("%y"), breaks = "1 year") +
    annotate("text", x = as.Date("2003-01-01"), y = holdmax+2.5, size=4,
@@ -993,3 +998,13 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 #   scale_color_manual(values = c(mypallete[10:10], mypallete[8:8], "grey40", mypallete[2:2], mypallete[4:4]))
 # plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
+
+b <- usfor_q$us_pc
+c <- usfor_q$totus_revpar_sa
+index_year <- 2014
+  start_index <- as.Date(paste(index_year,"-01-01",sep=""))
+  end_index <- as.Date(paste(index_year,"-10-01",sep=""))
+start_index
+end_index
+  temp_mean <- mean(window(usfor_q$us_pc, start=start_index, end=end_index))
+temp_mean
