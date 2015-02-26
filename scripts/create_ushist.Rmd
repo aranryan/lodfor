@@ -51,7 +51,7 @@ temp <- oe_usmac_q %>%
          us_yhat,
          us_pc,
          us_pedy,
-         us_penw,
+         us_penwall,
          us_cogtp,
          us_cpi,
          us_usrecq,

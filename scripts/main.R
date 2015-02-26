@@ -7,6 +7,7 @@
 # load_str just contains a function
 # also seasonal_factors contains functions to create monthly and 
 # quarterly seasonal factors
+source("scripts/setup.R")
 source("scripts/functions.R")
 
 # read raw STR monthly files
@@ -42,11 +43,14 @@ knit("scripts/create_ushist.Rmd")
 # runs simple forecast 
 source("scripts/simple_forecast.R")
 
-# runs simple forecast 
+# reads in the current forecast 
 source("scripts/read_usfor.R")
 
 # creates a Rdata file with Fred data used in graphs
 source("scripts/pull_fred_data.R")
+
+# compiles some groups of top 25 markets
+source("scripts/compile_top25.R")
 
 # runs the markdown file
 rmarkdown::render("scripts/us_overview_graphs.Rmd") #, output_dir = "/output_data/")

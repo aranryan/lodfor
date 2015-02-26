@@ -14,9 +14,12 @@ require("stringr")
 require("scales")
 require("zoo")
 require("xts")
-require("seasonal")
+if (!require(seasonal)) {
+  install.packages("seasonal")
+  require(seasonal)
+}
 Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
-checkX13()
+#checkX13()
 require("forecast")
 require("car")
 require("reshape2")
@@ -24,6 +27,7 @@ require("ggplot2")
 require("tidyr")
 require("plyr") #Hadley said if you load plyr first it should be fine
 require("dplyr")
+
 
 
 
@@ -872,7 +876,7 @@ plot_title_1=function(plot, grtitle, footnote){
     main = textGrob(grtitle, x=0, hjust=0, vjust=0.6, 
                     gp = gpar(fontsize=16, fontface="bold")),
     sub = textGrob(footnote, x=0, hjust=0, vjust=0.1, 
-                    gp = gpar(fontface="italic", fontsize=7)))
+                    gp = gpar(fontface="plain", fontsize=7)))
   grid.newpage() # basic command to create a new page of output
   grid.draw(grobframe)
 }
