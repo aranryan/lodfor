@@ -75,19 +75,42 @@ ushist_q_m <- ushist_q %>%
   data.frame(date=index(.), .) %>%
   melt(id.vars = c("date"))
 
-# this is if I wanted to do things with a tidy format
-ushist_q_tidy <- data.frame(date=time(ushist_q), ushist_q)%>%
-  # select(-year,-month,-qtr,-days) %>%
-  gather(segvar, value, -date, na.rm = FALSE) %>%
-  # I had difficulty separating by the underscore
-  # because there are more than one underscore in some
-  # so my solution was to mutate the column, applying 
-  # the sub function, which replaces the first occurance of
-  # the underscore with a period
-  mutate(segvar = sub("_",".", segvar)) %>%
-  # then run the separate on the period, using backslashes
-  # to escape out of the second character
-  separate(segvar, c("seg", "variable"), sep = "\\.") 
+# this is in an actual tidy format with date and seg columns to describe the
+# observations, and then variables in the columns
+ushist_q_td <- data.frame(date=time(ushist_q), ushist_q)%>%
+    melt(id.vars = c("date")) %>%
+  separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
+  spread(var, value)
+
+# this is a vestige of an earlier approach
+# select(-year,-month,-qtr,-days) %>%
+#   gather(segvar, value, -date, na.rm = FALSE) %>%
+#   # I had difficulty separating by the underscore
+#   # because there are more than one underscore in some
+#   # so my solution was to mutate the column, applying 
+#   # the sub function, which replaces the first occurance of
+#   # the underscore with a period
+#   mutate(segvar = sub("_",".", segvar)) %>%
+#   # then run the separate on the period, using backslashes
+#   # to escape out of the second character
+#   separate(segvar, c("seg", "variable"), sep = "\\.") 
+
+# this is in an actual tidy format with date and seg columns to describe the
+# observations, and then variables in the columns
+usfor_q_td <- data.frame(date=time(usfor_q), usfor_q)%>%
+  melt(id.vars = c("date")) %>%
+  separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
+  spread(var, value)
+
+# this is in an actual tidy format with date and seg columns to describe the
+# observations, and then variables in the columns
+top25compile_td <- top25compile %>%
+  melt(id.vars = c("date")) %>%
+  separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
+  spread(var, value) %>%
+  # filter to just top25us 
+  filter(seg == "top25us")
+
 ```
 
 ```{r create_forecastdataframe}
@@ -764,6 +787,65 @@ plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 
 ```
 
+
+
+## RevPAR, real long-term - by scale
+```{r revpar_real_lt_Scale}
+#sets variable and text items
+todovar <- c("revpar_sarpc")
+todo <- c("totus", "Total US")
+todo2 <- c("upuus", "Upper upscale")
+
+grtitle <- c("Real RevPAR")
+footnote <- c("Note: Seasonally adjusted.\nSource: STR; Bureau of Economic Analysis; Tourism Economics")
+starta <- as.Date("1995-01-01")
+enda <- as.Date("2014-10-01")
+index_year <- c(2006)
+variable_text <- paste("Index (", index_year, "=100)", sep="")
+
+temp <- ushist_q_m %>% 
+  filter(variable == paste(todo[1], "_", todovar, sep="") | 
+                           variable == paste(todo2[1], "_", todovar, sep="")) %>%
+  spread(variable, value) %>%
+     read.zoo(drop=FALSE) %>%
+    as.xts %>%
+    index_q_xts(index_year=index_year) %>%
+    data.frame(date=index(.), .) %>%
+    # puts it back into a tidy format with observations based on date and seg
+    # and variables in the columns
+    melt(id.vars = c("date")) %>%
+     separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
+    spread(var, value) %>%
+    mutate(seg = as.factor(seg))
+
+temp <- temp %>%
+  filter(date > starta, date <= enda)
+
+levels(temp$seg)[levels(temp$seg)==todo[1]] <- todo[2]
+levels(temp$seg)[levels(temp$seg)==todo2[1]] <- todo2[2]
+colnames(temp) <- c("date", "seg", "value")
+temp <- arrange(temp, seg)
+# to assign colors by seg
+cols <- c("grey60", mypallete[10:10])
+names(cols) <- c(todo[2], todo2[2])
+
+p1 <- ggplot() +
+ geom_line(data = temp, aes(x = date, y = value, color = seg), size = .7) +
+ ggtitle(variable_text) + 
+  scale_colour_manual(values = cols) +
+#  scale_color_manual(values = c("grey60", mypallete[10:10])) +
+  theme(legend.position=c(1, .15)) +
+  scale_y_continuous(limits=c(70,115))
+p1 <- p1 + geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #trims length
+            aes(xmin=start_rec
+                ,xmax=end_rec
+                ,ymin=-Inf  # to bottom of graph
+                ,ymax=Inf), # to top of graph
+                 fill="grey40", alpha=0.2)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+
 ## Unemployment
 ```{r unemployment}
 #sets variable and text items
@@ -869,7 +951,8 @@ temp <- top25compile %>%
 temp <- temp %>%
   filter(grepl('demd_sa', variable)) %>%
   filter(variable != "topcoast_demd_sa") %>%
-  filter(variable != "topcoast_wo_ny_demd_sa") 
+  filter(variable != "topcoastwony_demd_sa") %>%
+  filter(variable != "cawawosf_demd_sa")
 
 temp2 <- ushist_q_m %>%
     filter(variable == "newyork_demd_sa" | variable == "washingtondc_demd_sa" ) %>%
@@ -887,9 +970,8 @@ temp <- rbind(temp, temp2)
 temp <- temp %>%
   filter(date > "2005-01-01", date <= "2014-10-01")
 
-levels(temp$variable)[levels(temp$variable)=="top25_demd_sa"] <- "Top 25 markets"
-levels(temp$variable)[levels(temp$variable)=="topcoast_demd_sa"] <- "Selected coastal markets"
-levels(temp$variable)[levels(temp$variable)=="topcoast_wo_nydc_demd_sa"] <- "Selected coastal markets w/o NY and DC"
+levels(temp$variable)[levels(temp$variable)=="top25us_demd_sa"] <- "Top 25 markets"
+levels(temp$variable)[levels(temp$variable)=="topcoastwonydc_demd_sa"] <- "Selected coastal markets w/o NY and DC"
 levels(temp$variable)[levels(temp$variable)=="newyork_demd_sa"] <- "New York"
 levels(temp$variable)[levels(temp$variable)=="washingtondc_demd_sa"] <- "Washington DC"
 levels(temp$variable)[levels(temp$variable)=="totus_demd_sa"] <- "Total US"
@@ -920,7 +1002,9 @@ temp <- top25compile %>%
 temp <- temp %>%
   filter(grepl('supd_sa', variable)) %>%
   filter(variable != "topcoast_supd_sa") %>%
-  filter(variable != "topcoast_wo_ny_supd_sa") 
+  filter(variable != "topcoastwony_supd_sa") %>%
+  filter(variable != "cawawosf_supd_sa")
+
 
 temp2 <- ushist_q_m %>%
     filter(variable == "newyork_supd_sa" | variable == "washingtondc_supd_sa" ) %>%
@@ -938,9 +1022,8 @@ temp <- rbind(temp, temp2)
 temp <- temp %>%
   filter(date > "2005-01-01", date <= "2014-10-01")
 
-levels(temp$variable)[levels(temp$variable)=="top25_supd_sa"] <- "Top 25 markets"
-levels(temp$variable)[levels(temp$variable)=="topcoast_supd_sa"] <- "Selected coastal markets"
-levels(temp$variable)[levels(temp$variable)=="topcoast_wo_nydc_supd_sa"] <- "Selected coastal markets w/o NY and DC"
+levels(temp$variable)[levels(temp$variable)=="top25us_supd_sa"] <- "Top 25 markets"
+levels(temp$variable)[levels(temp$variable)=="topcoastwonydc_supd_sa"] <- "Selected coastal markets w/o NY and DC"
 levels(temp$variable)[levels(temp$variable)=="newyork_supd_sa"] <- "New York"
 levels(temp$variable)[levels(temp$variable)=="washingtondc_supd_sa"] <- "Washington DC"
 levels(temp$variable)[levels(temp$variable)=="totus_supd_sa"] <- "Total US"
@@ -954,53 +1037,198 @@ p1 <- ggplot() +
 plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
 ```
 
-## Occupancy, lower priced
-```{r chain_occ_lower_priced}
-# grtitle <- c("Occupancy, lower priced")
-# footnote <- c("Note: Seasonally adjusted. Room supply quarterly through fourth quarter 2014.\nSource: STR, Tourism Economics")
-# variable_text <- c("Index (2006=100)")
-# index_year <- c(2006)
-# 
-# temp <- top25compile %>%
-#     read.zoo() %>%
-#   xts() %>%
-#   index_q_xts(.,index_year=index_year) %>%
-#   data.frame(date=index(.), .) %>%
-#   melt(id.vars = c("date"))
-# 
-# temp <- temp %>%
-#   filter(grepl('supd_sa', variable)) %>%
-#   filter(variable != "topcoast_supd_sa") %>%
-#   filter(variable != "topcoast_wo_ny_supd_sa") 
-# 
-# temp2 <- ushist_q_m %>%
-#     filter(variable == "newyork_supd_sa" | variable == "washingtondc_supd_sa" ) %>%
-#     filter(date > "1987-01-01") %>%
-#     spread(variable, value) %>%
-#     na.omit() %>%
-#     read.zoo(drop=FALSE) %>%
-#     as.xts %>%
-#     index_q_xts(index_year=index_year) %>%
-#     data.frame(date=index(.), .) %>%
-#     melt(id.vars = c("date"))
-#   
-# temp <- rbind(temp, temp2)
-# 
-# temp <- temp %>%
-#   filter(date > "2005-01-01", date <= "2014-10-01")
-# 
-# levels(temp$variable)[levels(temp$variable)=="top25_supd_sa"] <- "Top 25 markets"
-# levels(temp$variable)[levels(temp$variable)=="topcoast_supd_sa"] <- "Selected coastal markets"
-# levels(temp$variable)[levels(temp$variable)=="topcoast_wo_nydc_supd_sa"] <- "Selected coastal markets w/o NY and DC"
-# levels(temp$variable)[levels(temp$variable)=="newyork_supd_sa"] <- "New York"
-# levels(temp$variable)[levels(temp$variable)=="washingtondc_supd_sa"] <- "Washington DC"
-# levels(temp$variable)[levels(temp$variable)=="totus_supd_sa"] <- "Total US"
-# 
-# p1 <- ggplot() +
-#   geom_line(data = temp, aes(x = date, y = value, color = variable), size = .6) +
-#   ggtitle(variable_text) +
-#   theme(legend.position=c(.55, .75)) +
-#   scale_color_manual(values = c(mypallete[10:10], mypallete[8:8], "grey40", mypallete[2:2], mypallete[4:4]))
-# plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+## San Francisco demand
+```{r sanfrancisco_demand}
+grtitle <- c("San Francisco hotel room demand")
+footnote <- c("Note: Seasonally adjusted. Room demand quarterly through fourth quarter 2014.\nSource: STR, Tourism Economics")
+variable_text <- c("Index (2006=100)")
+index_year <- c(2006)
+todo <- c("demd_sa")
+
+# because this doesn't depend on top25compile_td it is commented out and 
+# temp1 is set to Null
+# temp1 <- top25compile_td %>%
+#   filter(seg == "top25") %>%
+#   # select_ does standard evaluation
+#   select_("date", "seg", todo) 
+temp1 <- NULL
+
+temp2 <- ushist_q_td %>%
+  filter(seg == "sanfrancisco" | seg == "totus") %>%
+  filter(date >= "1987-01-01") %>%
+  select_("date", "seg", todo)
+
+# nothing in this step needs to change 
+temp <- rbind(temp1, temp2) %>%
+    # needs to get it back into a format for indexing
+    gather(segvar, value, -date, -seg, na.rm = FALSE) %>%
+    mutate(segvar = paste(seg, segvar, sep="_")) %>%
+    select(-seg) %>%
+    spread(segvar, value) %>%
+    read.zoo(drop=FALSE) %>%
+    as.xts %>%
+    index_q_xts(index_year=index_year) %>%
+    data.frame(date=index(.), .) %>%
+    # puts it back into a tidy format with observations based on date and seg
+    # and variables in the columns
+    melt(id.vars = c("date")) %>%
+     separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
+    spread(var, value) %>%
+    mutate(seg = as.factor(seg))
+
+temp <- temp %>%
+  filter(date > "1995-01-01", date <= "2014-10-01")
+
+levels(temp$seg)[levels(temp$seg)=="totus"] <- "Total US"
+levels(temp$seg)[levels(temp$seg)=="sanfrancisco"] <- "San Francisco"
+colnames(temp) <- c("date", "seg", "value")
+
+p1 <- ggplot() +
+  geom_line(data = temp, aes(x = date, y = value, color = seg), size = .8) +
+  ggtitle(variable_text) +
+  theme(legend.position=c(1, .15)) +
+    scale_x_date(breaks = "1 year", labels = date_format("%Y")) +
+  scale_color_manual(values = c(mypallete[9:9], "grey60")) +
+  scale_y_continuous(limits=c(70,120))
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+# add recesssion
+p1 <- p1 +
+geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #trims length
+            aes(xmin=start_rec
+                ,xmax=end_rec
+                ,ymin=-Inf  # to bottom of graph
+                ,ymax=Inf), # to top of graph
+                fill="grey40", alpha=0.2)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+```
+
+
+## San Francisco supply
+```{r sanfrancisco_supply}
+grtitle <- c("San Francisco hotel room supply")
+footnote <- c("Note: Seasonally adjusted. Room supply quarterly through fourth quarter 2014.\nSource: STR, Tourism Economics")
+variable_text <- c("Index (2006=100)")
+index_year <- c(2006)
+todo <- c("supd_sa")
+
+# temp1 <- top25compile_td %>%
+#   filter(seg == "top25us") %>%
+#   # select_ does standard evaluation
+#   select_("date", "seg", todo) 
+
+temp1 <- NULL
+temp2 <- ushist_q_td %>%
+  filter(seg == "sanfrancisco" | seg == "totus") %>%
+  filter(date >= "1987-01-01") %>%
+  select_("date", "seg", todo)
+
+# nothing in this step needs to change 
+temp <- rbind(temp1, temp2) %>%
+    # needs to get it back into a format for indexing
+    gather(segvar, value, -date, -seg, na.rm = FALSE) %>%
+    mutate(segvar = paste(seg, segvar, sep="_")) %>%
+    select(-seg) %>%
+    spread(segvar, value) %>%
+    read.zoo(drop=FALSE) %>%
+    as.xts %>%
+    index_q_xts(index_year=index_year) %>%
+    data.frame(date=index(.), .) %>%
+    # puts it back into a tidy format with observations based on date and seg
+    # and variables in the columns
+    melt(id.vars = c("date")) %>%
+     separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
+    spread(var, value) %>%
+    mutate(seg = as.factor(seg))
+
+temp <- temp %>%
+  filter(date > "1995-01-01", date <= "2014-10-01")
+
+levels(temp$seg)[levels(temp$seg)=="totus"] <- "Total US"
+levels(temp$seg)[levels(temp$seg)=="sanfrancisco"] <- "San Francisco"
+colnames(temp) <- c("date", "seg", "value")
+
+p1 <- ggplot() +
+  geom_line(data = temp, aes(x = date, y = value, color = seg), size = .8) +
+  ggtitle(variable_text) +
+  theme(legend.position=c(1, .15)) +
+    scale_x_date(breaks = "1 year", labels = date_format("%Y")) +
+  scale_y_continuous(limits=c(70,120)) +
+  scale_color_manual(values = c(mypallete[9:9], "grey60"))
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+# add recesssion
+p1 <- p1 +
+geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #trims length
+            aes(xmin=start_rec
+                ,xmax=end_rec
+                ,ymin=-Inf  # to bottom of graph
+                ,ymax=Inf), # to top of graph
+                fill="grey40", alpha=0.2)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+
+```
+
+
+## San Francisco occupancy
+```{r sanfrancisco_occ}
+grtitle <- c("San Francisco hotel occupancy")
+footnote <- c("Note: Seasonally adjusted. Occupancy quarterly through fourth quarter 2014.\nSource: STR, Tourism Economics")
+variable_text <- c("Occupancy")
+index_year <- c(2006)
+todo <- c("occ_sa")
+
+# temp1 <- top25compile_td %>%
+#   filter(seg == "top25us") %>%
+#   # select_ does standard evaluation
+#   select_("date", "seg", todo) 
+
+temp1 <- NULL
+temp2 <- ushist_q_td %>%
+  filter(seg == "sanfrancisco" | seg == "totus") %>%
+  filter(date >= "1987-01-01") %>%
+  select_("date", "seg", todo)
+
+# nothing in this step needs to change 
+temp <- rbind(temp1, temp2) %>%
+    # needs to get it back into a format for indexing
+    gather(segvar, value, -date, -seg, na.rm = FALSE) %>%
+    mutate(segvar = paste(seg, segvar, sep="_")) %>%
+    select(-seg) %>%
+    spread(segvar, value) %>%
+    read.zoo(drop=FALSE) %>%
+    as.xts %>%
+    #index_q_xts(index_year=index_year) %>%
+    data.frame(date=index(.), .) %>%
+    # puts it back into a tidy format with observations based on date and seg
+    # and variables in the columns
+    melt(id.vars = c("date")) %>%
+     separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
+    spread(var, value) %>%
+    mutate(seg = as.factor(seg))
+
+temp <- temp %>%
+  filter(date > "1995-01-01", date <= "2014-10-01")
+
+levels(temp$seg)[levels(temp$seg)=="totus"] <- "Total US"
+levels(temp$seg)[levels(temp$seg)=="sanfrancisco"] <- "San Francisco"
+colnames(temp) <- c("date", "seg", "value")
+
+p1 <- ggplot() +
+  geom_line(data = temp, aes(x = date, y = value, color = seg), size = .8) +
+  ggtitle(variable_text) +
+  theme(legend.position=c(1, .15)) +
+    scale_x_date(breaks = "1 year", labels = date_format("%Y")) +
+  scale_y_continuous(labels = percent, limits=c(.5,.9)) +
+  scale_color_manual(values = c(mypallete[9:9], "grey60"))
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+# add recesssion
+p1 <- p1 +
+geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #trims length
+            aes(xmin=start_rec
+                ,xmax=end_rec
+                ,ymin=-Inf  # to bottom of graph
+                ,ymax=Inf), # to top of graph
+                fill="grey40", alpha=0.2)
+plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+
 ```
 

@@ -15,6 +15,19 @@ temp_str_us <- load_str(raw_str_us)
 str_us_m <- temp_str_us[[1]]
 str_us_q <- temp_str_us[[2]]
 
+# drops series that aren't going to be adjusted
+  str_m <- select(str_us_m, 
+                    -ends_with("_days"), 
+                    -ends_with("_demt"), 
+                    -ends_with("_rmrevt"), 
+                    -ends_with("_supt"))
+
+  str_q <- select(str_us_q, 
+                    -ends_with("_days"), 
+                    -ends_with("_demt"), 
+                    -ends_with("_rmrevt"), 
+                    -ends_with("_supt"))
+
 # creates seasonal factors and saves as Rdata files
 # monthly
   str_us_m_factors <- seas_factors_m(str_us_m)

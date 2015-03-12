@@ -323,7 +323,7 @@ top25sum <- data.frame(date=time(top25sum), top25sum)%>%
   # so it separates segvar into two colums using sep
   separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
   # keeps seg as a column and spreads variable into multiple columns containing
-  # containint the values
+  # containing the values
   spread(variable,value) 
 
 top25sum <- top25sum %>%

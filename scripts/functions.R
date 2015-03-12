@@ -663,12 +663,15 @@ seas_factors_m <- function(str_m){
   # gets ready to create monthly seasonal factors
   print("get ready to create monthly seasonal factors")
   
-  # drop concepts that shouldn't be seasonally adjusted
-  toadj_m <- select(str_m, 
-                    -ends_with("_days"), 
-                    -ends_with("_demt"), 
-                    -ends_with("_rmrevt"), 
-                    -ends_with("_supt"))
+  # used to drop concepts that shouldn't be seasonally adjusted
+  # but I removed it I put it into the actual script
+  toadj_m <- str_m 
+  #   toadj_m <- select(str_m, 
+  #                     -ends_with("_days"), 
+  #                     -ends_with("_demt"), 
+  #                     -ends_with("_rmrevt"), 
+  #                     -ends_with("_supt"))
+ 
   # drop series that have given errors when seasonally adjusting in past
   dont_m_cols <- c("anaheim_supd|dallas_supd|detroit_supd|neworleans_supd|oahu_supd|sanfrancisco_supd|tampa_supd")
   #dont_m_cols <- c("totus_demd|totus_occ|totus_revpar|totus_supd|anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
@@ -772,13 +775,16 @@ seas_factors_q <- function(str_q){
   # gets ready to create quarterly seasonal factors
   print("get ready to create quarterly seasonal factors")
   
-  # drop concepts that shouldn't be seasonally adjusted
-  toadj_q <- select(str_q, 
-                    -ends_with("_days"), 
-                    -ends_with("_demt"), 
-                    -ends_with("_rmrevt"), 
-                    -ends_with("_supt"))
-  
+  # used to drop concepts that shouldn't be seasonally adjusted
+  # but I removed it I put it into the actual script
+  toadj_q <- str_q 
+
+#   toadj_q <- select(str_q, 
+#                     -ends_with("_days"), 
+#                     -ends_with("_demt"), 
+#                     -ends_with("_rmrevt"), 
+#                     -ends_with("_supt"))
+   
   # drop series that have given errors when seasonally adjusting in past
   dont_q_cols <- c("anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
   #dont_q_cols <- c("totus_demd|totus_occ|totus_revpar|totus_supd|anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")

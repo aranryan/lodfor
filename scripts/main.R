@@ -55,5 +55,6 @@ source("scripts/compile_top25.R")
 # runs the markdown file
 rmarkdown::render("scripts/us_overview_graphs.Rmd") #, output_dir = "/output_data/")
 
-
+# creates an eviews output
+source("scripts/out_to_eviews.R")
 
