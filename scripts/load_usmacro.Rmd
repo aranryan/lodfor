@@ -29,7 +29,7 @@ end_date <- paste(end_year,"-10-01",sep="")
 
 require("quantmod")
 
-fname <- c("input_data/LODFOR_OEF_USMACRO_2015_02_23.csv")
+fname <- c("input_data/LODFOR_OEF_USMACRO_2015_03_12.csv")
 temp <- read.csv(fname, header=TRUE, stringsAsFactors=FALSE)
 # sets up column names
 temp_names <- colnames(temp)
