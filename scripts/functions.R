@@ -658,7 +658,7 @@ create_sa_str_q <- function(str_q){
 # and returns a set of monthly seasonal factors, including future months
 
 
-seas_factors_m <- function(str_m){
+seas_factors_m <- function(str_m, dont_m_cols){
   
   # gets ready to create monthly seasonal factors
   print("get ready to create monthly seasonal factors")
@@ -673,7 +673,7 @@ seas_factors_m <- function(str_m){
   #                     -ends_with("_supt"))
  
   # drop series that have given errors when seasonally adjusting in past
-  dont_m_cols <- c("anaheim_supd|dallas_supd|detroit_supd|neworleans_supd|oahu_supd|sanfrancisco_supd|tampa_supd")
+  #dont_m_cols <- c("anaheim_supd|dallas_supd|detroit_supd|neworleans_supd|oahu_supd|sanfrancisco_supd|tampa_supd")
   #dont_m_cols <- c("totus_demd|totus_occ|totus_revpar|totus_supd|anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
   
   # put the matching series into a dataframe
@@ -770,7 +770,7 @@ seas_factors_m <- function(str_m){
 # and returns a set of quarterly seasonal factors, including future months
 
 
-seas_factors_q <- function(str_q){
+seas_factors_q <- function(str_q, dont_q_cols){
   
   # gets ready to create quarterly seasonal factors
   print("get ready to create quarterly seasonal factors")
@@ -786,7 +786,7 @@ seas_factors_q <- function(str_q){
 #                     -ends_with("_supt"))
    
   # drop series that have given errors when seasonally adjusting in past
-  dont_q_cols <- c("anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
+  #dont_q_cols <- c("anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
   #dont_q_cols <- c("totus_demd|totus_occ|totus_revpar|totus_supd|anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
   
   # put the matching series into a dataframe
