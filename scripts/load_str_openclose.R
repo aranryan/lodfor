@@ -20,8 +20,7 @@ fname_closes <- c("input_data/coopclose2015-01-21.txt")
 #   read.zoo(header = TRUE, FUN = f , sep=",") %>%
 #   xts()
 
-opens_m <- read.delim(fname_opens, 
-                         stringsAsFactors=FALSE) %>%
+opens_m <- read.delim(fname_opens, stringsAsFactors=FALSE) %>%
   rename(seg=Segment, date=Open.Date, opprop = Props, oprms = Rooms) %>%
   # filters to drop rows where the date ends in 13
   # or starts with TOTAL, and then also drops the NA row that appears at bottom
@@ -53,8 +52,7 @@ opens_m <- a %>%
   index(opens_m) <- tempa
 
 # handles closes
-closes_m <- read.delim(fname_closes, 
-                      stringsAsFactors=FALSE) %>%
+closes_m <- read.delim(fname_closes, stringsAsFactors=FALSE) %>%
   rename(seg=Segment, date=Open.Date, clprop = Props, clrms = Rooms) %>%
   # filters to drop rows where the date ends in 13
   # or starts with TOTAL, and then also drops the NA row that appears at bottom

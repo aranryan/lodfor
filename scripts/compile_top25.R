@@ -226,7 +226,7 @@ temp_nonadj <- temp1 %>%
 
 # creates seasonal factors 
 
-selected_factors <- seas_factors_q(temp_selected)
+selected_factors <- seas_factors_q(temp_selected, dont_q_cols=c("blank"))
 
 # create quarterly sa from seasonal factors
 temp_selected2 <- merge(temp_selected, selected_factors, all=TRUE)

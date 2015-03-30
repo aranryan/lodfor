@@ -100,7 +100,11 @@ seasonal_ad <- function (x,
   holdn <- names(x)
   print(holdn)
   # trims the NAs from the series
-  x <- na.trim(x)
+      # I commented this out while doing the host work because it was causing the 
+      # seasonal factors to be shifted, and not aligned with the proper dates
+      # I didn't have this issue before I guess because things all tended to 
+      # start at the same date
+  # x <- na.trim(x)
   # this series y is used in the output, just outputs the original series
   y <- x
   y <- xts(y)

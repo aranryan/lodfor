@@ -15,6 +15,7 @@ source("scripts/functions.R")
 source("scripts/read_raw_str_us.R")
 source("scripts/read_raw_str_ihg_mex.R")
 source("scripts/read_raw_str_ihg_can.R")
+source("scripts/read_raw_str_us_host.R")
 
 # create monthl and quarterly seasonal factors, only run if necessary
 # results saved in Rdata files (dataframe)
@@ -23,6 +24,7 @@ source("scripts/read_raw_str_ihg_can.R")
 # preps the STR data, including creating seasonal adjusted from factors
 # results saved in Rdata (xts) and csv files 
 source("scripts/prep_str.R")
+source("scripts/prep_str_host.R")
 
 # reads STR opens and closes directly from Excel source file
 # results saved in Rdata (xts) and csv files

@@ -5,7 +5,9 @@
 # only necessary to run if updating seasonal factors
 # 
 
-# US and metros
+###############
+#
+# US and top 25 metros
 
 # begins the same as the load_str step, using the load_str function
 load("output_data/raw_str_us.Rdata")
@@ -36,7 +38,9 @@ str_us_q <- temp_str_us[[2]]
   str_us_q_factors <- seas_factors_q(str_us_q)
   save(str_us_q_factors, file="output_data/str_us_q_factors.Rdata")
 
-# IHG mexico
+###############
+#
+# IHG Mexico
 
 load("output_data/raw_str_ihg_mex.Rdata")
 temp_str_ihg_mex <- load_str(raw_str_ihg_mex)
@@ -53,7 +57,9 @@ save(str_ihg_mex_m_factors, file="output_data/str_ihg_mex_m_factors.Rdata")
 str_ihg_mex_q_factors <- seas_factors_q(str_ihg_mex_q)
 save(str_ihg_mex_q_factors, file="output_data/str_ihg_mex_q_factors.Rdata")
 
-# IHG canada
+###############
+#
+# IHG Canada
 
 load("output_data/raw_str_ihg_can.Rdata")
 temp_str_ihg_can <- load_str(raw_str_ihg_can)
@@ -69,3 +75,8 @@ save(str_ihg_can_m_factors, file="output_data/str_ihg_can_m_factors.Rdata")
 # quarterly
 str_ihg_can_q_factors <- seas_factors_q(str_ihg_can_q)
 save(str_ihg_can_q_factors, file="output_data/str_ihg_can_q_factors.Rdata")
+
+###############
+#
+# Host US
+y
