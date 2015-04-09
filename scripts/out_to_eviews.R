@@ -20,6 +20,10 @@ colc <- rep("character", 10)
 m_cen_blsces <- read.csv("input_data/m_cen_blsces.csv", head=TRUE, colClasses=colc) 
 str(m_cen_blsces)
 
+# list of geos that we want to be sure to cover, even if with NAs
+geo_for_eviews <- read.table("input_data/geo_for_eviews_list.txt", header=FALSE, stringsAsFactors=FALSE)
+names(geo_for_eviews) <- c("area_sh")
+
 # this is in an actual tidy format with date and seg columns to describe the
 # observations, and then variables in the columns
 # ushist_q_td <- data.frame(date=time(ushist_q), ushist_q)%>%
@@ -76,8 +80,8 @@ temp1 <- ushist_host_q_td %>%
   # manually applies an area_sh code for Orange County Host STR data
   mutate(area_sh = ifelse(area_name_simp == "San Francisco and San Jose, CA", "sfjca", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "Orange County, CA", "orgca", area_sh)) %>%
-  mutate(area_sh = ifelse(area_name_simp == "Maui, HI", "mauhi", area_sh)) %>%
-  mutate(area_sh = ifelse(area_name_simp == "Oahu, HI", "oahhi", area_sh)) %>%
+  mutate(area_sh = ifelse(area_name_simp == "Maui, HI", "khlhi", area_sh)) %>%
+  mutate(area_sh = ifelse(area_name_simp == "Oahu, HI", "hnlhi", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "Maui and Oahu, HI", "mouhi", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "United States", "usxxx", area_sh)) 
   #mutate(area_sh = ifelse(area_name_simp == "Selected markets", "slmxx", area_sh))
@@ -119,6 +123,27 @@ plot(out_e_hststr$adrsartot_lsaca, type="l")
 # seg_list <- seg_list$seg
 # str(seg_list)
 
+
+# uses function to update dataframe to include 
+# NA series for any combination that is missing, which is helpful for Anthony
+
+# starts with list with all intended geos
+check_for <- as.character(geo_for_eviews[,1])
+# applies function
+hold <- check_vargeo(out_e_hststr, check_for)
+print("list of missing series") 
+hold[2]
+# uses dataframe updated to include any missing series as NA
+out_e_hststr <- data.frame(hold[1])
+
+# create a tidy copy
+out_t_hststr <- out_e_hststr %>%
+  gather(vargeo, value, -date) %>%
+  separate(vargeo, c("var", "area_sh"), sep = "_", extra="merge") %>%
+  spread(var, value)
+
+# saving outputs
 write.csv(out_e_hststr, file="output_data/out_e_hststr.csv", row.names=FALSE)
 # write(seg_list, file="output_data/out_seg_list.txt")
 write.csv(mkt_list, file="output_data/mkt_list.csv")
+save(out_t_hststr, file=paste("output_data/out_t_hststr.Rdata", sep=""))
