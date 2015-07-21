@@ -2,8 +2,19 @@
 title: "load oef macro"
 author: "Tourism Economics"
 date: "Wednesday, October 15, 2014"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
+
+
+Setup
+```{r readchunk}
+#read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
+source('~/Project/R projects/lodfor/scripts/functions.R')
+```
+
+
 
 As an input, this expects a csv file. This csv file can be created using the
 select file that I've set up and the OE macro model.
@@ -18,68 +29,70 @@ end_date <- paste(end_year,"-10-01",sep="")
 ```
 
 
-```{r load_macro}
-# require("stringr")
-# require("dplyr")
-# require("reshape2")
-# require("zoo")
-# require("xts")
-# require("lubridate")
-# require("ggplot2")
-
+```{r load_macro2}
 require("quantmod")
 
-fname <- c("input_data/LODFOR_OEF_USMACRO_2015_03_12.csv")
-temp <- read.csv(fname, header=TRUE, stringsAsFactors=FALSE)
-# sets up column names
-temp_names <- colnames(temp)
-# removes periods in column names
-temp_names <- gsub(".", "", temp_names, fixed = TRUE) 
-# changes part of column names
-temp_names <- tolower(temp_names)
-temp_names <- gsub("xus", "us", temp_names) 
-temp_names <- gsub("xca", "can", temp_names) 
-temp_names <- gsub("xmx", "mex", temp_names) 
+fpath <- c("~/Project/R projects/lodfor/")
 
-# replaces the existing column names
-colnames(temp) <- temp_names
+# when kniting from the button, I either needed the full path or to add "../" 
+# in front of each
+#load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
+
+
+fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_07_21.csv")
+# the check.names piece fixes the issueof the column names coming in with
+# quotes and spaces due to the Oxford file format that is visible when 
+# you open the csv file in notepad
+temp <- read.csv(fname, header=TRUE, sep=",", check.names=FALSE) 
+# puts column names into lower case
+names(temp) <- tolower(names(temp))
+# trims leading and trailing whitespace
+names(temp) <- str_trim(names(temp))
+colnames(temp)
+
+# changes $ and & in the wd_gdp$& column name
+col_temp <- colnames(temp) %>%
+  gsub("\\$&", "nusd", .)
+colnames(temp) <- col_temp
 
 # works on the date column to get into a date format
 # more difficult than I would have liked
-hold <- temp[,1]
-hold <- gsub("01$", " Q1", hold) 
-hold <- gsub("02$", " Q2", hold) 
-hold <- gsub("03$", " Q3", hold) 
-hold <- gsub("04$", " Q4", hold) 
-temp[,1] <- as.yearqtr(hold) 
-head(temp)
-temp$dates <- format(temp$dates, format="%Y Q%q")
-temp$dates <- as.yearqtr(temp$dates)
-# finally gets this to date format
-temp$dates <- as.Date(temp$dates)
-str(temp)
+temp <- temp %>%
+  rename(date = dates) %>%
+  mutate(date = gsub("01$", "-01-01", date)) %>%
+  mutate(date = gsub("02$", "-04-01", date)) %>%
+  mutate(date = gsub("03$", "-07-01", date)) %>%
+  mutate(date = gsub("04$", "-10-01", date)) %>%
+  mutate(date = as.Date(date))
 
-# much of the data is in character format
-# this step converts to numeric and overwrites it
-tempa <- temp[,2:ncol(temp)]
-tempb <- data.matrix(tempa)
-# could have also used sapply I believe
-# tempb <- sapply(tempa, as.numeric )
-temp[,2:ncol(temp)] <- tempb
+temp_2 <- temp %>%
+  gather(geovar, value, -date) %>%
+  mutate(geovar = as.character(geovar)) %>%
+  # I think this separates on the first occurance of the underscore, 
+  # not all occurances
+  separate(geovar, c("geo", "variable"), sep = "\\_", extra="merge") 
 
-
-#creates zoo object then xts object
-temp1 <- read.zoo(temp)
-class(temp1)
-temp1 <- as.xts(temp1, frequency=4)
-head(temp1)
-oe_usmac_q <- temp1
+oe_usmac_q <- temp_2 %>%
+  # renames "if" to "ifix" because r doesn't like "if" as a variable name
+  mutate(variable = ifelse(variable == "if", "ifix", variable)) %>%
+  # also, I didn't like wpo_wti as a variable name, because it has the 
+  # underscore, which is distracting, and may cause trouble
+  mutate(variable = ifelse(variable == "wpo_wti", "wpowti", variable)) %>%
+  # changes codes for canada, mexico and japan
+  mutate(geo = ifelse(geo == "ca", "can", geo)) %>%
+  mutate(geo = ifelse(geo == "mx", "mex", geo)) %>%
+  # recombine the geo and var
+  mutate(geovar = paste(geo, variable, sep="_")) %>%
+  select(-geo, -variable) %>%
+  spread(geovar, value) %>%
+  read.zoo() %>%
+  xts(frequency=4)
 
 # shortens data based on end date established at start of script
 oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ```
 
-A few plots
+###A few plots
 ```{r plots, echo=FALSE}
 
 autoplot(oe_usmac_q$us_gdp)
@@ -95,65 +108,57 @@ tempdiff <- diff(temp)/lag(temp)
 # annualized growth
 tempcagr <- (temp/lag(temp))^4-1
 #plotting annualized growth
-autoplot(window(tempcagr, start=as.Date("2013-01-01"), end=as.Date("2015-01-01")))
+autoplot(window(tempcagr, start=as.Date("2013-01-01"), end=as.Date("2015-10-01")))
 tempa <- merge(temp, tempdiff, tempcagr)
 
 # take a look at GDP growth rate as a check
 a <- oe_usmac_q$us_gdp
 # this is one way to calculate a CAGR on an xts object
 a$us_gdp_cagr <- ((a$us_gdp/lag(a$us_gdp,1))^4-1)
-window(a, start=as.Date("2013-01-01"), end=as.Date("2015-01-01"))
+window(a, start=as.Date("2013-01-01"), end=as.Date("2015-10-01"))
 ```
 
-Load FRED data
+###Load FRED data
 ```{r fred_data, echo=FALSE}
-# new environment for data
-data <- new.env()
-# set dates
-fredstart_date <- "1980-01-01"
-# end is set up at start of script
-fredend_date <- end_date
-
-# set tickers
-tickers <- c("FEDFUNDS", "GDPPOT", "USRECQ")
-
-# import data from FRED database
-getSymbols( tickers 
-            ,src = "FRED"
-            , env = data)
-
-
-# based on 
-# http://stackoverflow.com/questions/15980985/get-xts-objects-from-within-an-environment
-# I looked at using gsa as follows, but it required another package qmao, that wasn't on Cran
-data2 <- as.environment(eapply(data, "[", paste(fredstart_date, fredend_date, sep="/")))
-
-#I should redo this, very clumsy
-us_usrecq <- get("USRECQ", envir = data2)
-us_usrecq <- as.data.frame(us_usrecq)
-us_usrecq$date <- as.Date(row.names(us_usrecq))
-us_usrecq <- us_usrecq %>%
-  rename(us_usrecq = USRECQ)
-us_usrecq <- us_usrecq %>%
-  read.zoo(index.column = 2, drop=FALSE) %>%
-  xts()
-
-oe_usmac_q <- merge(oe_usmac_q, us_usrecq)
-autoplot(oe_usmac_q$us_usrecq)
+# # new environment for data
+# data <- new.env()
+# # set dates
+# fredstart_date <- "1980-01-01"
+# # end is set up at start of script
+# fredend_date <- end_date
+# 
+# # set tickers
+# tickers <- c("FEDFUNDS", "GDPPOT", "USRECQ")
+# 
+# # import data from FRED database
+# getSymbols( tickers 
+#             ,src = "FRED"
+#             , env = data)
+# 
+# # based on 
+# # http://stackoverflow.com/questions/15980985/get-xts-objects-from-within-an-environment
+# # I looked at using gsa as follows, but it required another package qmao, that wasn't on Cran
+# data2 <- as.environment(eapply(data, "[", paste(fredstart_date, fredend_date, sep="/")))
+# 
+# #I should redo this, very clumsy
+# us_usrecq <- get("USRECQ", envir = data2)
+# us_usrecq <- as.data.frame(us_usrecq)
+# us_usrecq$date <- as.Date(row.names(us_usrecq))
+# us_usrecq <- us_usrecq %>%
+#   rename(us_usrecq = USRECQ)
+# us_usrecq <- us_usrecq %>%
+#   read.zoo(index.column = 2, drop=FALSE) %>%
+#   xts()
+# 
+# oe_usmac_q <- merge(oe_usmac_q, us_usrecq)
+# autoplot(oe_usmac_q$us_usrecq)
 ```
 
-Cleans up
-```{r clean}
-rm(temp, temp1, tempa, fname, hold, temp_names)
-```
-
-
-Writing out files
-
+###Writing out files
 ```{r write_output}
 # writes csv versions of the output files
-write.zoo(oe_usmac_q, file="output_data/oe_usmac_q.csv", sep=",")
+write.zoo(oe_usmac_q, file="../output_data/oe_usmac_q.csv", sep=",")
 # saves Rdata versions of the output files
-save(oe_usmac_q, file="output_data/oe_usmac_q.Rdata")
+save(oe_usmac_q, file="../output_data/oe_usmac_q.Rdata")
 ```
 
