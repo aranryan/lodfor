@@ -3,7 +3,7 @@
 #
 # name of file to read
 
-fname <- c("input_data/str_us_top25-2015-03-20.csv")
+fname <- c("input_data/str_us_top25-2015-07-17.csv")
 
 ########
 #

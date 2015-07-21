@@ -30,9 +30,12 @@ str_us_q <- temp_str_us[[2]]
                     -ends_with("_rmrevt"), 
                     -ends_with("_supt"))
 
+dont_q_cols <- c("anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
+
+
 # creates seasonal factors and saves as Rdata files
 # monthly
-  str_us_m_factors <- seas_factors_m(str_us_m)
+  str_us_m_factors <- seas_factors_m(str_us_m, dont_q_cols)
   save(str_us_m_factors, file="output_data/str_us_m_factors.Rdata")
   # quarterly
   str_us_q_factors <- seas_factors_q(str_us_q)

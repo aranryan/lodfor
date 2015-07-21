@@ -27,9 +27,12 @@ require("ggplot2")
 require("tidyr")
 require("plyr") #Hadley said if you load plyr first it should be fine
 require("dplyr")
+require("lazyeval")
+require("broom")
+require("assertthat")
 
-
-
+#devtools::install_github("hadley/readxl")
+library("readxl")
 
 
 #############################
@@ -882,13 +885,130 @@ seas_factors_q <- function(str_q, dont_q_cols){
 
 # adds the title
 plot_title_1=function(plot, grtitle, footnote){
-  grobframe <- arrangeGrob(plot, ncol=1, nrow=1,
+  grobframe <- arrangeGrob(plot,
     main = textGrob(grtitle, x=0, hjust=0, vjust=0.6, 
                     gp = gpar(fontsize=16, fontface="bold")),
     sub = textGrob(footnote, x=0, hjust=0, vjust=0.1, 
                     gp = gpar(fontface="plain", fontsize=7)))
   grid.newpage() # basic command to create a new page of output
   grid.draw(grobframe)
+  # these worked but didn't improve things much I thought
+  #ggsave(grobframe,file="whatever.png",compression="lzw",height=5.5,width=9,dpi=1000,units="in")
+  #ggsave(grobframe,file="whatever.png",height=5.5,width=9,dpi=900,units="in")
+}
+
+plot_title_2=function(plot, grtitle, footnote, filename){
+  grobframe <- arrangeGrob(plot, ncol=1, nrow=1,
+                           main = textGrob(grtitle, x=0, hjust=0, vjust=0.6, 
+                                           gp = gpar(fontsize=16, fontface="bold")),
+                           sub = textGrob(footnote, x=0, hjust=0, vjust=0.1, 
+                                          gp = gpar(fontface="plain", fontsize=7)))
+  grid.newpage() # basic command to create a new page of output
+  grid.draw(grobframe)
+  # these worked but didn't improve things much I thought
+  #ggsave(grobframe,file="whatever.tiff",compression="lzw",height=5.5,width=9,dpi=1000,units="in")
+  #ggsave(grobframe,file="whatever.emf",height=5.7,width=9,dpi=800,units="in")
+  ggsave(grobframe,file=filename,height=5.7,width=9,dpi=800,units="in")
+}
+
+plot_title_3=function(plot, grtitle, footnote){
+  grobframe <- arrangeGrob(plot,heights=unit(c(5,.5), c("in", "in")),
+                           top = textGrob(grtitle, x=0, hjust=0, vjust=0.6, 
+                                           gp = gpar(fontsize=16, fontface="bold")),
+                           sub = textGrob(footnote, x=0, hjust=0, vjust=0.1, 
+                                          gp = gpar(fontface="plain", fontsize=7)))
+  grid.newpage() # basic command to create a new page of output
+  grid.draw(grobframe)
+  # these worked but didn't improve things much I thought
+  #ggsave(grobframe,file="whatever.png",compression="lzw",height=5.5,width=9,dpi=1000,units="in")
+  #ggsave(grobframe,file="whatever.png",height=5.5,width=9,dpi=900,units="in")
+}
+
+
+# combines two plots together (e.g. employment and GDP)
+# to get this function to work I needed to modify ggsave using the following line
+# this is because I've used ggplot_gtable, and so the pieces aren't ggplot plot
+# elements, and that's what's expected in ggsave. Based on:
+#http://stackoverflow.com/questions/18406991/saving-a-graph-with-ggsave-after-using-ggplot-build-and-ggplot-gtable
+ggsave <- ggplot2::ggsave; body(ggsave) <- body(ggplot2::ggsave)[-2]
+plot_title_two1=function(p1, p2, grtitle, footnote, filename){
+  gp1<- ggplot_gtable(ggplot_build(p1))
+  gp2<- ggplot_gtable(ggplot_build(p2))
+  maxWidth = unit.pmax(gp1$widths[2:3], gp2$widths[2:3])
+  gp1$widths[2:3] <- maxWidth
+  gp2$widths[2:3] <- maxWidth
+  
+  grobframe <- arrangeGrob(gp2, gp1, ncol=1, nrow=2,
+                           main = textGrob(grtitle, x=0, hjust=0, vjust=0.6, 
+                                           gp = gpar(fontsize=16, fontface="bold")),
+                           sub = textGrob(footnote, x=0, hjust=0, vjust=0.1, 
+                                          gp = gpar(fontface="plain", fontsize=7)))
+  grid.newpage() # basic command to create a new page of output
+  grid.draw(grobframe)
+  ggsave(grobframe,file=filename,height=5.7,width=9,dpi=800,units="in")
+}
+########
+#
+# CAGR calculations
+
+# Compounded Annual Rate of Change
+# (Ending Value / Initial Value) ^ ( 1 / # of periods) - 1)
+calc_cagr <- function(x, n){
+  (x/lag(x,n))^(1/n)-1}
+
+# Compounded Annual Rate of Change
+# (((x(t)/x(t-1)) ** (n_obs_per_yr)) - 1) * 100
+calc_annualized <- function(x, p) {
+  (x/lag(x,1))^(p)-1}
+
+##########
+#
+# function to check whether all intended geographies are 
+# included in a dataframe of series set up with var_geo 
+# format series names
+
+# input a dataframe that is set up for eviews, for example,
+# with series names as column headers and dates in a date column
+# arguments: check_for = vector of codes to check for, such as based on 
+# geo_for_eviews
+
+check_vargeo <- function(x, check_for) {
+  all_series_1 <- colnames(x)[2:ncol(x)]
+  
+  temp_a1 <- x %>%
+    gather(vargeo, value, -date) %>%
+    # separates based on regular expression that finds last occurance of _
+    separate(vargeo, c("var", "area_sh"), sep = "_(?!.*_)", extra="merge") %>%
+    select(var) %>%
+    distinct(var) 
+  
+  temp_a2 <- expand.grid(x=temp_a1$var, y=unique(check_for)) %>%
+    mutate(z = paste(x, y, sep="_")) %>%
+    select(z) 
+  temp_a2 <- as.character(temp_a2$z)
+  
+  # all elements of the first vector without matching elements in the second
+  # so taking temp_a2 as all combinations of the variables in the dataframe
+  # with the areas in the check_for list. And then seeing if there are any
+  # that aren't already in the dataframe. 
+  miss_series <- setdiff(temp_a2, all_series_1)
+  if(length(miss_series)>0){
+    # creates a dataframe with missing series as the column names
+    df1 <- matrix(,nrow = 1, ncol = length(miss_series)) %>%
+      data.frame()
+    colnames(df1) <- miss_series
+    # replace the 1's with NA
+    df2 <- as.data.frame(lapply(df1, function(y) as.numeric(gsub("1", NA, y))))
+    # creates a zoo object using the dates from the input data frame, 
+    # but then converts back to a dataframe
+    df3 <- zoo(df2, order.by=x$date) %>%
+      data.frame(date=index(.),.) 
+    # joins the dataframe of NAs for all missing series onto the input dataframe
+    b <- left_join(x, df3, by = c("date" = "date"))
+  }  else 
+    # if there is nothing in the missing series list, just return the original x
+    b <- x
+  output <- list(b, miss_series)
 }
 
 

@@ -66,14 +66,15 @@ temp1 <- ushist_host_q_td %>%
          #seg!= "us"
          ) %>%
   # filters for seg not in the seg_l list, so just msas
-  #filter(!(seg %in% seg_l)) %>%
+  # filter(!(seg %in% seg_l)) %>%
   separate(seg,c("seg","geo"), sep=3) %>%
- # converts str_geoseg to msa area names from census
+  # converts str_geoseg to msa area names from census
   left_join(., host_str_simp, by=c("geo" = "hoststr_sh")) %>%
   # manually names Orange County, otherwise Los Angeles shows up twice
   mutate(area_name_simp = ifelse(geo == "org", "Orange County, CA", area_name_simp)) %>%  
   filter(! is.na(area_name_simp)) %>%
-  select(date, seg, area_name_simp, supd_sa, demd_sa, occ_sa, adr_sa, adr_sarpc, revpar_sa, revpar_sarpc) %>%
+  select(date, seg, area_name_simp, supd_sa, supd, supt, demd_sa, demd, demt, occ_sa, 
+         adr_sa, adr_sarpc, adr, revpar_sa, revpar_sarpc, revpar, rmrevt) %>%
   filter(date >= "1987-01-01") %>%
   # merges on msa codes
   left_join(., m_cen_blsces, by=c("area_name_simp" = "area_name_simp")) %>%
@@ -84,15 +85,15 @@ temp1 <- ushist_host_q_td %>%
   mutate(area_sh = ifelse(area_name_simp == "Oahu, HI", "hnlhi", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "Maui and Oahu, HI", "mouhi", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "United States", "usxxx", area_sh)) 
-  #mutate(area_sh = ifelse(area_name_simp == "Selected markets", "slmxx", area_sh))
-  
+
 # pause to create a list of area_sh codes and the corresponding market names
   mkt_list <- temp1 %>%  
    select(area_sh, area_name_simp, area_name_cen) %>%
    distinct(., area_sh)
   
 temp2 <- temp1 %>%
-  select(date, seg, area_sh, supd_sa, demd_sa, occ_sa, adr_sa, adr_sarpc, revpar_sa, revpar_sarpc) 
+  select(date, seg, area_sh, supd_sa, supd, supt, demd_sa, demd, demt, occ_sa, 
+         adr_sa, adr_sarpc, adr, revpar_sa, revpar_sarpc, revpar, rmrevt)
 
 #%>%
 #  mutate(seg = paste(seg, area_sh, sep="")) %>%
@@ -103,7 +104,7 @@ temp3 <- rbind(temp2) %>%
   filter(date <= "2014-10-01")
 
 out_e_hststr <- temp3 %>%
-  gather(var, value, supd_sa:revpar_sarpc) %>%
+  gather(var, value, supd_sa:rmrevt) %>%
   mutate(var = gsub("_", "", var)) %>%
   # temporary fix to rename certain real series
   mutate(var = ifelse(var == "revparsarpc", "revparsar", var)) %>%

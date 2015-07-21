@@ -7,7 +7,7 @@ load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
 
 # puts the quarterly ushist into a melted data frame
 ushist_q_m <- ushist_q %>%
-  window(end = as.Date("2014-10-01")) %>%
+  window(end = as.Date("2015-10-01")) %>%
   data.frame(date=index(.), .) %>%
   melt(id.vars = c("date"))
 
