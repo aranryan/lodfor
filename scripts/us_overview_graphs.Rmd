@@ -34,6 +34,8 @@ require(Cairo)
 # in labeling. Maybe it somehow impacts the theme?
 #knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
 knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_us_overview_graphs/fig-', dev='CairoPNG', out.width='9in', out.height='5.7in', fig.width=9, fig.height=5.7, dpi=400)
+# tells it to keep going even if there is an error
+knitr::opts_chunk$set(error = TRUE)
 
 ```
 
