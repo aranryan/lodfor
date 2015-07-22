@@ -1,0 +1,301 @@
+---
+title: "create_ushist"
+author: "Tourism Economics"
+date: "Thursday, October 16, 2014"
+output: html_document
+---
+
+This is basically the same as create_ushist. To make this, I changed it to import the host Rdata files. 
+Then it runs through wich much the same naming as ushist_q for example. I deleted the parts related to 
+opens and closes. And removed stuff about IHG canada and mexico. And changed from creating a top25 to 
+a sum of the selected markets. I had to rework the top25 piece that was suming the top 25 markets because
+in the host data there is multiple chain scales for the metros, and it was suming them. So I changed it 
+to be selected markets, and then grouped by date and seg. So that works, and I made other changes to handle
+the fact there is info about the separate segments that needs to become part of the series names. but it doesn't
+result in seasonally adjusted data, so I'm not sure if I was doing this in the right place or not, maybe
+I should have been using the separate file to compile top25 anyway. 
+
+Creates a us historical databank. Combines the STR data with selected macro data and calculates a few series
+```{r load}
+# require("tidyr")
+# require("zoo")
+# require("xts")
+# require("ggplot2")
+# require("tframePlus")
+# require("seasonal")
+# Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
+# checkX13()
+
+fpath <- c("~/Project/R projects/lodfor/") 
+#macro data
+  load(paste(fpath,"output_data/oe_usmac_q.Rdata", sep=""))
+# str data
+  load(paste(fpath,"output_data/out_str_us_host_q.Rdata", sep="")) 
+  load(paste(fpath,"output_data/out_str_us_host_m.Rdata", sep=""))
+```
+
+The initial steps do the quarterly databank. Monthly is done further below.
+```{r create_q}
+# selects certain series to bring in. Others just stay in macro in case they 
+# are needed in future.
+temp <- oe_usmac_q %>%
+  data.frame(date=time(oe_usmac_q), oe_usmac_q) %>%
+  select(date, 
+         us_gdp,
+         us_if,
+         us_cd,
+         us_iconstr,
+         us_popnipa,
+         us_popw,
+         us_et,
+         us_up,
+         us_yhat,
+         us_pc,
+         us_pedy,
+         us_penwall,
+         us_cogtp,
+         us_cpi,
+         us_usrecq,
+         can_gdp,
+         can_cpi,
+         mex_gdp,
+         mex_cpi
+         ) %>%
+  read.zoo %>%
+  as.xts
+head(temp)
+
+# merges dataframes. the all.=TRUE piece ensures all the rows
+# in the first dataframe are included
+ushist_q <- merge(temp, out_str_us_host_q, all=TRUE) 
+
+######################
+#
+# indexes everything in ushist_q
+#
+# ushist_ind_q <- index_q_xts(ushist_q,index_year=2005)
+# 
+# # look at a graph
+# tempa <- ushist_ind_q$totus_occ_sa
+# tempb <- ushist_ind_q$upsus_occ_sa
+# tempc <- merge(tempa,tempb)
+# autoplot(window(tempc, start="2000-01-01", end="2014-10-01"), facets=NULL)
+
+######################
+#
+# converts some series to real
+#
+
+# first index the personal cons price deflator to average 100 in 2014
+us_pc_index <- index_q(ushist_q$us_pc, index_year=2014)
+names(us_pc_index) <- "us_pc_index"
+ushist_q <- merge(ushist_q, us_pc_index)
+autoplot(ushist_q$us_pc_index)
+
+# select the series that contain adr or revpar and convert to real
+# the way this works is that matches works on a regular expression
+# I wrote a regular expression that is taking _adr_ or _revpar_
+# for reference on writing regular expressions, see
+# http://www.regular-expressions.info/quickstart.html
+real_df <- data.frame(ushist_q) %>%
+  select(matches("_adr$|_adr_sa|_revpar$|_revpar_sa")) %>% 
+  mutate_each(funs(ind = ( . / us_pc_index)*100))
+# adds on a time index to get it back to xts
+temp <- data.frame(date=time(ushist_q)) 
+real_df <- cbind(temp,real_df)
+real <- read.zoo(real_df)
+real <- xts(real)
+
+# renames series 
+tempnames <- names(real)
+tempnames <- paste(tempnames,"rpc",sep="")
+tempnames
+names(real) <- tempnames
+rm(tempnames)
+
+autoplot(window(real$luxus_adr_sarpc, start="2000-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2014-10-01"))
+
+# merges onto ushist_q
+ushist_q <- merge(ushist_q, real)
+autoplot(window(ushist_q$upuus_adr_sarpc, start="2000-01-01", end="2014-10-01"))
+```
+
+Looking at what's in quarterly databank
+```{r look_q}
+# which segments or markets are in the data frame, just for observation
+# not used anywhere
+a <- grep(pattern="_demt", colnames(ushist_q), value=TRUE)
+a
+a <- gsub(pattern="_demt",replacement="",a)
+a
+
+b <- grep(pattern="totus_", colnames(ushist_q), value=TRUE)
+b
+```
+
+Create a sum of top 25 metros
+```{r top25}
+# 
+# I commetted this out. my thought is that it may be better to set up a compile_top25 type file to do this
+# that can handle seasonally adjusting and putting into real terms
+
+# selectm_list <- c("atl", "bos", "chi", "den", "hou", "los", "mia", "mou",
+#                      "nol", "nyc", "org", "orl", "phl", "pho", "sea", "snd",
+#                      "snf",  "was")
+# 
+# selectm_cols <- unique (grep(paste(selectm_list,collapse="|"), 
+#                         colnames(ushist_q), value=TRUE))
+# 
+# # follows the code for creating the annual databank, see comments in next code chunk
+# selectm_sum <- data.frame(ushist_q) %>%
+#   select(matches("_demt|_supt|_rmrevt")) %>%
+#   select(matches(paste(selectm_cols, collapse="|"))) %>%
+#   as.xts()
+# 
+#   # takes the summed data and spreads it into a tidy format with tidyr
+#   # creates column called segvar that contains the column names, and one next to 
+#   # it with the values, dropping the time column
+# selectm_sum <- data.frame(date=time(selectm_sum), selectm_sum)%>% 
+#   # creates column called segvar that contains the column names, and one next to 
+#   # it with the values, dropping the time column
+#   gather(segvar, value, -date, na.rm = FALSE) %>%
+#   # in the following the ^ means anything not in the list
+#   # with the list being all characters and numbers
+#   # so it separates segvar into two colums using sep
+#   separate(segvar, c("seggeo", "variable"), sep = "[^[:alnum:]]+") %>%
+#   # keeps seg as a column and spreads variable into multiple columns containing
+#   # containing the values
+#   mutate(seg = substr(seggeo, 1, 3)) %>%
+#   mutate(geo = substr(seggeo, 4, 6)) %>%
+#   select(-seggeo) %>%
+#   spread(variable,value) 
+# 
+# selectm_sum <- selectm_sum %>%
+#   # sets up in dplyr that it will summarize by quarters
+#   group_by(date, seg) %>%
+#   # calculates top25us as the sum of the markets in the dataframe
+#   summarize(slm_demt=sum(demt), slm_supt=sum(supt), 
+#             slm_rmrevt=sum(rmrevt)) %>%
+#   mutate(slm_occ = slm_demt / slm_supt) %>%
+#   mutate(slm_revpar = slm_rmrevt / slm_supt) %>%
+#   mutate(slm_adr = slm_rmrevt / slm_demt) %>%
+#   # added this for host situation
+#   gather(segvar, value, -date, -seg, na.rm = FALSE) %>%
+#   mutate(segvar = paste(seg, segvar, sep="")) %>%
+#   select(-seg) %>%
+#   spread(segvar,value) 
+# 
+# selectm_sum <- selectm_sum %>%
+#   # there's a bit of a bug in dplyr in that the data frame
+#   # can't be directly read by read.zoo, something about a
+#   # bad entry error that happens. So the short term solution
+#   # is to have the as.data.frame step. Here's the bug report
+#   # which will presumably be fixed at some point
+#   # https://github.com/hadley/dplyr/issues/686
+#   as.data.frame() %>%
+#   read.zoo() %>%
+#   xts()
+# 
+# ushist_q <- merge(ushist_q, selectm_sum)
+
+```
+
+
+Create annual databank
+```{r create_a}
+# start with those that should be summed
+
+# select series that should be converted to annual by summing
+# I wrote a regular expression that is looking for certain text strings
+# for reference on writing regular expressions, see
+# http://www.regular-expressions.info/quickstart.html
+suma <- data.frame(ushist_q) %>%
+  select(matches("_demt|_supt|_rmrevt")) %>%
+  as.xts()
+
+# this function is one I defined, it converts all the columns in 
+# an xts object to annual. Must be an xts object to start with
+suma <- q_to_a_xts(suma, type="sum")
+
+# takes the summed data and spreads it into a tidy format with
+# tidyr and then calculates the occupancy and revpar series
+# first needs to go from xts to dataframe
+tb2 <- data.frame(date=time(suma), suma)%>% 
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+  gather(segvar, value, -date, na.rm = FALSE) %>%
+  # in the following the ^ means anything not in the list
+  # with the list being all characters and numbers
+  # so it separates segvar into two colums using sep
+  separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+  # keeps seg as a column and spreads variable into multiple columns containing
+  # containint the values
+  spread(variable,value) %>%
+  # adds new calculated column
+  mutate(occ = demt / supt) %>%
+  # adds another column
+  mutate(revpar = rmrevt / supt) %>%
+  mutate(adr = rmrevt / demt)
+
+a <- tb2$segvar
+b <- unique(a)
+b
+# takes it from a tidy format and melts it, and then creates the unique
+# variable names and then reads into a zoo object spliting on the 
+# second column
+a <- melt(tb2, id=c("date","seg"), na.rm=FALSE)
+a$variable <- paste(a$seg, "_", a$var, sep='')
+a$seg <- NULL
+ushist_a <- xts(read.zoo(a, split = 2))
+
+# looking at a few graphs
+autoplot(ushist_a$luxus_revpar)
+autoplot(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2014-01-01")))
+```
+
+Creating monthly historical databank
+```{r create_m}
+# not that much that needs to be done
+ushist_m <- out_str_us_host_m
+#ushist_m <- merge(ushist_m)
+```
+
+
+```{r rename, echo=FALSE}
+ushist_host_q <- ushist_q
+ushist_host_m <- ushist_m
+ushist_host_a <- ushist_a
+
+# just to look at
+# a <- ushist_host_q %>%
+#   data.frame(date=time(.), .) %>%
+#   select(date, contains("upsus"))
+ 
+```
+
+
+
+Writing outputs
+```{r write_output, echo=FALSE}
+# quarterly
+  # writes csv versions of the output files
+  write.zoo(ushist_host_q, file=paste(fpath, "output_data/ushist_host_q.csv", sep=""), sep=",")
+  
+  # saves Rdata versions of the output files
+  save(ushist_host_q, file=paste(fpath, "output_data/ushist_host_q.Rdata", sep=""))
+ 
+# monthly
+  # writes csv versions of the output files
+  write.zoo(ushist_host_m, file=paste(fpath,"output_data/ushist_host_m.csv",sep=""), sep=",")
+  
+  # saves Rdata versions of the output files
+  save(ushist_host_m, file=paste(fpath,"output_data/ushist_host_m.Rdata", sep=""))
+
+# annual
+  # writes csv versions of the output files
+  write.zoo(ushist_host_a, file=paste(fpath,"output_data/ushist_host_a.csv",sep=""), sep=",")
+  
+  # saves Rdata versions of the output files
+  save(ushist_host_a, file=paste(fpath,"output_data/ushist_host_a.Rdata", sep=""))
+```

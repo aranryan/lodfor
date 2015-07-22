@@ -1,75 +1,252 @@
-library(stringr)
-library(plyr) #Hadley said if you load plyr first it should be fine
-library(dplyr)
-library(reshape2)
-library(ggplot2)
-#library(zoo)
-library(xts)
-library(lubridate)
-#library(forecast) # added so I could use monthdays() which also works for quarters
-library(seasonal)
-Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
-checkX13()
-library(forecast)
 
-########
+#######
 #
-# load STR data
+# function takes a data frame of monthly str data
+# and returns a list containing a monthly data frame
+# and a quarterly data frame
+
+load_str <- function(load_m){
+
+# spreads into a tidy format with
+# tidyr and then calculates the occupancy and revpar series
+# first needs to go from xts to dataframe
+# b1 <- data.frame(date=time(lodus_m), lodus_m) %>% 
+b1 <- load_m %>% 
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+  gather(segvar, value, -date, na.rm = FALSE) %>%
+  # in the following the ^ means anything not in the list
+  # with the list being all characters and numbers
+  # so it separates segvar into two colums using sep
+  separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+  # keeps seg as a column and spreads variable into multiple columns containing
+  # the values
+  spread(variable,value) %>%
+  # days_in_month is a function I borrowed. leap_impact=0 ignores leap year
+  # this uses transform to create a new column where the new column is
+  # created by using sapply on the date column to apply the days_in_month
+  # function with the leap_impact argument set to 0
+  transform(days = sapply(date, days_in_month,leap_impact=0)) %>%
+  # adds several new calculated columns
+  mutate(occ = demt / supt) %>%
+  mutate(revpar = rmrevt / supt) %>%
+  mutate(adr = rmrevt / demt) %>%
+  # converts several concepts to millions
+  mutate(supt = supt / 1000000) %>%
+  mutate(demt = demt / 1000000) %>%
+  mutate(rmrevt = rmrevt / 1000000) %>%
+  mutate(demd = demt / days) %>%
+  mutate(supd = supt / days) 
+  
+load_m <- b1
+
+#############################
 #
-cl <- c("NULL", "numeric", "character", "integer")[c(3, 4, 4, 4, 4, rep(2,264))] # columns 2 to 268 are to be numeric class, incld date it's 269
-lodus_m <- read.zoo("input_data/lodgeus_str_m.csv", 
-   format = "%m/%d/%Y", header = TRUE, sep=",", colClasses=cl, index.column = 1) 
-lodus_m <- as.xts(lodus_m)
-
-cl <- c("NULL", "numeric", "character", "integer")[c(3, 4, 4, 4, 4, rep(2,264))] # columns 2 to 22 are to be numeric class
-lodus_q <- read.zoo("input_data/lodgeus_str_q.csv", 
-  format = "%m/%d/%Y", header = TRUE, sep=",", colClasses=cl, index.column = 1) 
-lodus_q <- as.xts(lodus_q)
-
-rm(cl)
-
-##########################################################3
-# unit conversion for monthly and quarterly
-# based on series names in the monthly data frame
-#
+# creates quarterly by summing monthly
 #
 
-# list for unit conversions (dividing by 1 million)
-units <- c("supt", "demt", "supd", "demd", "rmrevt")
+# get it ready to convert
+# takes it from a tidy format and melts it creating a dataframe with the
+# following columns (date, seg, variable, value), and then creates the unique
+# variable names and then reads into a zoo object spliting on the 
+# second column
+m_z <- load_m %>%
+ select(-occ, -adr, -revpar, -demd, -supd) %>%
+ melt(id=c("date","seg"), na.rm=FALSE) %>%
+ mutate(variable = paste(seg, "_", variable, sep='')) %>%
+ select(-seg) %>%
+ read.zoo(split = 2) 
 
-# set up to do the unit version on any series that match the terms 
-# in the units list
+# convert to quarterly
+# I couldn't use apply because the object is 
+# a xts, not a dataframe, see 
+# http://codereview.stackexchange.com/questions/39180/best-way-to-apply-across-an-xts-object
 
-# names of all the series
-temp_names <- names(lodus_m)
+# sets up the start of the index that will be used for the quarterly object
+# uses vapply to essentially run an apply across the xts object because
+# apply doesn't work on an xts object
+# for vapply we need to give the expected length in FUN.VALUE and a
+# start date and quarterly frequency
+# The function that I'm applying to each column is m_to_q, which I wrote, the type="sum"
+# is giving the type of aggregation to use in it
 
-# list of all the series that match the mneuomonics in units
-temp_units <- vector()
-for(term in units){
-  # searches across temp_names for those items that start with the search term
-  # the (^) symbol means starts with
-  # based it on the following thread
-  # http://r.789695.n4.nabble.com/grep-with-search-terms-defined-by-a-variable-td2311294.html
-  # though the thread also mentioned a loopless alternative
-  # also this was useful reference on strings
-  #http://gastonsanchez.com/Handling_and_Processing_Strings_in_R.pdf
-  terma <- paste("_",term,sep="")
-  temp <- grep(paste(terma,sep=""),temp_names, value=TRUE)
-  temp_units <- c(temp_units, temp)
+# as a temp fix, I shortened a_mz to end at the end of a quarter. 
+# I need to come up with a better fix. The issue was that the 
+# function was expecting something length 111, but getting 112. 
+# might be an issue because I changed na.rm to FALSE in the 
+# m_to_q function because it was causing issues for the Mexico
+# series that were different lengths. So I put that back to na.rm=TRUE and it worked
+
+
+# head(raw_str_us)
+# head(tempa)
+# tempa <- read.zoo(raw_str_us)
+# head(tempa)
+# tempd <- tempa$totus_demt
+# str(tempd)
+# tail(tempd)
+# tempd2 <- m_to_q(tempd,type=sum)
+# tempd2 <- zoo(tempd2)
+# tail(tempd2)
+# str(tempd2)
+# 
+# nrow(tempd2)
+# nrow(tempa)/3
+# ceiling(nrow(tempa)/3)
+# start <- as.yearqtr((start(tempa)))
+# 
+# temp_q <- zooreg(vapply(tempa, m_to_q, FUN.VALUE = 
+#                           numeric(ceiling(nrow(tempa)/3)), 
+#                         type="sum"), start=start, frequency=4)
+# head(temp_q)
+# tail(temp_q)
+
+
+start <- as.yearqtr((start(m_z)))
+load_q <- zooreg(vapply(m_z, m_to_q, FUN.VALUE = 
+                           numeric(ceiling(nrow(m_z)/3)), 
+                         type="sum"), start=start, frequency=4)
+head(load_q)
+
+# turn into a data frame with a date column
+load_q <- data.frame(date=time(load_q), load_q) 
+load_q$date <- as.Date(load_q$date)
+row.names(load_q) <- NULL
+
+# goes into tidy format and then adds some calculated series
+b1q <- load_q %>% 
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+  gather(segvar, value, -date, na.rm = FALSE) %>%
+  # in the following the ^ means anything not in the list
+  # with the list being all characters and numbers
+  # so it separates segvar into two colums using sep
+  separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+  # keeps seg as a column and spreads variable into multiple columns containing
+  # the values
+  spread(variable,value) %>%
+  # adds several new calculated columns
+  mutate(occ = demt / supt) %>%
+  mutate(revpar = rmrevt / supt) %>%
+  mutate(adr = rmrevt / demt) %>%
+  mutate(demd = demt / days) %>%
+  mutate(supd = supt / days) 
+
+load_q <- b1q
+
+#############################
+#
+# puts back to wide format
+#
+
+# puts it back into a wide data frame, with one column for each series
+# days is a series for each segment/market\
+load_m <- load_m %>%
+  melt(id=c("date","seg"), na.rm=FALSE) %>%
+  mutate(variable = paste(seg, "_", variable, sep='')) %>%
+  select(-seg) %>%
+  spread(variable,value)
+  # if instead I had wanted a zoo object, I could have done
+  #read.zoo(split = 2) 
+
+# converts to xts from dataframe
+#lodus_m <- lodus_m %>%
+#  read.zoo() %>%
+#  as.xts
+
+# puts it back into a wide zoo object, with one column for each series
+# days is a series for each segment/market\
+load_q <- load_q %>%
+  melt(id=c("date","seg"), na.rm=FALSE) %>%
+  mutate(variable = paste(seg, "_", variable, sep='')) %>%
+  select(-seg) %>%
+  spread(variable,value)
+  # if instead I had wanted a zz object, I could have done
+  #read.zoo(split = 2
+
+return(list(load_m,load_q))
 }
 
-# unit conversion
-# applies a function to each specified series, overwriting the original
-print("doing unit conversion, monthly and quarterly")
-for(n in temp_units){
-  seriesn <- paste(n, sep="")
-  # the units_millions function is one I defined
-  lodus_m[,seriesn] <- units_millions(lodus_m[,seriesn])
-  lodus_q[,seriesn] <- units_millions(lodus_q[,seriesn])
+
+#######################
+#
+# function takes a monthly data frame with monthly data and seasonal factors
+# and creates monthly sa
+
+create_sa_str_m <- function(str_m){
+  
+# following converts to a tidy format, uses seasonal factors to calculate sa
+# series, then converts back to a wide dataframe
+str_m <- str_m %>% 
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+  gather(segvar, value, -date, na.rm = FALSE) %>%
+  # in the following the ^ means anything not in the list
+  # with the list being all characters and numbers
+  # so it separates segvar into two colums using sep
+  # it separates on the _, as long as it's not followed by sf
+  # the not followed piece uses a Negative Lookahead from
+  # http://www.regular-expressions.info/lookaround.html
+  separate(segvar, c("seg", "variable"), sep = "_(?!sf)") %>%
+  # keeps seg as a column and spreads variable into multiple columns containing
+  # the values
+  spread(variable,value) %>%
+  mutate(occ_sa = occ / occ_sf) %>%
+  mutate(revpar_sa = revpar / revpar_sf) %>%
+  mutate(adr_sa = adr / adr_sf) %>%
+  mutate(demd_sa = demd / demd_sf) %>%
+  mutate(supd_sa = supd / supd_sf) %>%
+  mutate(demar_sa = demd_sa * 365) %>% # creates demand at an annual rate
+  # puts it back into a wide data frame, with one column for each series
+  # days is a series for each segment/market\
+  melt(id=c("date","seg"), na.rm=FALSE) %>%
+  mutate(variable = paste(seg, "_", variable, sep='')) %>%
+  select(-seg) %>%
+  spread(variable,value)
+  # if instead I had wanted an xts object, I could have done
+  #read.zoo(split = 2) %>%
+  #xts()
+return(str_m)
 }
 
-###################
+#######################
 #
-# cleans up
-#
-rm(n, seriesn, temp, temp_names, temp_units, term, terma, units)
+# function takes a monthly data frame with monthly data and seasonal factors
+# and creates monthly sa
+
+create_sa_str_q <- function(str_q){
+
+  # create quarterly sa from seasonal factors
+# following converts to a tidy format, uses seasonal factors to calculate sa
+# series, then converts back to a wide dataframe
+str_q <- str_q %>% 
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+  gather(segvar, value, -date, na.rm = FALSE) %>%
+  # in the following the ^ means anything not in the list
+  # with the list being all characters and numbers
+  # so it separates segvar into two colums using sep
+  # it separates on the _, as long as it's not followed by sf
+  # the not followed piece uses a Negative Lookahead from
+  # http://www.regular-expressions.info/lookaround.html
+  separate(segvar, c("seg", "variable"), sep = "_(?!sf)") %>%
+  # keeps seg as a column and spreads variable into multiple columns containing
+  # the values
+  spread(variable,value) %>%
+  mutate(occ_sa = occ / occ_sf) %>%
+  mutate(revpar_sa = revpar / revpar_sf) %>%
+  mutate(adr_sa = adr / adr_sf) %>%
+  mutate(demd_sa = demd / demd_sf) %>%
+  mutate(supd_sa = supd / supd_sf) %>%
+  mutate(demar_sa = demd_sa * 365) %>% # creates demand at an annual rate
+  # puts it back into a wide data frame, with one column for each series
+  # days is a series for each segment/market\
+  melt(id=c("date","seg"), na.rm=FALSE) %>%
+  mutate(variable = paste(seg, "_", variable, sep='')) %>%
+  select(-seg) %>%
+  spread(variable,value)
+  # if instead I had wanted an xts object, I could have done
+  #read.zoo(split = 2) %>%
+  #xts()
+return(str_q)
+}

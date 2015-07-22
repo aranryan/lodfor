@@ -2,40 +2,54 @@
 title: "create_ushist"
 author: "Tourism Economics"
 date: "Thursday, October 16, 2014"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
+Setup
+```{r readchunk}
+#read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
+source('~/Project/R projects/lodfor/scripts/functions.R')
+```
+
 Creates a us historical databank. Combines the STR data with selected macro data and calculates a few series
-```{r}
-require("tidyr")
-require("zoo")
-require("xts")
-require("ggplot2")
-require("tframePlus")
-require("seasonal")
-Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
-checkX13()
+```{r load}
+# require("tidyr")
+# require("zoo")
+# require("xts")
+# require("ggplot2")
+# require("tframePlus")
+# require("seasonal")
+# Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
+# checkX13()
 
 fpath <- c("~/Project/R projects/lodfor/") 
 #macro data
   load(paste(fpath,"output_data/oe_usmac_q.Rdata", sep=""))
 # str data
-  load(paste(fpath,"output_data/out_str_q_us.Rdata", sep=""))
-  load(paste(fpath,"output_data/out_str_m_us.Rdata", sep=""))
+  load(paste(fpath,"output_data/out_str_us_q.Rdata", sep="")) 
+  load(paste(fpath,"output_data/out_str_us_m.Rdata", sep=""))
+
+  load(paste(fpath,"output_data/out_str_ihg_mex_q.Rdata", sep="")) 
+  load(paste(fpath,"output_data/out_str_ihg_mex_m.Rdata", sep=""))
+
+  load(paste(fpath,"output_data/out_str_ihg_can_q.Rdata", sep="")) 
+  load(paste(fpath,"output_data/out_str_ihg_can_m.Rdata", sep=""))
 # open close data
   load(paste(fpath,"output_data/out_opcl_q.Rdata", sep=""))
   load(paste(fpath,"output_data/out_opcl_m.Rdata", sep=""))
 ```
 
 The initial steps do the quarterly databank. Monthly is done further below.
-```{r}
+```{r create_q}
 # selects certain series to bring in. Others just stay in macro in case they 
 # are needed in future.
 temp <- oe_usmac_q %>%
-  data.frame(time=time(oe_usmac_q), oe_usmac_q) %>%
-  select(time, 
+  data.frame(date=time(oe_usmac_q), oe_usmac_q) %>%
+  select(date, 
          us_gdp,
-         us_if,
+         us_ifix,
          us_cd,
          us_iconstr,
          us_popnipa,
@@ -45,9 +59,14 @@ temp <- oe_usmac_q %>%
          us_yhat,
          us_pc,
          us_pedy,
-         us_penw,
+         us_penwall,
          us_cogtp,
-         us_cpi
+         us_cpi,
+         us_usrecq,
+         can_gdp,
+         can_cpi,
+         mex_gdp,
+         mex_cpi
          ) %>%
   read.zoo %>%
   as.xts
@@ -55,27 +74,27 @@ head(temp)
 
 # merges dataframes. the all.=TRUE piece ensures all the rows
 # in the first dataframe are included
-ushist_q <- merge(temp, out_str_q_us, all=TRUE) 
+ushist_q <- merge(temp, out_str_us_q, all=TRUE) 
 
 ######################
 #
 # indexes everything in ushist_q
 #
-ushist_ind_q <- index_q_xts(ushist_q,index_year=2005)
-
-# look at a graph
-tempa <- ushist_ind_q$totus_occ_sa
-tempb <- ushist_ind_q$upsus_occ_sa
-tempc <- merge(tempa,tempb)
-autoplot(window(tempc, start="2000-01-01", end="2014-10-01"), facets=NULL)
+# ushist_ind_q <- index_q_xts(ushist_q,index_year=2005)
+# 
+# # look at a graph
+# tempa <- ushist_ind_q$totus_occ_sa
+# tempb <- ushist_ind_q$upsus_occ_sa
+# tempc <- merge(tempa,tempb)
+# autoplot(window(tempc, start="2000-01-01", end="2014-10-01"), facets=NULL)
 
 ######################
 #
 # converts some series to real
 #
 
-# first index the personal cons price deflator to average 100 in 2013
-us_pc_index <- index_q(ushist_q$us_pc, index_year=2013)
+# first index the personal cons price deflator to average 100 in 2014
+us_pc_index <- index_q(ushist_q$us_pc, index_year=2014)
 names(us_pc_index) <- "us_pc_index"
 ushist_q <- merge(ushist_q, us_pc_index)
 autoplot(ushist_q$us_pc_index)
@@ -89,7 +108,7 @@ real_df <- data.frame(ushist_q) %>%
   select(matches("_adr$|_adr_sa|_revpar$|_revpar_sa")) %>% 
   mutate_each(funs(ind = ( . / us_pc_index)*100))
 # adds on a time index to get it back to xts
-temp <- data.frame(time=time(ushist_q)) 
+temp <- data.frame(date=time(ushist_q)) 
 real_df <- cbind(temp,real_df)
 real <- read.zoo(real_df)
 real <- xts(real)
@@ -101,13 +120,20 @@ tempnames
 names(real) <- tempnames
 rm(tempnames)
 
-autoplot(window(real$luxus_adr_sarpc, start="2000-01-01", end="2014-10-01"))
-autoplot(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2014-10-01"))
+autoplot(window(real$luxus_adr_sarpc, start="2000-01-01", end="2015-10-01"))
+autoplot(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2015-10-01"))
 
 # merges onto ushist_q
 ushist_q <- merge(ushist_q, real)
-autoplot(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2015-10-01"))
+```
 
+
+```{r add_ihg_mex_can}
+# merges onto ushist_q
+ushist_q <- merge(ushist_q, out_str_ihg_mex_q,out_str_ihg_can_q)
+autoplot(window(ushist_q$totcan_adr_sa, start="2000-01-01", end="2015-10-01"))
+autoplot(window(ushist_q$totcan_demd_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
 Adds open close data
@@ -123,13 +149,13 @@ Calculate sups for quarterly data by taking supd of the first month of the quart
 supe is the end of the quarter, so it should be set equal to the start of
 supply from the next quarter
 
-```{r}
-# process is to create a quarterly object with open close andstart/end of 
+```{r add_opencl}
+# process is to create a quarterly object with open close and start/end of 
 # period supply, and then merge it onto the quarterly object we're building
 
 # just select the series we want
-temp_opcl <- data.frame(time=time(out_opcl_q), out_opcl_q) %>%
-  select(time, 
+temp_opcl <- data.frame(date=time(out_opcl_q), out_opcl_q) %>%
+  select(date, 
          totus_oprms_sa, 
          totus_oprms_sf, 
          totus_oprms, 
@@ -142,19 +168,26 @@ head(temp_opcl)
 
 # use monthly supply to calculate start of quarter supply
 # this approach is based on the help for aggregate.zoo 
-#function which returns corresponding first "Date" of quarter
+# function which returns corresponding first "Date" of quarter
 first.of.quarter <- function(tt) as.Date(as.yearqtr(tt))
-sup_qtr <- aggregate(out_str_m_us$totus_supd, first.of.quarter, first) %>%
+sup_qtr <- aggregate(out_str_us_m$totus_supd, first.of.quarter, first, regular=TRUE) %>%
   xts()
+
 # had to mannually add back the column names, not sure what happened
 colnames(sup_qtr) <- c("totus_sups")
 
 # create supe as lead of sups
-# remember lags in xts are different than in zoo
-sup_qtr$totus_supe <- lag(sup_qtr$totus_sups, -1)
+# Howeer, evidently dplyr was getting in the way of my ability to use the lag
+# function to calculate a lead
+# I found this discussion on github
+# http://stackoverflow.com/questions/30466740/changing-behaviour-of-statslag-when-loading-dplyr-package
+# my solution from that discussion was the stats::: approach, which I think is telling
+# r to use the lag function from stats. for some reason it wouldn't work to do 
+# xts:::lag
+sup_qtr$totus_supe <- stats:::lag(sup_qtr$totus_sups, k=-1)
 
 # as a check
-head(out_str_m_us$totus_supd) #monthly
+head(out_str_us_m$totus_supd) #monthly
 head(sup_qtr$totus_sups) # based on start of quarter
 head(sup_qtr$totus_supe) # based on start of quarter
 
@@ -164,7 +197,7 @@ temp_opcl <- merge(temp_opcl, sup_qtr)
 ushist_q <- merge(ushist_q, temp_opcl)
 
 # calculate the schange and schanger
-ushist_q <- data.frame(time=time(ushist_q), ushist_q) %>%
+ushist_q <- data.frame(date=time(ushist_q), ushist_q) %>%
   mutate(totus_schange = 
            totus_supe - totus_sups - totus_oprms /1000000 + totus_clrms/1000000,
          totus_schanger = totus_schange / totus_sups) %>%
@@ -172,10 +205,10 @@ ushist_q <- data.frame(time=time(ushist_q), ushist_q) %>%
   as.xts
 
 # looking at data
-autoplot(window(ushist_q$totus_oprms, start="1995-01-01", end="2014-10-01"))
-autoplot(window(ushist_q$totus_clrms, start="1995-01-01", end="2014-10-01"))
-autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2014-10-01"))
-autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$totus_oprms, start="1995-01-01", end="2015-10-01"))
+autoplot(window(ushist_q$totus_clrms, start="1995-01-01", end="2015-10-01"))
+autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
+autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
 
 # looking at it as a ts
 tempa <- na.exclude(ushist_q$totus_schange)*1000000
@@ -242,25 +275,25 @@ mp <- seas(y,
   out_sa <- merge(tempa, tempdata_sa, tempdata_sf, tempdata_fct, tempdata_irreg)
 
   # select a few that I want to add
-  temp_schanger <- data.frame(time=time(out_sa), out_sa) %>%
-  select(time, 
+  temp_schanger <- data.frame(date=time(out_sa), out_sa) %>%
+  select(date, 
          totus_schanger_sa,
          totus_schanger_sf) %>%
   read.zoo %>%
   as.xts
   head(temp_schanger)
 
-autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2014-10-01"))
-autoplot(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
+autoplot(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2015-10-01"))
 
 # merge onto ushist_q
 ushist_q <- merge(ushist_q, temp_schanger)
 
-autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
 ```
 
 Looking at what's in quarterly databank
-```{r}
+```{r look_q}
 # which segments or markets are in the data frame, just for observation
 # not used anywhere
 a <- grep(pattern="_demt", colnames(ushist_q), value=TRUE)
@@ -272,8 +305,72 @@ b <- grep(pattern="totus_", colnames(ushist_q), value=TRUE)
 b
 ```
 
+
+Create a sum of top 25 metros
+```{r top25}
+
+top25list <- c("anaheim", "atlanta", "boston", "chicago", 
+               "dallas", "denver", "detroit", "houston", 
+               "lalongbeach",  "miami", "minneapolis",  "nashville",
+               "neworleans", "newyork", "norfolk", "oahu", 
+               "orlando", "philadelphia", "phoenix", "sandiego", 
+               "sanfrancisco", "seattle", "stlouis", "tampa", 
+               "washingtondc")
+
+top25cols <- unique (grep(paste(top25list,collapse="|"), 
+                        colnames(ushist_q), value=TRUE))
+
+# follows the code for creating the annual databank, see comments in next code chunk
+top25sum <- data.frame(ushist_q) %>%
+  select(matches("_demt|_supt|_rmrevt")) %>%
+  select(matches(paste(top25cols, collapse="|"))) %>%
+  as.xts()
+
+  # takes the summed data and spreads it into a tidy format with tidyr
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+top25sum <- data.frame(date=time(top25sum), top25sum)%>% 
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+  gather(segvar, value, -date, na.rm = FALSE) %>%
+  # in the following the ^ means anything not in the list
+  # with the list being all characters and numbers
+  # so it separates segvar into two colums using sep
+  separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+  # keeps seg as a column and spreads variable into multiple columns containing
+  # containing the values
+  spread(variable,value) 
+
+top25sum <- top25sum %>%
+  # sets up in dplyr that it will summarize by quarters
+  group_by(date) %>%
+  # calculates top25us as the sum of the markets in the dataframe
+  summarize(top25us_demt=sum(demt), top25us_supt=sum(supt), 
+            top25us_rmrevt=sum(rmrevt)) %>%
+  mutate(top25us_occ = top25us_demt / top25us_supt) %>%
+  mutate(top25us_revpar = top25us_rmrevt / top25us_supt) %>%
+  mutate(top25us_adr = top25us_rmrevt / top25us_demt) 
+
+top25sum <- top25sum %>%
+  # there's a bit of a bug in dplyr in that the data frame
+  # can't be directly read by read.zoo, something about a
+  # bad entry error that happens. So the short term solution
+  # is to have the as.data.frame step. Here's the bug report
+  # which will presumably be fixed at some point
+  # https://github.com/hadley/dplyr/issues/686
+  as.data.frame() %>%
+  # added this step because it was previously coming through with a 
+  #POSIXct format data that wasn't working well in the subsequent merge step
+  mutate(date = as.Date(date)) %>%
+  read.zoo() %>%
+  xts()
+
+ushist_q <- merge(ushist_q, top25sum)
+```
+
+
 Create annual databank
-```{r}
+```{r create_a}
 # start with those that should be summed
 
 # select series that should be converted to annual by summing
@@ -290,19 +387,28 @@ suma <- q_to_a_xts(suma, type="sum")
 
 # takes the summed data and spreads it into a tidy format with
 # tidyr and then calculates the occupancy and revpar series
-tb2 <- data.frame(time=time(suma), suma)%>% 
-  gather(segvar, value, -time, na.rm = FALSE) %>%
+# first needs to go from xts to dataframe
+tb2 <- data.frame(date=time(suma), suma)%>% 
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+  gather(segvar, value, -date, na.rm = FALSE) %>%
   # in the following the ^ means anything not in the list
   # with the list being all characters and numbers
+  # so it separates segvar into two colums using sep
   separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+  # keeps seg as a column and spreads variable into multiple columns containing
+  # containint the values
   spread(variable,value) %>%
+  # adds new calculated column
   mutate(occ = demt / supt) %>%
-  mutate(revpar = rmrevt / supt)
+  # adds another column
+  mutate(revpar = rmrevt / supt) %>%
+  mutate(adr = rmrevt / demt)
 
 # takes it from a tidy format and melts it, and then creates the unique
 # variable names and then reads into a zoo object spliting on the 
 # second column
-a <- melt(tb2, id=c("time","seg"), na.rm=FALSE)
+a <- melt(tb2, id=c("date","seg"), na.rm=FALSE)
 a$variable <- paste(a$seg, "_", a$var, sep='')
 a$seg <- NULL
 ushist_a <- xts(read.zoo(a, split = 2))
@@ -310,29 +416,54 @@ ushist_a <- xts(read.zoo(a, split = 2))
 # looking at a few graphs
 autoplot(ushist_a$totus_schange)
 autoplot(ushist_a$luxus_revpar)
-autoplot(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2014-01-01")))
+autoplot(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2015-10-01")))
 ```
 
 Creating monthly historical databank
-```{r}
+```{r create_m}
 # not that much that needs to be done
-ushist_m <- out_str_m_us
+ushist_m <- out_str_us_m
+ushist_m <- merge(ushist_m, out_str_ihg_mex_m, out_str_ihg_can_m)
 ```
 
-Writing outputs
-```{r, echo=FALSE}
+Create monthly, annual and quarterly databank with just US, mexico and canada
+```{r create_usmexcan}
+# this is to a historical databank with just US data, so the markets aren't in it
+
+usihg_list <-   c("us_", "ecous", "indus", "luxus", "midus", "upmus", "upsus", "upuus", "totus", "upmmex", "totcan", "mex_", "can_")
+# this accidentally also grabs the top25us series, but that's ok
+# extracts anything in the series list
+
+usihghist_q <- data.frame(ushist_q) %>%
+  select(matches(paste(usihg_list,collapse="|"))) %>%
+  as.xts()
+
+usihghist_m <- data.frame(ushist_m) %>%
+  select(matches(paste(usihg_list,collapse="|"))) %>%
+  as.xts()
+
+usihghist_a <- data.frame(ushist_a) %>%
+  select(matches(paste(usihg_list,collapse="|"))) %>%
+  as.xts()
+
+```
+
+### Writing outputs
+```{r write_output, echo=FALSE}
 # quarterly
   # writes csv versions of the output files
   write.zoo(ushist_q, file=paste(fpath, "output_data/ushist_q.csv", sep=""), sep=",")
-  write.zoo(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.csv", sep=""), sep=",")
+  write.zoo(usihghist_q, file=paste(fpath, "output_data/usihghist_q.csv", sep=""), sep=",")
+  #write.zoo(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.csv", sep=""), sep=",")
   
   # saves Rdata versions of the output files
   save(ushist_q, file=paste(fpath, "output_data/ushist_q.Rdata", sep=""))
-  save(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
+  #save(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
 
 # monthly
   # writes csv versions of the output files
   write.zoo(ushist_m, file=paste(fpath,"output_data/ushist_m.csv",sep=""), sep=",")
+  write.zoo(usihghist_m, file=paste(fpath,"output_data/usihghist_m.csv",sep=""), sep=",")
   
   # saves Rdata versions of the output files
   save(ushist_m, file=paste(fpath,"output_data/ushist_m.Rdata", sep=""))
@@ -340,6 +471,7 @@ Writing outputs
 # annual
   # writes csv versions of the output files
   write.zoo(ushist_a, file=paste(fpath,"output_data/ushist_a.csv",sep=""), sep=",")
+  write.zoo(usihghist_a, file=paste(fpath,"output_data/usihghist_a.csv",sep=""), sep=",")
   
   # saves Rdata versions of the output files
   save(ushist_a, file=paste(fpath,"output_data/ushist_a.Rdata", sep=""))

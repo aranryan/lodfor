@@ -1,0 +1,174 @@
+---
+title: "learning_forecast"
+author: "Tourism Economics"
+date: "Monday, January 19, 2015"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r load_files, echo=FALSE, message=FALSE, warning=FALSE}
+
+require(directlabels)
+require(rmarkdown)
+require(knitr)
+require(RColorBrewer)
+require(gridExtra)
+require(gtable)
+require(Cairo)
+require(forecast)
+require(fpp)
+require(xts)
+require(dynlm)
+
+read_chunk('scripts/functions.R')
+
+source('scripts/functions.R')
+```
+
+
+```{r readchunk, echo=FALSE, message=FALSE, warning=FALSE}
+
+load(paste("output_data/ushist_q.Rdata", sep=""))
+str(ushist_q)
+colnames(ushist_q)
+t_q <- ushist_q['1987/2018'] %>% #subset by date
+  data.frame(date=time(.), .) %>%
+  melt(., id.vars = c("date")) %>%
+  # filter to match either totus or us
+  filter(grepl("^totus_|^us_", variable)) %>%
+  # read back into zoo splitting on the second column
+  read.zoo(split=2) %>%
+  xts()
+head(t_q)
+```
+
+text
+
+```{r mucking, echo=FALSE}
+
+t <- t_q['1987/2014-07-01']
+t <- ts(t, start = c(year(start(t)), month(start(t))), frequency = 4)
+head(t)
+str(t)
+plot(t[,'us_gdp'])
+print(t[,'us_gdp'])
+
+
+fit <- lm(diff(log(totus_demd_sa)) ~ diff(log(us_gdp)), data=t)
+summary(fit)
+plot(diff(log(fitted(fit))), diff(log(t[,'totus_demd_sa'])))
+
+
+totus_demd_sa <- t[,'totus_demd_sa']
+us_gdp <- t[,'us_gdp']
+
+plot(totus_demd_sa)
+ab <- lm(diff(log(totus_demd_sa)) ~ diff(log(us_gdp)))$fit
+ab <- ts(ab, start=c(1987,1), frequency=4)
+head(ab)
+ts.plot(diff(log(totus_demd_sa)))
+lines(ab, col=2)
+
+
+test <- lm(diff(log(totus_demd_sa)) ~ diff(log(us_gdp)))
+
+ac <- predict(test,n.ahead=12)
+ac <- ts(ac, start=c(1987,1), frequency=4)
+ts.plot(totus_demd_sa,xlim=c(1987,2017))
+lines(ac,col=2)
+
+lines(predict(test,n.ahead=48),col=2)
+
+```
+
+```{r muck2}
+
+t <- t_q['1987/2018']
+t <- ts(t, start = c(year(start(t)), month(start(t))), frequency = 4)
+head(t)
+str(t)
+plot(t[,'us_gdp'])
+print(t[,'us_gdp'])
+
+plot(t[,c("us_gdp", "totus_demd_sa")], lty = c(3,1), 
+     plot.type="single", ylab = "")
+
+dem_lm1 <- dynlm((log(totus_demd_sa)) ~ (log(us_gdp)) + L((log(us_gdp))), data=t)
+dem_lm2 <- dynlm(totus_demd_sa ~ us_gdp + L(totus_demd_sa), data=t)
+summary(dem_lm1)
+summary(dem_lm2)
+
+
+plot(merge(as.zoo(t[,"totus_demd_sa"]), fitted(dem_lm1), fitted(dem_lm2), 0, residuals(dem_lm1), residuals(dem_lm2)), screens = rep(1:2, c(3, 3)), lty = rep(1:3, 2), ylab = c("Fitted values", "Residuals"), xlab = "Time", main = "")
+legend(0.05, 0.95, c("observed", "dem_lm1", "dem_1m2"), lty = 1:3)
+
+plot(merge(as.zoo(t[,"totus_demd_sa"]), exp(fitted(dem_lm1)), 0, residuals(dem_lm1)), screens = rep(1:2, c(2, 2)), lty = rep(1:2, 2), ylab = c("Fitted values", "Residuals"), xlab = "Time", main = "")
+
+
+```
+
+Following is a loop doing forecasts. From example on 
+http://stackoverflow.com/questions/4856555/iteratively-forecasting-dyn-models
+
+```{r forecast_loop_example}
+
+
+ipredict <-function(model, newdata, interval = "none",
+                    level = 0.95, na.action = na.pass, weights = 1) {
+  P<-predict(model,newdata=newdata,interval=interval,
+             level=level,na.action=na.action,weights=weights)
+  for (i in seq(1,dim(newdata)[1])) {
+    if (is.na(newdata[i])) {
+      if (interval=="none") {
+        P[i]<-predict(model,newdata=newdata,interval=interval,
+                      level=level,na.action=na.action,weights=weights)[i]
+        newdata[i]<-P[i]
+      }
+      else{
+        P[i,]<-predict(model,newdata=newdata,interval=interval,
+                       level=level,na.action=na.action,weights=weights)[i,]
+        newdata[i]<-P[i,1]
+      }
+    }
+  }
+  P_end<-end(P)[1]*frequency(P)+(end(P)[2]-1) #Convert (time,period) to decimal time
+  P<-window(P,end=P_end-1*frequency(P)) #Drop last observation, which is NA
+  return(P)
+}
+
+library(dyn)
+y<-arima.sim(model=list(ar=c(.9)),n=10) #Create AR(1) dependant variable
+A<-rnorm(10) #Create independant variables
+B<-rnorm(10)
+C<-rnorm(10)
+Error<-rnorm(10)
+y<-y+.5*A+.2*B-.3*C+.1*Error #Add relationship to independant variables 
+data=cbind(y,A,B,C)
+head(data)
+
+
+#Fit linear model
+model.dyn<-dyn$lm(y~A+B+C+lag(y,1),data=data)
+summary(model.dyn)
+
+#Forecast linear model
+# extending by 5
+A<-c(A,rnorm(5))
+B<-c(B,rnorm(5))
+C<-c(C,rnorm(5))
+y
+y=window(y,end=end(y)+c(5,0),extend=TRUE)
+y
+newdata<-cbind(y,A,B,C)
+P1<-ipredict(model.dyn,newdata)
+P2<-ipredict(model.dyn,newdata,interval="prediction")
+
+#Plot
+plot(y)
+lines(P1,col=2)
+
+```
+

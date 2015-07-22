@@ -1,63 +1,92 @@
-require("xlsx")
-require("plyr")
-require("dplyr")
-require("reshape2")
-require("zoo")
-require("xts")
-require("tframePlus")
-require("seasonal")
-require("ggplot2")
-Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
-checkX13()
+
 # in the following yearmon is a class for representing monthly data
 # I used it because I found a way to use that format in reading the data
 # would have liked to avoid it, as I later conver it with as.Date
 f <- function(x) as.yearmon(format(x, nsmall = 2), "%Y%m")
-fname <- c("input_data/Open_Close_201407.xlsx")
+fname_opens <- c("input_data/coopopen2015-07-17.txt")
+fname_closes <- c("input_data/coopclose2015-07-17.txt")
 
 # handles opens
-  temp <- read.xlsx(fname, sheetName="cooptotopen", startRow=3,colIndex =1:3,
-                    header = TRUE)
-  opens_m <- rename(temp, c(
-    "PROPS" = "totus_opprop", 
-    "ROOMS" = "totus_oprms"
-    ), warn_missing = TRUE)
-  # dplyr chain that filters to drop rows where the YYYYM ends in 13
+
+# old approach to reading input when it was in Excel
+# opens_m <- read.xlsx(fname, sheetName="cooptotopen", startRow=3,colIndex =1:3,
+#                      header = TRUE) %>%
+#   rename(totus_opprop = PROPS, totus_oprms = ROOMS) %>%
+#   # filters to drop rows where the YYYYM ends in 13
+#   # or starts with TOTAL, and then also drops the NA row that appears at bottom
+#   filter(!grepl("13$", YYYYMM)) %>%
+#   filter(!grepl("^TOTAL", YYYYMM)) %>%
+#   na.omit(opens_m) %>%
+#   read.zoo(header = TRUE, FUN = f , sep=",") %>%
+#   xts()
+
+opens_m <- read.delim(fname_opens, stringsAsFactors=FALSE) %>%
+  rename(seg=Segment, date=Open.Date, opprop = Props, oprms = Rooms) %>%
+  # filters to drop rows where the date ends in 13
   # or starts with TOTAL, and then also drops the NA row that appears at bottom
-  opens_m <- opens_m %>% filter(!grepl("13$", YYYYMM)) %>%
-    filter(!grepl("^TOTAL", YYYYMM)) %>%
-    na.omit(opens_m)
-  # reads as zoo
-  opens_m <- read.zoo(opens_m, header = TRUE, FUN = f , sep=",")
-  head(opens_m)
-  # creates xts
-  opens_m <- as.xts(opens_m)
+  filter(!grepl("13$", date)) %>%
+  filter(!grepl("^TOTAL", date)) %>%
+  na.omit(opens_m) %>%
+  # changing segments to codes
+  mutate(seg=as.factor(seg)) %>%
+  mutate(seg = gsub("United States", "totus", seg)) %>%
+  mutate(seg = gsub("Luxury Chains", "luxus", seg)) %>%
+  mutate(seg = gsub("Upper Upscale Chains", "upuus", seg)) %>%
+  mutate(seg = gsub("Upscale Chains", "upsus", seg)) %>%
+  mutate(seg = gsub("Upper Midscale Chains", "upmus", seg)) %>%
+  mutate(seg = gsub("Midscale Chains", "midus", seg)) %>%
+  mutate(seg = gsub("Economy Chains", "ecous", seg)) %>%
+  mutate(seg = gsub("Independents", "indus", seg)) 
+
+a <- melt(opens_m, id=c("date","seg"), na.rm=FALSE)
+a$variable <- paste(a$seg, "_", a$variable, sep='')
+a$seg <- NULL
+opens_m <- a %>%
+  # splits based on the second column
+  # uses function to read in date
+  read.zoo(header = TRUE, FUN = f , sep=",", split = 2) %>%
+  xts()
+
+  # changes the format of the index from month-year to date
   tempa <- as.Date(index(opens_m))
   index(opens_m) <- tempa
 
 # handles closes
-temp <- read.xlsx(fname, sheetName="cooptotcls", startRow=3,colIndex =1:3,
-                  header = TRUE)
-closes_m <- rename(temp, c(
-  "PROPS" = "totus_clprop", 
-  "ROOMS" = "totus_clrms"
-  ), warn_missing = TRUE)
-# dplyr chain that filters to drop rows where the YYYYM ends in 13
-# or starts with TOTAL, and then also drops the NA row that appears at bottom
-closes_m <- closes_m %>% filter(!grepl("13$", YYYYMM)) %>%
-  filter(!grepl("^TOTAL", YYYYMM)) %>%
-  na.omit(closes_m)
-# reads as zoo
-closes_m <- read.zoo(closes_m, header = TRUE, FUN = f , sep=",")
-head(closes_m)
-# creates xts
-closes_m <- as.xts(closes_m)
-tempa <- as.Date.yearmon(index(closes_m))
+closes_m <- read.delim(fname_closes, stringsAsFactors=FALSE) %>%
+  rename(seg=Segment, date=Open.Date, clprop = Props, clrms = Rooms) %>%
+  # filters to drop rows where the date ends in 13
+  # or starts with TOTAL, and then also drops the NA row that appears at bottom
+  filter(!grepl("13$", date)) %>%
+  filter(!grepl("^TOTAL", date)) %>%
+  na.omit(closes_m) %>%
+  # changing segments to codes
+  mutate(seg=as.factor(seg)) %>%
+  mutate(seg = gsub("United States", "totus", seg)) %>%
+  mutate(seg = gsub("Luxury Chains", "luxus", seg)) %>%
+  mutate(seg = gsub("Upper Upscale Chains", "upuus", seg)) %>%
+  mutate(seg = gsub("Upscale Chains", "upsus", seg)) %>%
+  mutate(seg = gsub("Upper Midscale Chains", "upmus", seg)) %>%
+  mutate(seg = gsub("Midscale Chains", "midus", seg)) %>%
+  mutate(seg = gsub("Economy Chains", "ecous", seg)) %>%
+  mutate(seg = gsub("Independents", "indus", seg)) 
+
+a <- melt(closes_m, id=c("date","seg"), na.rm=FALSE)
+a$variable <- paste(a$seg, "_", a$variable, sep='')
+a$seg <- NULL
+closes_m <- a %>%
+  # splits based on the second column
+  # uses function to read in date
+  read.zoo(header = TRUE, FUN = f , sep=",", split = 2) %>%
+  xts()
+
+# changes the format of the index from month-year to date
+tempa <- as.Date(index(closes_m))
 index(closes_m) <- tempa
 
+##############
+#
 # combine opens and closes
 opcl_m <- merge(opens_m, closes_m)
-rm(opens_m, closes_m)
 
 # ensure there aren't any missing months
 # this works by creating a new series going from the start to the end without
@@ -74,6 +103,10 @@ opcl_m <- na.fill(opcl_m, c(0))
 plot(opcl_m$totus_oprms)
 plot(opcl_m$totus_clrms)
 head(opcl_m$totus_clrms)
+tail(opcl_m$totus_clrms)
+
+plot(opcl_m$upsus_clrms)
+plot(opcl_m$upsus_oprms)
 
 summary(opcl_m)
 rm(f)
@@ -96,7 +129,7 @@ rm(f)
 # is giving the type of aggregation to use in it
 start <- as.yearqtr((start(opcl_m)))
 h <- zooreg(vapply(opcl_m, m_to_q, FUN.VALUE = 
-                     numeric(floor(nrow(opcl_m)/3)), 
+                     numeric(ceiling(nrow(opcl_m)/3)), 
                      type="sum"), start=start, frequency=4)
 # converts to xts
 opcl_q <- xts(h)
@@ -105,7 +138,6 @@ indexClass(opcl_q) <- c("Date")
 # if I had just wanted to run on one series, I could do the following
 #d <- m_to_q(opcl_m$totus_oprms, type=sum)
 #d
-
 
 tail(opcl_q)
 
@@ -116,9 +148,17 @@ tail(opcl_q)
 out_opcl_q <- opcl_q
 out_opcl_m <- opcl_m
 
+########
+#
+# set up for seasonal adjustment
+# just adjusted US opens. need to work on it to get 
+# adjustments going for segments sometime
+
 # just did opens, closes wouldn't adjust
-seriesl_m <- c("totus_oprms") #, "totus_clrms")
-seriesl_q <- c("totus_oprms") #, "totus_clrms")
+segl <- c("tot") #, "lux", "upu", "ups", "upm", "mid", "eco")
+segl <- paste(segl, "us_oprms", sep="")
+seriesl_m <- segl # "totus_clrms")
+seriesl_q <- segl # "totus_clrms")
 
 #########
 #
@@ -192,7 +232,7 @@ autoplot(out_opcl_m$totus_oprms_sa)
 autoplot(out_opcl_m$totus_clrms)
 
 # quarterly
-a <- window(out_opcl_q, start = as.Date("2000-01-01"), end=as.Date("2014-10-01"))
+a <- window(out_opcl_q, start = as.Date("2000-01-01"), end=as.Date("2016-01-01"))
 tail(a)
 
 autoplot(out_opcl_q$totus_oprms)
