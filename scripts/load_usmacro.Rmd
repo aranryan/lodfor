@@ -12,6 +12,7 @@ Setup
 ```{r readchunk}
 #read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
 source('~/Project/R projects/lodfor/scripts/functions.R')
+#setwd("./output_data/")
 ```
 
 

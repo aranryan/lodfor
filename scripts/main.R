@@ -32,7 +32,8 @@ source("scripts/load_str_openclose.R")
 
 # reads macro source file
 # results saved in Rdata (xts) and csv files
-knit("scripts/load_usmacro.Rmd")
+rmarkdown::render('scripts/load_usmacro.Rmd', output_file = '../output_data/load_usmacro')
+#knit("scripts/load_usmacro.Rmd")
 
 # creates the ushist file
 # I have to do this manually by stepping through each chunk because
