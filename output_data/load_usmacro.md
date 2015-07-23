@@ -105,7 +105,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ```
 
 ###A few plots
-![](..\output_data\load_usmacro_files/figure-html/plots-1.png) ![](..\output_data\load_usmacro_files/figure-html/plots-2.png) ![](..\output_data\load_usmacro_files/figure-html/plots-3.png) ![](..\output_data\load_usmacro_files/figure-html/plots-4.png) ![](..\output_data\load_usmacro_files/figure-html/plots-5.png) ![](..\output_data\load_usmacro_files/figure-html/plots-6.png) 
+![](C:\Users\Aran\Documents\Project\R projects\lodfor\output_data\load_usmacro_files/figure-html/plots-1.png) ![](C:\Users\Aran\Documents\Project\R projects\lodfor\output_data\load_usmacro_files/figure-html/plots-2.png) ![](C:\Users\Aran\Documents\Project\R projects\lodfor\output_data\load_usmacro_files/figure-html/plots-3.png) ![](C:\Users\Aran\Documents\Project\R projects\lodfor\output_data\load_usmacro_files/figure-html/plots-4.png) ![](C:\Users\Aran\Documents\Project\R projects\lodfor\output_data\load_usmacro_files/figure-html/plots-5.png) ![](C:\Users\Aran\Documents\Project\R projects\lodfor\output_data\load_usmacro_files/figure-html/plots-6.png) 
 
 ```
 ##             us_gdp  us_gdp_cagr
