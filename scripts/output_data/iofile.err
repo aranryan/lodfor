@@ -1,0 +1,14 @@
+     Error messages generated from processing the X-13ARIMA-SEATS spec file
+     C:\Users\Aran\AppData\Local\Temp\RtmpGuKqhf/x13/iofile.spc:
+
+
+  
+ WARNING: Spectrums are only generated for monthly series.
+  
+ WARNING: Automatic transformation selection cannot be done on a
+          series with zero or negative values.
+
+ WARNING: For calculating the ACF's and PACF's requested from the identify
+          spec, a sample mean adjustment has been used in place of the
+          effect of the constant regressor specified in the regression spec.
+

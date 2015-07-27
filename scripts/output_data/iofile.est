@@ -1,0 +1,19 @@
+$regression:
+$regression$estimates:
+group	variable	estimate	standard error	fixed
+-----	--------	-----------	--------------	-----
+Easter[8]	Easter[8]	-0.590207702639815E-04	+0.226765501891411E-03	       
+Automatically Identified Outliers	AO2005.3	-0.418171487600846E-02	+0.688821261060698E-03	       
+$arima:
+$arima$estimates:
+operator	factor	period	lag	estimate	standard error	fixed
+--------	------	------	---	--------	--------------	-----
+AR	Nonseasonal	01	01	+0.10794863779655E+00	+0.42743037276188E+00	       
+AR	Nonseasonal	01	02	+0.12265265475869E+00	+0.11447645237556E+00	       
+AR	Nonseasonal	01	03	+0.27227721419766E+00	+0.10247444244489E+00	       
+MA	Nonseasonal	01	01	+0.31028993593285E+00	+0.41861468363298E+00	       
+MA	Seasonal	04	04	+0.43889127955073E+00	+0.13398913876155E+00	       
+$variance:
+
+mle	+0.77619526091991E-06
+se	+0.10514115309793E-06

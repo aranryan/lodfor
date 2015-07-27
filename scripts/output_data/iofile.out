@@ -1,0 +1,65 @@
+  Reading input spec file from C:\Users\Aran\AppData\Local\Temp\RtmpGuKqhf/x13/iofile.spc
+  Reading data from C:\Users\Aran\AppData\Local\Temp\RtmpGuKqhf/x13/data.dta
+ Transformation
+  No transformation
+
+
+ MODEL IDENTIFICATION (Using regression residuals)
+
+ Regression Model
+  Constant + Easter[8]
+
+ WARNING: For calculating the ACF's and PACF's requested from the identify
+          spec, a sample mean adjustment has been used in place of the
+          effect of the constant regressor specified in the regression spec.
+
+
+ Differencing:  none
+
+ Differencing:  Seasonal Order=1
+
+ Differencing:  Nonseasonal Order=1
+
+ Differencing:  Nonseasonal Order=1, Seasonal Order=1
+
+
+  Best Five ARIMA Models
+
+     Model #  1 : (0 0 0)(0 1 1)       (BIC =    -11.025)
+     Model #  2 : (1 0 0)(0 1 1)       (BIC =    -11.011)
+     Model #  3 : (0 0 1)(0 1 1)       (BIC =    -11.007)
+     Model #  4 : (0 0 2)(0 1 1)       (BIC =    -10.989)
+     Model #  5 : (1 0 2)(0 1 1)       (BIC =    -10.987)
+
+
+  Best Five ARIMA Models
+
+     Model #  1 : (0 0 0)(0 1 1)       (BIC =    -11.025)
+     Model #  2 : (1 0 0)(0 1 1)       (BIC =    -11.011)
+     Model #  3 : (0 0 1)(0 1 1)       (BIC =    -11.007)
+     Model #  4 : (0 0 2)(0 1 1)       (BIC =    -10.989)
+     Model #  5 : (1 0 2)(0 1 1)       (BIC =    -10.988)
+
+ QS Statistic for regARIMA Model Residuals (full series):             0.05
+                                                       (P-Value =     0.9733)
+
+ QS Statistic for regARIMA Model Residuals (starting 1991.2):         0.88
+                                                       (P-Value =     0.6426)
+
+  QS statistic for seasonality:
+  Original Series                                   212.77  (P-Value =     0.0000)
+  Original Series (EV adj)                          213.26  (P-Value =     0.0000)
+  Residuals                                           0.05  (P-Value =     0.9733)
+  Seasonally Adjusted Series                          0.15  (P-Value =     0.9294)
+  Seasonally Adjusted Series (EV adj)                 0.00  (P-Value =     1.0000)
+  Irregular Series                                    0.00  (P-Value =     0.9985)
+  Irregular Series (EV adj)                           0.00  (P-Value =     1.0000)
+
+  QS statistic for seasonality (starting 1991.2):
+  Original Series                                   179.68  (P-Value =     0.0000)
+  Original Series (EV adj)                          180.22  (P-Value =     0.0000)
+  Residuals                                           0.88  (P-Value =     0.6426)
+  Seasonally Adjusted Series                          0.08  (P-Value =     0.9614)
+  Seasonally Adjusted Series (EV adj)                 0.00  (P-Value =     1.0000)
+  Irregular Series                                    0.00  (P-Value =     1.0000)
+  Irregular Series (EV adj)                           0.00  (P-Value =     1.0000)
