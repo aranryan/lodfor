@@ -32,9 +32,7 @@ source("scripts/load_str_openclose.R")
 
 # reads macro source file
 # results saved in Rdata (xts) and csv files
-
-rmarkdown::render('scripts/load_usmacro.Rmd') #, output_dir = './output_data')
-
+rmarkdown::render('scripts/load_usmacro.Rmd')
 #knit("scripts/load_usmacro.Rmd")
 
 # creates the ushist file
@@ -58,7 +56,7 @@ source("scripts/pull_fred_data.R")
 source("scripts/compile_top25.R")
 
 # runs the markdown file
-rmarkdown::render("scripts/us_overview_graphs.Rmd") #, output_dir = "/output_data/")
+rmarkdown::render("scripts/us_overview_graphs.Rmd") 
 
 # creates an eviews output for host analysis
 source("scripts/out_to_eviews.R")
