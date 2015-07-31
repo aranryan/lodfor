@@ -36,18 +36,13 @@ rmarkdown::render('scripts/040_load_usmacro.Rmd')
 #knit("scripts/load_usmacro.Rmd")
 
 # creates the ushist file
-# I have to do this manually by stepping through each chunk because
-# right now it won't save the output file if I just
-# unit it using knit. I'm not sure why not. Could search
-# for examples of people maintaining code in Rmd format
-# maybe they don't
 knit("scripts/050_create_ushist.Rmd")
 
 # do I need this one? does it even work?
 #knit("scripts/050_create_ushist.Rmd")
 
 # runs simple forecast 
-source("scripts/060_simple_forecast.R")
+#source("scripts/060_simple_forecast.R")
 
 # reads in the current forecast 
 source("scripts/070_read_usfor.R")
@@ -60,6 +55,9 @@ source("scripts/090_compile_top25.R")
 
 # runs the markdown file
 rmarkdown::render("scripts/100_us_overview_graphs.Rmd") 
+
+# run several experiements with graph resolution
+source("scripts/101_graph_resolution_test.R")
 
 # creates an eviews output for host analysis
 source("scripts/110_out_to_eviews.R")
