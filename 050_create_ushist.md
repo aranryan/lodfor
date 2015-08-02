@@ -265,7 +265,7 @@ autoplot(window(ushist_q$totcan_adr_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
 ```
-## Warning: Removed 3 rows containing missing values (geom_path).
+## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk add_ihg_mex_can](figure/add_ihg_mex_can-1.png) 
@@ -275,7 +275,7 @@ autoplot(window(ushist_q$totcan_demd_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
 ```
-## Warning: Removed 3 rows containing missing values (geom_path).
+## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk add_ihg_mex_can](figure/add_ihg_mex_can-2.png) 

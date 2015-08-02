@@ -11,7 +11,7 @@
 
 # all history, since 1998 is coming from this input file
 
-fname1 <- c("input_data/from IHG - TE Total Country-2015-04-29.xls")
+fname1 <- c("input_data/from IHG - TE Total Country-2015-07-21.xls")
 
 ########
 #
