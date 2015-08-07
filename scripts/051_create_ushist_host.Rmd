@@ -42,7 +42,7 @@ temp <- oe_usmac_q %>%
   data.frame(date=time(oe_usmac_q), oe_usmac_q) %>%
   select(date, 
          us_gdp,
-         us_if,
+         us_ifix,
          us_cd,
          us_iconstr,
          us_popnipa,
@@ -102,6 +102,12 @@ real_df <- data.frame(ushist_q) %>%
   mutate_each(funs(ind = ( . / us_pc_index)*100))
 # adds on a time index to get it back to xts
 temp <- data.frame(date=time(ushist_q)) 
+
+real_df$date <- data.frame(date=time(ushist_q))
+
+real_df <- real_df %>%
+  select(date, everything())
+
 real_df <- cbind(temp,real_df)
 real <- read.zoo(real_df)
 real <- xts(real)

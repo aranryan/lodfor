@@ -37,9 +37,7 @@ rmarkdown::render('scripts/040_load_usmacro.Rmd')
 
 # creates the ushist file
 knit("scripts/050_create_ushist.Rmd")
-
-# do I need this one? does it even work?
-#knit("scripts/050_create_ushist.Rmd")
+knit("scripts/051_create_ushist_host.Rmd")
 
 # runs simple forecast 
 #source("scripts/060_simple_forecast.R")
