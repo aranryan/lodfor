@@ -54,6 +54,27 @@ Insert date
 ## Demand, ratio to population 
 <img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop-1.png" title="" alt="" width="9in" height="5.7in" />
 
+
+## Demand, ratio to population forecast
+
+```
+##  (Intercept)         date 
+## 3.425524e+00 8.286745e-05
+```
+
+<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_fcst-1.png" title="" alt="" width="9in" height="5.7in" />
+
+
+## Demand, ratio to population log forecast
+
+```
+##  (Intercept)         date 
+## 1.248897e+00 1.977366e-05
+```
+
+<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-1.png" title="" alt="" width="9in" height="5.7in" />
+
+
 ## Demand, ratio to employment 
 <img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_emp-1.png" title="" alt="" width="9in" height="5.7in" />
 

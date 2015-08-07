@@ -443,6 +443,108 @@ plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
 
 ```
 
+
+## Demand, ratio to population forecast
+```{r demand_ratio_pop_fcst}
+#sets variable and text items
+#todo <- c("totus_demd_sa")
+grtitle <- c("Room demand per capita")
+footnote <- c("Note: Historical trend line fitted from 1987 to 2007Q4.\nSource: STR; Census Bureau; Tourism Economics")
+starta <- as.Date("1987-01-01")
+enda <- as.Date("2017-10-01")
+variable_text <- c("Annual room nights per capita \n(working age population)")
+variable_legend_1 <- c("Room demand")
+
+temp <- usfor_q_m %>% 
+  filter(variable == "totus_demd_sa" | variable == "us_popw", date >= starta, date <= enda) %>%
+  spread(variable, value) %>%
+  mutate(dem_popw = totus_demd_sa * 365 / us_popw*1000) %>%
+  select(date, dem_popw) %>%
+  melt(id.vars = c("date"))
+
+# modifies the dataframe
+# adds a column based on date to be the subset pre recession
+temp_a <- temp %>%
+  mutate(hist = ifelse(date <= as.Date("2007-10-01"), 1, 0))
+# fits model based on that subset
+temp_b <- temp_a %>%
+  filter(hist == 1)
+fm <- lm(value ~ date, temp_b)
+# fm <- lm(value ~ date, temp_b, subset = temp$hist == 1)
+# predicts values
+b <- predict(fm, temp_a)
+# binds the values onto the dataframe and renames
+temp_a <- cbind(temp_a, b) %>%
+  rename(fitted = b)
+
+coefficients(fm)
+
+p1 <- ggplot() +
+  geom_line(data = temp_a, aes(x = date, y = value, color = variable), size = .7) +
+ ggtitle(variable_text) + 
+
+  scale_color_manual(values = c(mypallete[10:10], "grey70")) +
+  # subset to only plot line when hist equals 1
+ geom_line(data = temp_a, aes(x = date, y = fitted, color = "grey70"), subset = .(hist == 1), size = .9) +
+ geom_line(data = temp_a, aes(x = date, y = fitted, color = "grey70"), subset = .(hist == 0), size = .9, linetype="99") 
+
+  # stat_smooth(data = temp, aes(x = date, y = value), method=lm, fill = "grey90", color="grey40", alpha=.4, span=.7, se = FALSE)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+
+```
+
+
+## Demand, ratio to population log forecast
+```{r demand_ratio_pop_lnfcst}
+#sets variable and text items
+#todo <- c("totus_demd_sa")
+grtitle <- c("Room demand per capita")
+footnote <- c("Note: Historical trend line fitted from 1987Q1 to 2007Q4 in log terms.\nSource: STR; Census Bureau; Tourism Economics")
+starta <- as.Date("1987-01-01")
+enda <- as.Date("2017-10-01")
+variable_text <- c("Annual room nights per capita \n(working age population)")
+variable_legend_1 <- c("Room demand")
+
+temp <- usfor_q_m %>% 
+  filter(variable == "totus_demd_sa" | variable == "us_popw", date >= starta, date <= enda) %>%
+  spread(variable, value) %>%
+  mutate(dem_popw = log(totus_demd_sa * 365 / us_popw*1000)) %>%
+  select(date, dem_popw) %>%
+  melt(id.vars = c("date"))
+
+# modifies the dataframe
+# adds a column based on date to be the subset pre recession
+temp_a <- temp %>%
+  mutate(hist = ifelse(date <= as.Date("2007-10-01"), 1, 0))
+# fits model based on that subset
+temp_b <- temp_a %>%
+  filter(hist == 1)
+fm <- lm(value ~ date, temp_b)
+# fm <- lm(value ~ date, temp_b, subset = temp$hist == 1)
+# predicts values
+b <- predict(fm, temp_a)
+# binds the values onto the dataframe and renames
+temp_a <- cbind(temp_a, b) %>%
+  rename(fitted = b)
+temp_a <- temp_a %>%
+  mutate(value = exp(value), fitted = exp(fitted))
+
+coefficients(fm)
+
+p1 <- ggplot() +
+  geom_line(data = temp_a, aes(x = date, y = value, color = variable), size = .7) +
+ ggtitle(variable_text) + 
+  scale_color_manual(values = c(mypallete[10:10], "grey70")) +
+  # subset to only plot line when hist equals 1
+ geom_line(data = temp_a, aes(x = date, y = fitted, color = "grey70"), subset = .(hist == 1), size = .9) +
+ geom_line(data = temp_a, aes(x = date, y = fitted, color = "grey70"), subset = .(hist == 0), size = .9, linetype="99") + 
+  ylim(3, NA)
+  # stat_smooth(data = temp, aes(x = date, y = value), method=lm, fill = "grey90", color="grey40", alpha=.4, span=.7, se = FALSE)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+
+```
+
+
 ## Demand, ratio to employment 
 ```{r demand_ratio_emp}
 #sets variable and text items

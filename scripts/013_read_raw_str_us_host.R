@@ -9,7 +9,7 @@ host_str_simp <- read.csv("reference/host_str_simp.csv", header = TRUE, sep = ",
 #
 # name of file to read
 
-fname <- c("input_data/Host - top 20 - ByMarket - 2015-03-25.csv")
+fname <- c("input_data/Host - top 20 - ByMarket - 2015-07-27.csv")
 
 ########
 #

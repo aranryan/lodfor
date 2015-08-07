@@ -116,6 +116,5 @@ p1 <- ggplot(temp, aes(x = date, y=value)) +
   geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], color=mypallete[10:10], size=.6, linetype = "99")
 CairoPNG("output_data/figure_us_overview_graphs/fig-testR400dpi-occupancy_forecast.png", units="in", width=9, height=5.7, dpi=400)
 #CairoPDF("output_data/figure_us_overview_graphs/fig-testR400dpi-occupancy_forecast.pdf", width=9, height=5.7)
-plot_title_1(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
 dev.off()
-
