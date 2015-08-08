@@ -15,6 +15,14 @@ the fact there is info about the separate segments that needs to become part of 
 result in seasonally adjusted data, so I'm not sure if I was doing this in the right place or not, maybe
 I should have been using the separate file to compile top25 anyway. 
 
+
+Setup
+```{r readchunk}
+#read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
+source('~/Project/R projects/lodfor/scripts/functions.R')
+```
+
+
 Creates a us historical databank. Combines the STR data with selected macro data and calculates a few series
 ```{r load}
 # require("tidyr")
@@ -98,33 +106,64 @@ autoplot(ushist_q$us_pc_index)
 # for reference on writing regular expressions, see
 # http://www.regular-expressions.info/quickstart.html
 real_df <- data.frame(ushist_q) %>%
-  select(matches("_adr$|_adr_sa|_revpar$|_revpar_sa")) %>% 
-  mutate_each(funs(ind = ( . / us_pc_index)*100))
-# adds on a time index to get it back to xts
-temp <- data.frame(date=time(ushist_q)) 
-
-real_df$date <- data.frame(date=time(ushist_q))
-
-real_df <- real_df %>%
+  select(matches("_adr$|_adr_sa|_revpar$|_revpar_sa")) %>%
+  # creates a date column which is useful in a bit because dplyr drops rownames
+    mutate(date = rownames(.)) %>%
+  # moves date to first column
   select(date, everything())
 
-real_df <- cbind(temp,real_df)
-real <- read.zoo(real_df)
-real <- xts(real)
+# to remove columns that are all NA
+real_df <- real_df[,colSums(is.na(real_df))<nrow(real_df)]
 
-# renames series 
-tempnames <- names(real)
-tempnames <- paste(tempnames,"rpc",sep="")
-tempnames
-names(real) <- tempnames
-rm(tempnames)
+real_df <- real_df %>%
+#  select(1:100) %>%
+  # dplyr makes no guarantee that it will keep row names
+  # if you only have one function in mutate_each, it will keep the column names
+  # this also specifies that it should skip the date column
+  mutate_each(funs(ind = ( . / us_pc_index)*100), -date) %>%
+  setNames(c(names(.)[1], paste0(names(.)[-1],"rpc")))
 
-autoplot(window(real$luxus_adr_sarpc, start="2000-01-01", end="2014-10-01"))
-autoplot(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2014-10-01"))
+# back to xts
+real <- read.zoo(real_df) %>%
+  xts()
+
+autoplot(window(real$upachi_adr_sarpc, start="2000-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$upachi_revpar_sa, start="2000-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$upachi_revpar, start="2000-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$luxus_adr, start="2000-01-01", end="2014-10-01"))
 
 # merges onto ushist_q
 ushist_q <- merge(ushist_q, real)
-autoplot(window(ushist_q$upuus_adr_sarpc, start="2000-01-01", end="2014-10-01"))
+
+autoplot(window(ushist_q$upaus_adr, start="2000-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$upaus_adr_sa, start="2000-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$upaus_adr_sarpc, start="2000-01-01", end="2014-10-01"))
+
+ushist_q_df <- ushist_q %>%
+  data.frame(date=time(.), .)
+
+
+# simple graph
+grapht <- ushist_q_df %>%
+  select(date, upaus_adr, upaus_adr_sa, upaus_adr_sarpc) %>%
+  read.zoo() %>%
+  xts() %>%
+  window(.,start="2000-01-01", end="2015-10-01")
+autoplot(grapht, facets = NULL)
+
+# simple graph with variables for selected geo
+segment <- c("upanyc")
+var1 <- paste0(segment,"_adr")
+var2 <- paste0(segment,"_adr_sa")
+var3 <- paste0(segment,"_adr_sarpc")
+
+grapht <- ushist_q_df %>%
+  select(date, get(var1), get(var2), get(var3)) %>%
+  read.zoo() %>%
+  xts() %>%
+  window(.,start="2000-01-01", end="2015-10-01")
+autoplot(grapht, facets = NULL)
+
 ```
 
 Looking at what's in quarterly databank

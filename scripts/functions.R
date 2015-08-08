@@ -30,8 +30,6 @@ require("dplyr")
 require("lazyeval")
 require("broom")
 require("assertthat")
-
-#devtools::install_github("hadley/readxl")
 library("readxl")
 
 

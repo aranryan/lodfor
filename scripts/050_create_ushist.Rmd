@@ -113,6 +113,7 @@ real_df <- cbind(temp,real_df)
 real <- read.zoo(real_df)
 real <- xts(real)
 
+
 # renames series 
 tempnames <- names(real)
 tempnames <- paste(tempnames,"rpc",sep="")

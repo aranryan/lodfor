@@ -47,13 +47,15 @@ head(row1)
 # while zero could be true, it's could be that there are a small number of hotels 
 # and that the data was suppressed for confidentiality reasons
 data_1 <- read.csv(fname, header = FALSE, sep = ",", skip = 8,
-                    na.strings = c("", "NA", "0", "/0"), stringsAsFactors=FALSE)
+                    na.strings = c("", "na", "NA", "0", "/0"), stringsAsFactors=FALSE)
 data_2 <- data_1 %>%
     select(V1,V2, num_range("V",5:ncol(.)))
 # applies the row1 column names prepared above
 colnames(data_2) <- row1
 
 # uses apply to remove columns that are NA
+# is this dangerous to do, I guess not because there should be at least some
+# data for each month
 data_3 <- data_2[, !apply(is.na(data_2), 2, all)] 
 
 # gets to a tidy format
@@ -94,13 +96,17 @@ data_5 <- data_5[, !apply(is.na(data_5), 2, all)]
 # another consideration would be to run na.spline or na.approx first which
 # has an argument to set the max number of NAs to fill, so that might 
 # be a good way to fill small holes
-raw_str_us_host <- data_5%>%
+
+# first had to make it numeric, because it was characters for some reason
+data_6 <- as.data.frame(sapply(data_5, as.numeric)) 
+data_6$date <- data_5$date
+
+raw_str_us_host <- data_6%>%
+ # select(1:12) %>%
   read.zoo() %>%
   lapply(., FUN=na.contiguous) %>%
   do.call("merge", .) %>%
   data.frame(date=time(.), .)
 
-c <- colnames(raw_str_us_host)
-c
 # saves Rdata version of the data
 save(raw_str_us_host, file="output_data/raw_str_us_host.Rdata")

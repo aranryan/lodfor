@@ -106,38 +106,55 @@ str_us_host_q <- select(str_us_host_q,
 # to start with, let's just do upa
 str_us_host_q <- select(str_us_host_q, 
                 date, 
-                starts_with("upa"))
+                starts_with("upa"), 
+                starts_with("totus"))
 
-a <- c("upacal_adr|upacal_revpar|upacal_supd|upacho_supd|") 
-b <- c("upalos_supd|upamxc_adr|upamxc_demd|upamxc_occ|upapho_adr|")
-c <- c("upapho_supd|upaprt_demd|upasea_occ|upator_adr|upator_occ|")
-d <- c("upator_supd|upavnc_adr|upavnc_demd|upavnc_occ|upavnc_supd|")
-e <- c("upawas_adr")
-dont_q_cols <- paste0(a, b, c, d, e)
-
-dont_q_cols
+a <- c("upacal_supd|upacho_sup|") 
+b <- c("upalos_supd|upamxc_supd|upammp_supd|")
+c <- c("upapho_supd|upasea_supd|")
+d <- c("upator_supd|upavnc_supd|upaslc_supd")
+dont_q_cols <- paste0(a, b, c, d)
 
 # creates seasonal factors and saves as Rdata files
 # monthly
 
 # quarterly
 # puts into several smaller data frames
-
-a <- length(str_us_host_q)
-
 str_us_host1_q <- str_us_host_q %>%
-  select(date,1:100)
+  select(date,1:50)
 str_us_host1_q_factors <- seas_factors_q(str_us_host1_q, dont_q_cols)
 
 str_us_host2_q <- str_us_host_q %>%
-  select(date,101:a)
+  select(date,51:100)
 str_us_host2_q_factors <- seas_factors_q(str_us_host2_q, dont_q_cols)
 
+str_us_host3_q <- str_us_host_q %>%
+  select(date,101:150)
+str_us_host3_q_factors <- seas_factors_q(str_us_host3_q, dont_q_cols)
+
+str_us_host4_q <- str_us_host_q %>%
+  select(date,151:length(str_us_host_q))
+str_us_host4_q_factors <- seas_factors_q(str_us_host4_q, dont_q_cols)
+
+# joins them together
 str_us_host_q_factors <- left_join(
   str_us_host1_q_factors,
   str_us_host2_q_factors,
   by="date"
 )
+
+str_us_host_q_factors <- left_join(
+  str_us_host_q_factors,
+  str_us_host3_q_factors,
+  by="date"
+)
+
+str_us_host_q_factors <- left_join(
+  str_us_host_q_factors,
+  str_us_host4_q_factors,
+  by="date"
+)
+
 save(str_us_host_q_factors, file="output_data/str_us_host_q_factors.Rdata")
 
 

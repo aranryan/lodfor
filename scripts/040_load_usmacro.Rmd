@@ -31,7 +31,11 @@ end_date <- paste(end_year,"-10-01",sep="")
 
 
 ```{r load_macro2}
-require("quantmod")
+
+if (!require(quantmod)) {
+  install.packages("quantmod")
+  require(quantmod)
+}
 
 fpath <- c("~/Project/R projects/lodfor/")
 
