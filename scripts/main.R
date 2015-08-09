@@ -59,4 +59,4 @@ source("scripts/101_graph_resolution_test.R")
 
 # creates an eviews output for host analysis
 source("scripts/110_out_to_eviews.R")
-
+source("scripts/120_build_lodhstbk.R")

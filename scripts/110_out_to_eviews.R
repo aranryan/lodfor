@@ -11,7 +11,6 @@ load("output_data/recession_df_m.Rdata")
 load("output_data/ushist_host_q.Rdata")
 load("output_data/ushist_m.Rdata")
 
-
 colcl <- c(rep("character", 4))
 host_str_simp <- read.csv("input_data/host_str_simp.csv", colClasses=colcl)
 
@@ -114,7 +113,8 @@ out_e_hststr <- temp3 %>%
   select(date,segvar,value) %>%
   spread(segvar, value)
   
-plot(out_e_hststr$adrsartot_lsaca, type="l")
+plot(out_e_hststr$adrsarupa_lsaca, type="l")
+plot(out_e_hststr$adrsarupa_vnccn, type="l")
 
 # seg_list <- out_e_hststr %>%
 #   melt(id.vars = c("date")) %>%
