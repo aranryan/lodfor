@@ -2,6 +2,8 @@
 # defined list
 seg_l <- c("totus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous", "indus")
 
+# end of data
+end_data <- "2015-04-01"
 
 # load various files
 #load("output_data/outf_str_us_m.Rdata")
@@ -100,7 +102,7 @@ temp2 <- temp1 %>%
 
 temp3 <- rbind(temp2) %>%
   arrange(date) %>%
-  filter(date <= "2014-10-01")
+  filter(date <= end_data)
 
 out_e_hststr <- temp3 %>%
   gather(var, value, supd_sa:rmrevt) %>%
