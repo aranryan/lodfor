@@ -7,6 +7,7 @@
 # load_str just contains a function
 # also seasonal_factors contains functions to create monthly and 
 # quarterly seasonal factors
+
 source("scripts/setup.R")
 source("scripts/functions.R")
 

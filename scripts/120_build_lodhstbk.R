@@ -19,13 +19,6 @@ simp_xts <- function(x, y){
 load("output_data/out_t_hststr.Rdata")
 temp1_lodhstbk_q <- out_t_hststr
 
-######
-#
-# load reference files
-
-# imports list of MSAs based on Census and corresponding BLS codes
-colc <- rep("character", 10)
-m_cen_blsces <- read.csv("input_data/m_cen_blsces.csv", head=TRUE, colClasses=colc) 
 
 #########
 #
@@ -48,6 +41,20 @@ suma <- data.frame(temp1_lodhstbk_q) %>%
   spread(vargeo, value) %>%
   read.zoo(regular=TRUE) %>%
   xts()
+
+# I think the q_to_a function needs the data to end with a fourth quarter
+suma_fullyr <- suma %>%
+  data.frame(date=time(.), .) %>%
+  mutate(year = year(date), month = month(date)) %>%
+  select(date, year, month, everything()) %>%
+  # filters to include only rows that are the fourth quarter
+  filter(month == 10) %>%
+  read.zoo(regular=TRUE) %>%
+  xts()
+# takes end date of the filtered xts object
+suma_fullyr <- end(suma_fullyr)
+# reduces suma to end with the last full year
+suma <- window(suma, start = start(suma), end = as.Date(suma_fullyr))
 
 # this function is one I defined, it converts all the columns in 
 # an xts object to annual. Must be an xts object to start with
