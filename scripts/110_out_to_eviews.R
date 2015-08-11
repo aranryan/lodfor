@@ -1,17 +1,13 @@
 
-# defined list
-seg_l <- c("totus", "luxus", "upuus", "upsus", "upmus", "midus", "ecous", "indus")
 
 # end of data
-end_data <- "2015-04-01"
+end_strdata <- "2015-04-01"
+start_strdata <- "1987-01-01"
 
 # load various files
-#load("output_data/outf_str_us_m.Rdata")
-#load("output_data/ushist_q.Rdata")
-#load("output_data/usfor_q.Rdata")
 load("output_data/recession_df_m.Rdata")
 load("output_data/ushist_host_q.Rdata")
-load("output_data/ushist_m.Rdata")
+load("output_data/ushist_host_m.Rdata")
 
 colcl <- c(rep("character", 4))
 host_str_simp <- read.csv("input_data/host_str_simp.csv", colClasses=colcl)
@@ -51,81 +47,41 @@ ushist_host_q_td <- data.frame(date=time(ushist_host_q), ushist_host_q)%>%
   separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
   spread(var, value) 
 
-a <- filter(ushist_host_q_td, date == "2001-01-01")
+# just to look at
+# a <- filter(ushist_host_q_td, date == "2001-01-01")
+# b <- filter(ushist_host_q_td, seg == "totphlpa")
 
-a <- filter(ushist_host_q_td, seg == "upana")
-#b <- filter(ushist_host_q_td, seg == "totslm")
 ######################
 #
 # pulling market data
 
-
 temp1 <- ushist_host_q_td %>%
-  filter(seg != "top25us" &
-         seg != "mex" &
-         seg != "can" #&
-         #seg!= "us"
+  filter(seg != "mex" &
+         seg != "can" &
+         seg!= "us"
          ) %>%
-  # filters for seg not in the seg_l list, so just msas
-  # filter(!(seg %in% seg_l)) %>%
   separate(seg,c("seg","geo"), sep=3) %>%
-  # converts str_geoseg to msa area names from census
-  left_join(., host_str_simp, by=c("geo" = "hoststr_sh")) %>%
-  # manually names Orange County, otherwise Los Angeles shows up twice
-  mutate(area_name_simp = ifelse(geo == "org", "Orange County, CA", area_name_simp)) %>%  
-  filter(! is.na(area_name_simp)) %>%
-  select(date, seg, area_name_simp, supd_sa, supd, supt, demd_sa, demd, demt, occ_sa, 
-         adr_sa, adr_sarpc, adr, revpar_sa, revpar_sarpc, revpar, rmrevt) %>%
-  filter(date >= "1987-01-01") %>%
-  # merges on msa codes
-  left_join(., m_cen_blsces, by=c("area_name_simp" = "area_name_simp")) %>%
-  # manually applies an area_sh code for Orange County Host STR data
-  mutate(area_sh = ifelse(area_name_simp == "San Francisco and San Jose, CA", "sfjca", area_sh)) %>%
-  mutate(area_sh = ifelse(area_name_simp == "Orange County, CA", "orgca", area_sh)) %>%
-  mutate(area_sh = ifelse(area_name_simp == "Maui, HI", "khlhi", area_sh)) %>%
-  mutate(area_sh = ifelse(area_name_simp == "Oahu, HI", "hnlhi", area_sh)) %>%
-  mutate(area_sh = ifelse(area_name_simp == "Maui and Oahu, HI", "mouhi", area_sh)) %>%
-  mutate(area_sh = ifelse(area_name_simp == "United States", "usxxx", area_sh)) 
+  select(date, seg, geo, supd_sa, supd, supt, demd_sa, demd, demt, occ_sa, 
+         adr_sa, adr_sar, adr, revpar_sa, revpar_sar, revpar, rmrevt)
 
-# pause to create a list of area_sh codes and the corresponding market names
-  mkt_list <- temp1 %>%  
-   select(area_sh, area_name_simp, area_name_cen) %>%
-   distinct(., area_sh)
-  
 temp2 <- temp1 %>%
-  select(date, seg, area_sh, supd_sa, supd, supt, demd_sa, demd, demt, occ_sa, 
-         adr_sa, adr_sarpc, adr, revpar_sa, revpar_sarpc, revpar, rmrevt)
-
-#%>%
-#  mutate(seg = paste(seg, area_sh, sep="")) %>%
-#  select(-area_sh)
-
-temp3 <- rbind(temp2) %>%
   arrange(date) %>%
-  filter(date <= end_data)
+  filter(date >= start_strdata) %>%
+  filter(date <= end_strdata)
 
-out_e_hststr <- temp3 %>%
+out_e_hststr <- temp2 %>%
   gather(var, value, supd_sa:rmrevt) %>%
   mutate(var = gsub("_", "", var)) %>%
   # temporary fix to rename certain real series
   mutate(var = ifelse(var == "revparsarpc", "revparsar", var)) %>%
   mutate(var = ifelse(var == "adrsarpc", "adrsar", var)) %>%
   mutate(segvar = tolower(paste(var,seg, sep=""))) %>%
-  mutate(segvar = paste(segvar, area_sh, sep="_")) %>%
+  mutate(segvar = paste(segvar, geo, sep="_")) %>%
   select(date,segvar,value) %>%
   spread(segvar, value)
   
 plot(out_e_hststr$adrsarupa_lsaca, type="l")
 plot(out_e_hststr$adrsarupa_vnccn, type="l")
-
-# seg_list <- out_e_hststr %>%
-#   melt(id.vars = c("date")) %>%
-#   separate(variable, c("var", "seg"), sep = "_", extra="merge") %>%
-#   select(seg) %>%
-#   distinct(seg) 
-# seg_list <- seg_list$seg
-# str(seg_list)
-
 
 # uses function to update dataframe to include 
 # NA series for any combination that is missing, which is helpful for Anthony
@@ -147,6 +103,4 @@ out_t_hststr <- out_e_hststr %>%
 
 # saving outputs
 write.csv(out_e_hststr, file="output_data/out_e_hststr.csv", row.names=FALSE)
-# write(seg_list, file="output_data/out_seg_list.txt")
-write.csv(mkt_list, file="output_data/mkt_list.csv")
 save(out_t_hststr, file=paste("output_data/out_t_hststr.Rdata", sep=""))

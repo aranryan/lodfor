@@ -2,18 +2,14 @@
 title: "create_ushist"
 author: "Tourism Economics"
 date: "Thursday, October 16, 2014"
-output: html_document
+output: 
+  html_document: 
+    keep_md: yes
 ---
 
-This is basically the same as create_ushist. To make this, I changed it to import the host Rdata files. 
-Then it runs through wich much the same naming as ushist_q for example. I deleted the parts related to 
-opens and closes. And removed stuff about IHG canada and mexico. And changed from creating a top25 to 
-a sum of the selected markets. I had to rework the top25 piece that was suming the top 25 markets because
-in the host data there is multiple chain scales for the metros, and it was suming them. So I changed it 
-to be selected markets, and then grouped by date and seg. So that works, and I made other changes to handle
-the fact there is info about the separate segments that needs to become part of the series names. but it doesn't
-result in seasonally adjusted data, so I'm not sure if I was doing this in the right place or not, maybe
-I should have been using the separate file to compile top25 anyway. 
+This had been pretty similar to create_ushist. To make this, I changed it to import the host Rdata files. I deleted the parts related to opens and closes. And removed stuff about IHG canada and mexico. And commented out the top25 piece. 
+
+Then I went through a more thorough reworking. I realized I could do the calculation of real series across multiple countries.
 
 
 Setup
@@ -25,14 +21,6 @@ source('~/Project/R projects/lodfor/scripts/functions.R')
 
 Creates a us historical databank. Combines the STR data with selected macro data and calculates a few series
 ```{r load}
-# require("tidyr")
-# require("zoo")
-# require("xts")
-# require("ggplot2")
-# require("tframePlus")
-# require("seasonal")
-# Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
-# checkX13()
 
 fpath <- c("~/Project/R projects/lodfor/") 
 #macro data
@@ -40,13 +28,42 @@ fpath <- c("~/Project/R projects/lodfor/")
 # str data
   load(paste(fpath,"output_data/out_str_us_host_q.Rdata", sep="")) 
   load(paste(fpath,"output_data/out_str_us_host_m.Rdata", sep=""))
+
+# put quarterly into a tidy format
+temp_str_q <- out_str_us_host_q %>%
+  data.frame(date=time(.), .) %>%
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+  gather(segvar, value, -date, na.rm = FALSE) %>%
+  # separates out the variables
+  separate(segvar, c("seg", "variable"), sep = "_", extra="merge") %>%
+  separate(variable, c("area_sh", "variable"), sep = "_", extra="merge") %>%
+  separate(variable, c("country", "variable"), sep = "_", extra="merge") %>%
+  # keeps everything else as columns and spreads variable into multiple 
+  # columns containing the values
+  spread(variable,value)
+
+# put monthly into a tidy format
+temp_str_m <- out_str_us_host_m %>%
+  data.frame(date=time(.), .) %>%
+  # creates column called segvar that contains the column names, and one next to 
+  # it with the values, dropping the time column
+  gather(segvar, value, -date, na.rm = FALSE) %>%
+  # separates out the variables
+  separate(segvar, c("seg", "variable"), sep = "_", extra="merge") %>%
+  separate(variable, c("area_sh", "variable"), sep = "_", extra="merge") %>%
+  separate(variable, c("country", "variable"), sep = "_", extra="merge") %>%
+  # keeps everything else as columns and spreads variable into multiple 
+  # columns containing the values
+  spread(variable,value)
+  
 ```
 
 The initial steps do the quarterly databank. Monthly is done further below.
 ```{r create_q}
 # selects certain series to bring in. Others just stay in macro in case they 
 # are needed in future.
-temp <- oe_usmac_q %>%
+temp_usmac <- oe_usmac_q %>%
   data.frame(date=time(oe_usmac_q), oe_usmac_q) %>%
   select(date, 
          us_gdp,
@@ -66,16 +83,18 @@ temp <- oe_usmac_q %>%
          us_usrecq,
          can_gdp,
          can_cpi,
+         can_pc,
          mex_gdp,
-         mex_cpi
+         mex_cpi,
+         mex_pc
          ) %>%
   read.zoo %>%
   as.xts
-head(temp)
+head(temp_usmac)
 
 # merges dataframes. the all.=TRUE piece ensures all the rows
 # in the first dataframe are included
-ushist_q <- merge(temp, out_str_us_host_q, all=TRUE) 
+#ushist_q <- merge(temp, out_str_us_host_q, all=TRUE) 
 
 ######################
 #
@@ -89,55 +108,74 @@ ushist_q <- merge(temp, out_str_us_host_q, all=TRUE)
 # tempc <- merge(tempa,tempb)
 # autoplot(window(tempc, start="2000-01-01", end="2014-10-01"), facets=NULL)
 
-######################
-#
-# converts some series to real
-#
+```
 
-# first index the personal cons price deflator to average 100 in 2014
-us_pc_index <- index_q(ushist_q$us_pc, index_year=2014)
-names(us_pc_index) <- "us_pc_index"
-ushist_q <- merge(ushist_q, us_pc_index)
-autoplot(ushist_q$us_pc_index)
+##Converts some series to real
 
-# select the series that contain adr or revpar and convert to real
-# the way this works is that matches works on a regular expression
-# I wrote a regular expression that is taking _adr_ or _revpar_
-# for reference on writing regular expressions, see
-# http://www.regular-expressions.info/quickstart.html
-real_df <- data.frame(ushist_q) %>%
-  select(matches("_adr$|_adr_sa|_revpar$|_revpar_sa")) %>%
-  # creates a date column which is useful in a bit because dplyr drops rownames
-    mutate(date = rownames(.)) %>%
-  # moves date to first column
-  select(date, everything())
+First set up the price deflator to use for each country
+Index the personal cons price deflator to average 100 in 2014
+```{r pcindex}
 
-# to remove columns that are all NA
-real_df <- real_df[,colSums(is.na(real_df))<nrow(real_df)]
+# US
+us_pcindex <- index_q(temp_usmac$us_pc, index_year=2014)
+names(us_pcindex) <- "us_pcindex"
+autoplot(us_pcindex)
 
-real_df <- real_df %>%
-#  select(1:100) %>%
-  # dplyr makes no guarantee that it will keep row names
-  # if you only have one function in mutate_each, it will keep the column names
-  # this also specifies that it should skip the date column
-  mutate_each(funs(ind = ( . / us_pc_index)*100), -date) %>%
-  setNames(c(names(.)[1], paste0(names(.)[-1],"rpc")))
+# Canada
+can_pcindex <- index_q(temp_usmac$can_pc, index_year=2014)
+names(can_pcindex) <- "can_pcindex"
+autoplot(can_pcindex)
 
-# back to xts
-real <- read.zoo(real_df) %>%
-  xts()
+# Mexico
+mex_pcindex <- index_q(temp_usmac$mex_pc, index_year=2014)
+names(mex_pcindex) <- "mex_pcindex"
+autoplot(mex_pcindex)
 
-autoplot(window(real$upachi_adr_sarpc, start="2000-01-01", end="2014-10-01"))
-autoplot(window(ushist_q$upachi_revpar_sa, start="2000-01-01", end="2014-10-01"))
-autoplot(window(ushist_q$upachi_revpar, start="2000-01-01", end="2014-10-01"))
-autoplot(window(ushist_q$luxus_adr, start="2000-01-01", end="2014-10-01"))
+# combines as a dataframe
+pcindex <- merge(us_pcindex, can_pcindex, mex_pcindex) %>%
+  data.frame(date=time(.), .) %>%
+  gather(var, value, -date, na.rm = FALSE) %>%
+  separate(var, c("country", "variable"), sep = "_", extra="merge") %>%
+  mutate(country = ifelse(country == "us", "usa", country)) %>%
+  spread(variable, value)
+
+```
+
+Add the price index to the somewhat tidy dataframe and calculate real series
+```{r calc_real}
+
+temp_str_q1 <- temp_str_q %>%
+  left_join(., pcindex, by=c("date", "country")) %>%
+  mutate(adrr = (adr / pcindex)*100) %>%
+  mutate(adr_sar = (adr_sa / pcindex)*100) %>%
+  mutate(revparr = (revpar / pcindex)*100) %>%
+  mutate(revpar_sar = (revpar_sa / pcindex)*100)
+  
+temp_str_q2 <- temp_str_q1 %>%
+  mutate(seg = paste0(seg, area_sh)) %>%
+  # drop country because I don't think it is needed anymore
+  select(-country, -area_sh) %>%
+  gather(variable, value, -seg, -date) %>%
+  mutate(segvar = paste(seg, variable, sep="_")) %>%
+  select(-seg, -variable) %>%
+  spread(segvar, value)
+
+# to remove columns that are all NA and read back to xts
+str_q <- temp_str_q2[,colSums(is.na(temp_str_q2))<nrow(temp_str_q2)] %>%
+ read.zoo() %>%
+ xts()
+
+autoplot(window(str_q$upachcil_adr_sar, start="2000-01-01", end="2014-10-01"))
+autoplot(window(str_q$upachcil_revpar_sa, start="2000-01-01", end="2014-10-01"))
+autoplot(window(str_q$upachcil_revpar, start="2000-01-01", end="2014-10-01"))
+autoplot(window(str_q$luxusxxx_adr, start="2000-01-01", end="2014-10-01"))
 
 # merges onto ushist_q
-ushist_q <- merge(ushist_q, real)
+ushist_q <- merge(temp_usmac, str_q)
 
-autoplot(window(ushist_q$upaus_adr, start="2000-01-01", end="2014-10-01"))
-autoplot(window(ushist_q$upaus_adr_sa, start="2000-01-01", end="2014-10-01"))
-autoplot(window(ushist_q$upaus_adr_sarpc, start="2000-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$upausxxx_adr, start="2000-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$upausxxx_adr_sa, start="2000-01-01", end="2014-10-01"))
+autoplot(window(ushist_q$upausxxx_adr_sar, start="2000-01-01", end="2014-10-01"))
 
 ushist_q_df <- ushist_q %>%
   data.frame(date=time(.), .)
@@ -145,26 +183,27 @@ ushist_q_df <- ushist_q %>%
 
 # simple graph
 grapht <- ushist_q_df %>%
-  select(date, upaus_adr, upaus_adr_sa, upaus_adr_sarpc) %>%
+  select(date, upausxxx_adr, upausxxx_adr_sa, upausxxx_adr_sar) %>%
   read.zoo() %>%
   xts() %>%
   window(.,start="2000-01-01", end="2015-10-01")
 autoplot(grapht, facets = NULL)
 
 # simple graph with variables for selected geo
-segment <- c("upanyc")
+segment <- c("upanwyny")
 var1 <- paste0(segment,"_adr")
 var2 <- paste0(segment,"_adr_sa")
-var3 <- paste0(segment,"_adr_sarpc")
+var3 <- paste0(segment,"_adr_sar")
 
+colnames(ushist_q)
 grapht <- ushist_q_df %>%
   select(date, get(var1), get(var2), get(var3)) %>%
   read.zoo() %>%
   xts() %>%
   window(.,start="2000-01-01", end="2015-10-01")
 autoplot(grapht, facets = NULL)
-
 ```
+
 
 Looking at what's in quarterly databank
 ```{r look_q}
@@ -175,7 +214,7 @@ a
 a <- gsub(pattern="_demt",replacement="",a)
 a
 
-b <- grep(pattern="totus_", colnames(ushist_q), value=TRUE)
+b <- grep(pattern="totusxxx_", colnames(ushist_q), value=TRUE)
 b
 
 c <- colnames(ushist_q)
@@ -289,6 +328,7 @@ tb2 <- data.frame(date=time(suma), suma)%>%
 a <- tb2$segvar
 b <- unique(a)
 b
+
 # takes it from a tidy format and melts it, and then creates the unique
 # variable names and then reads into a zoo object spliting on the 
 # second column
@@ -298,15 +338,27 @@ a$seg <- NULL
 ushist_a <- xts(read.zoo(a, split = 2))
 
 # looking at a few graphs
-autoplot(ushist_a$luxus_revpar)
-autoplot(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2014-01-01")))
+autoplot(ushist_a$luxusxxx_revpar)
+autoplot(window(ushist_a$totusxxx_occ, start=as.Date("1987-01-01"), end=as.Date("2015-01-01")))
 ```
 
 Creating monthly historical databank
 ```{r create_m}
 # not that much that needs to be done
-ushist_m <- out_str_us_host_m
-#ushist_m <- merge(ushist_m)
+temp_str_m1 <- temp_str_m %>%
+  mutate(seg = paste0(seg, area_sh)) %>%
+  # drop country because I don't think it is needed anymore
+  select(-country, -area_sh) %>%
+  gather(variable, value, -seg, -date) %>%
+  mutate(segvar = paste(seg, variable, sep="_")) %>%
+  select(-seg, -variable) %>%
+  spread(segvar, value)
+
+# to remove columns that are all NA and read back to xts
+ushist_m <- temp_str_m1[,colSums(is.na(temp_str_m1))<nrow(temp_str_m1)] %>%
+ read.zoo() %>%
+ xts()
+
 ```
 
 
@@ -314,17 +366,10 @@ ushist_m <- out_str_us_host_m
 ushist_host_q <- ushist_q
 ushist_host_m <- ushist_m
 ushist_host_a <- ushist_a
-
-# just to look at
-# a <- ushist_host_q %>%
-#   data.frame(date=time(.), .) %>%
-#   select(date, contains("upsus"))
  
 c <- colnames(ushist_host_q)
 c
 ```
-
-
 
 Writing outputs
 ```{r write_output, echo=FALSE}

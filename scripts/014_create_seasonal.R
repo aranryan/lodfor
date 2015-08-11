@@ -109,11 +109,10 @@ str_us_host_q <- select(str_us_host_q,
                 starts_with("upa"), 
                 starts_with("totus"))
 
-a <- c("upacal_supd|upacho_sup|") 
-b <- c("upalos_supd|upamxc_supd|upammp_supd|")
-c <- c("upapho_supd|upasea_supd|")
-d <- c("upator_supd|upavnc_supd|upaslc_supd")
-dont_q_cols <- paste0(a, b, c, d)
+a <- c("upa_calcn_can_supd|upa_mmptn_usa_supd|upa_mxcmx_mex_supd|") 
+b <- c("upa_slcut_usa_supd|upa_sttwa_usa_supd|upa_torcn_can_supd|")
+c <- c("upa_vnccn_can_supd")
+dont_q_cols <- paste0(a, b, c)
 
 # creates seasonal factors and saves as Rdata files
 # monthly

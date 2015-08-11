@@ -65,8 +65,10 @@ temp <- oe_usmac_q %>%
          us_usrecq,
          can_gdp,
          can_cpi,
+         can_pc,
          mex_gdp,
-         mex_cpi
+         mex_cpi,
+         mex_pc
          ) %>%
   read.zoo %>%
   as.xts

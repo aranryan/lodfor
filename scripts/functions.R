@@ -422,7 +422,15 @@ load_str <- function(load_m){
     # in the following the ^ means anything not in the list
     # with the list being all characters and numbers
     # so it separates segvar into two colums using sep
-    separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+    
+    # in August 2015 I changed the following line to the one below it
+    # which separates based on the last occurance of an underscore
+    # I changed as part of the host data, in which I had a few underscores in my
+    # series name and wanted to split on the last one, I hope this works generally
+    # also changed quarterly below
+    # separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+    separate(segvar, c("seg", "variable"), sep = "_(?!.*_)", extra="merge") %>%
+     
     # keeps seg as a column and spreads variable into multiple columns containing
     # the values
     spread(variable,value) %>%
@@ -522,10 +530,15 @@ load_str <- function(load_m){
     # creates column called segvar that contains the column names, and one next to 
     # it with the values, dropping the time column
     gather(segvar, value, -date, na.rm = FALSE) %>%
-    # in the following the ^ means anything not in the list
-    # with the list being all characters and numbers
-    # so it separates segvar into two colums using sep
-    separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+    
+    # in August 2015 I changed the following line to the one below it
+    # which separates based on the last occurance of an underscore
+    # I changed as part of the host data, in which I had a few underscores in my
+    # series name and wanted to split on the last one, I hope this works generally
+    # also changed quarterly below
+    # separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
+    separate(segvar, c("seg", "variable"), sep = "_(?!.*_)", extra="merge") %>%
+
     # keeps seg as a column and spreads variable into multiple columns containing
     # the values
     spread(variable,value) %>%
@@ -655,6 +668,40 @@ create_sa_str_q <- function(str_q){
   return(str_q)
 }
 
+
+######
+#
+# my thought process on this function had originally been that 
+# it would start with a dataframe that had a single underscore
+# between the segment code and the variable code. So all segment
+# and geographic info would be in the segment code. But then I got 
+# into the Host work, and realized that it was potentially useful 
+# to have additional segment, geography, country information 
+# in the mneomonic, separated by underscores. But I couldn't 
+# figure out how to write a regular express than would just
+# break of the lodging variable concept. What I could do was
+# break up the other stuff until I was left with the lodging concept. 
+# But that pointed to the idea of staying flexible on the set up 
+# of the dataframe going into this function. So it is more generalized.
+# Also, I realized that the monthly and quarterly were doing the same
+# thing, so I combined them. I left the monthly and quarterly ones
+# there, but I could get rid of them once I bring the US lodfor 
+# process onto the same footing.
+
+create_sa_str <- function(df){
+  
+  # create either monthly or quarterly sa from seasonal factors
+  # requires as an input a dataframe with lodging variables separate
+  # any number of geographic or segment columns is fine
+  df <- df %>% 
+    mutate(occ_sa = occ / occ_sf) %>%
+    mutate(revpar_sa = revpar / revpar_sf) %>%
+    mutate(adr_sa = adr / adr_sf) %>%
+    mutate(demd_sa = demd / demd_sf) %>%
+    mutate(supd_sa = supd / supd_sf) %>%
+    mutate(demar_sa = demd_sa * 365) # creates demand at an annual rate
+  return(df)
+}
 
 
 #######
