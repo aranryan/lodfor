@@ -9,14 +9,6 @@ load("output_data/recession_df_m.Rdata")
 load("output_data/ushist_host_q.Rdata")
 load("output_data/ushist_host_m.Rdata")
 
-colcl <- c(rep("character", 4))
-host_str_simp <- read.csv("input_data/host_str_simp.csv", colClasses=colcl)
-
-# imports list of MSAs based on Census and corresponding BLS codes
-colc <- rep("character", 10)
-m_cen_blsces <- read.csv("input_data/m_cen_blsces.csv", head=TRUE, colClasses=colc) 
-str(m_cen_blsces)
-
 # list of geos that we want to be sure to cover, even if with NAs
 geo_for_eviews <- read.table("input_data/geo_for_eviews_list.txt", header=FALSE, stringsAsFactors=FALSE)
 names(geo_for_eviews) <- c("area_sh")
