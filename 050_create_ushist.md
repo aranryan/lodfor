@@ -68,8 +68,10 @@ temp <- oe_usmac_q %>%
          us_usrecq,
          can_gdp,
          can_cpi,
+         can_pc,
          mex_gdp,
-         mex_cpi
+         mex_cpi,
+         mex_pc
          ) %>%
   read.zoo %>%
   as.xts
@@ -91,13 +93,13 @@ head(temp)
 ## 1980-10-01 7.40000 1669.35 45.547 1167.01   10326.60   58.775 85.5667
 ## 1981-01-01 7.43333 1677.95 46.675 1163.91   10522.40   61.100 87.9333
 ## 1981-04-01 7.40000 1687.60 47.454 1163.67   10786.30   60.200 89.7667
-##            us_usrecq can_gdp can_cpi mex_gdp  mex_cpi
-## 1980-01-01         0  191254 42.2796 1491.85 0.101089
-## 1980-04-01         1  190837 43.4352 1501.59 0.106925
-## 1980-07-01         1  190770 44.6358 1534.00 0.113918
-## 1980-10-01         0  192913 45.9055 1578.43 0.119657
-## 1981-01-01         0  197732 47.4281 1613.67 0.129351
-## 1981-04-01         0  199870 48.9277 1655.48 0.137261
+##            us_usrecq can_gdp can_cpi  can_pc mex_gdp  mex_cpi    mex_pc
+## 1980-01-01         0  191254 42.2796 40.5779 1491.85 0.101089 0.0871655
+## 1980-04-01         1  190837 43.4352 41.6744 1501.59 0.106925 0.0936000
+## 1980-07-01         1  190770 44.6358 42.8243 1534.00 0.113918 0.1038080
+## 1980-10-01         0  192913 45.9055 44.1510 1578.43 0.119657 0.1060430
+## 1981-01-01         0  197732 47.4281 45.5894 1613.67 0.129351 0.1115040
+## 1981-04-01         0  199870 48.9277 46.6863 1655.48 0.137261 0.1192640
 ```
 
 ```r
@@ -145,6 +147,7 @@ temp <- data.frame(date=time(ushist_q))
 real_df <- cbind(temp,real_df)
 real <- read.zoo(real_df)
 real <- xts(real)
+
 
 # renames series 
 tempnames <- names(real)
@@ -349,12 +352,12 @@ head(out_str_us_m$totus_supd) #monthly
 
 ```
 ##            totus_supd
-## 1987-01-01   2.865101
-## 1987-02-01   2.875134
-## 1987-03-01   2.894506
-## 1987-04-01   2.922419
-## 1987-05-01   2.968822
-## 1987-06-01   3.011714
+## 1987-01-01   2.864929
+## 1987-02-01   2.874962
+## 1987-03-01   2.894233
+## 1987-04-01   2.922380
+## 1987-05-01   2.968902
+## 1987-06-01   3.011908
 ```
 
 ```r
@@ -363,12 +366,12 @@ head(sup_qtr$totus_sups) # based on start of quarter
 
 ```
 ##            totus_sups
-## 1987-01-01   2.865101
-## 1987-04-01   2.922419
-## 1987-07-01   3.024173
-## 1987-10-01   3.038255
-## 1988-01-01   3.015697
-## 1988-04-01   3.065640
+## 1987-01-01   2.864929
+## 1987-04-01   2.922380
+## 1987-07-01   3.024367
+## 1987-10-01   3.038144
+## 1988-01-01   3.015525
+## 1988-04-01   3.065601
 ```
 
 ```r
@@ -377,12 +380,12 @@ head(sup_qtr$totus_supe) # based on start of quarter
 
 ```
 ##            totus_supe
-## 1987-01-01   2.922419
-## 1987-04-01   3.024173
-## 1987-07-01   3.038255
-## 1987-10-01   3.015697
-## 1988-01-01   3.065640
-## 1988-04-01   3.158598
+## 1987-01-01   2.922380
+## 1987-04-01   3.024367
+## 1987-07-01   3.038144
+## 1987-10-01   3.015525
+## 1988-01-01   3.065601
+## 1988-04-01   3.158674
 ```
 
 ```r
@@ -424,7 +427,7 @@ autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
 ```
 
 ```
-## Warning: Removed 3 rows containing missing values (geom_path).
+## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk add_opencl](figure/add_opencl-3.png) 
@@ -434,7 +437,7 @@ autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
 ```
 
 ```
-## Warning: Removed 3 rows containing missing values (geom_path).
+## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk add_opencl](figure/add_opencl-4.png) 
@@ -453,7 +456,7 @@ head(tempa_ts)
 ```
 
 ```
-## [1]  21252  41635 -17978 -48368  23456  41401
+## [1]  21385  41868 -18283 -48429  23589  41516
 ```
 
 ```r
@@ -471,8 +474,8 @@ head(tempa_ts)
 ```
 
 ```
-## [1]  0.007417540  0.014246759 -0.005944766 -0.015919664  0.007777970
-## [6]  0.013504847
+## [1]  0.007464408  0.014326679 -0.006045232 -0.015940324  0.007822518
+## [6]  0.013542532
 ```
 
 ```r
@@ -564,12 +567,12 @@ mp <- seas(y,
 
 ```
 ##            totus_schanger_sa totus_schanger_sf
-## 1987-01-01     -0.0008564807       0.008274020
-## 1987-04-01      0.0012888254       0.012957934
-## 1987-07-01     -0.0010908399      -0.004853926
-## 1987-10-01      0.0004962851      -0.016415950
-## 1988-01-01     -0.0005443572       0.008322327
-## 1988-04-01      0.0005928311       0.012912016
+## 1987-01-01     -0.0008312483       0.008295657
+## 1987-04-01      0.0012434297       0.013083249
+## 1987-07-01     -0.0010697339      -0.004975498
+## 1987-10-01      0.0005023047      -0.016442629
+## 1988-01-01     -0.0005299016       0.008352420
+## 1988-04-01      0.0005150884       0.013027444
 ```
 
 ```r
@@ -577,7 +580,7 @@ autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
 ```
 
 ```
-## Warning: Removed 3 rows containing missing values (geom_path).
+## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk add_opencl](figure/add_opencl-8.png) 
@@ -587,7 +590,7 @@ autoplot(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2015-1
 ```
 
 ```
-## Warning: Removed 3 rows containing missing values (geom_path).
+## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk add_opencl](figure/add_opencl-9.png) 
@@ -600,7 +603,7 @@ autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
 ```
 
 ```
-## Warning: Removed 3 rows containing missing values (geom_path).
+## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk add_opencl](figure/add_opencl-10.png) 

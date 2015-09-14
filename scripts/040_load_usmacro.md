@@ -29,7 +29,10 @@ end_date <- paste(end_year,"-10-01",sep="")
 
 
 ```r
-require("quantmod")
+if (!require(quantmod)) {
+  install.packages("quantmod")
+  require(quantmod)
+}
 
 fpath <- c("~/Project/R projects/lodfor/")
 
@@ -38,7 +41,7 @@ fpath <- c("~/Project/R projects/lodfor/")
 #load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
 
 
-fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_07_21.csv")
+fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_09_14.csv")
 # the check.names piece fixes the issueof the column names coming in with
 # quotes and spaces due to the Oxford file format that is visible when 
 # you open the csv file in notepad
@@ -57,8 +60,9 @@ colnames(temp)
 ## [16] "us_pop"     "us_popw"    "us_et"      "us_yhat"    "us_wc"     
 ## [21] "us_cpi"     "us_pc"      "us_pgdp"    "us_eci"     "us_pedy"   
 ## [26] "us_penwall" "us_cogtp"   "us_conw"    "us_up"      "mx_gdp"    
-## [31] "mx_cpi"     "ca_gdp"     "ca_cpi"     "us_gfnc"    "us_gf"     
-## [36] "wd_wpo_wti" "jp_rxd"     "wd_gdp"     "wd_gdpppp"  "wd_gdp$&"
+## [31] "mx_cpi"     "mx_pc"      "ca_gdp"     "ca_cpi"     "ca_pc"     
+## [36] "us_gfnc"    "us_gf"      "wd_wpo_wti" "jp_rxd"     "wd_gdp"    
+## [41] "wd_gdpppp"  "wd_gdp$&"
 ```
 
 ```r
@@ -109,29 +113,53 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 
 ```
 ##             us_gdp  us_gdp_cagr
-## 2013-01-01 3884.60  0.027407474
-## 2013-04-01 3901.65  0.017672430
-## 2013-07-01 3944.98  0.045167726
-## 2013-10-01 3979.05  0.034995264
-## 2014-01-01 3957.93 -0.021062759
-## 2014-04-01 4002.60  0.045914847
-## 2014-07-01 4051.40  0.049667452
-## 2014-10-01 4073.68  0.022179456
-## 2015-01-01 4071.93 -0.001717241
-## 2015-04-01 4097.37  0.025225782
-## 2015-07-01 4130.03  0.032267115
-## 2015-10-01 4159.87  0.029215243
+## 2013-01-01 3864.30  0.019094840
+## 2013-04-01 3875.05  0.011174020
+## 2013-07-01 3903.60  0.029797883
+## 2013-10-01 3940.38  0.038224294
+## 2014-01-01 3931.23 -0.009256141
+## 2014-04-01 3975.38  0.045684765
+## 2014-07-01 4017.20  0.042747656
+## 2014-10-01 4037.85  0.020720671
+## 2015-01-01 4044.32  0.006424773
+## 2015-04-01 4081.07  0.036845702
+## 2015-07-01 4101.48  0.020155127
+## 2015-10-01 4131.13  0.029231464
 ```
 
 ###Load FRED data
 
+```
+## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
+## extra): downloaded length 12534 != reported length 200
+```
+
+```
+## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
+## extra): downloaded length 5991 != reported length 200
+```
+
+```
+## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
+## extra): downloaded length 8958 != reported length 200
+```
+
+```
+## [1] "FEDFUNDS" "GDPPOT"   "USRECQ"
+```
+
+```
+## Warning: Removed 62 rows containing missing values (geom_path).
+```
+
+![](040_load_usmacro_files/figure-html/fred_data-1.png) 
 
 ###Writing out files
 
 ```r
 # writes csv versions of the output files
-write.zoo(oe_usmac_q, file="output_data/oe_usmac_q.csv", sep=",")
+write.zoo(oe_usmac_q, file="../output_data/oe_usmac_q.csv", sep=",")
 # saves Rdata versions of the output files
-save(oe_usmac_q, file="output_data/oe_usmac_q.Rdata")
+save(oe_usmac_q, file="../output_data/oe_usmac_q.Rdata")
 ```
 
