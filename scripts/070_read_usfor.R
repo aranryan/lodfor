@@ -8,7 +8,7 @@
 # tempa <- readWorksheet(wb, sheet="Sheet1", startRow=1, endRow=100, startCol=1, 
 #                        endCol=200, header = TRUE)
 
-forwb <- c(paste("~/Project/lodging forecast/STR - Aug 2015/working/", "output_q_STR_2015Augv11", ".xlsx", sep=""))
+forwb <- c(paste("~/Project/lodging forecast/STR - Aug 2015/working/", "output_q_STR_2015Augv12", ".xlsx", sep=""))
 
 tempb <- read_excel(forwb, sheet=1, col_names=TRUE, skip=0)
 names(tempb)[1] <- "date"

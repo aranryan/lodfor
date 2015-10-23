@@ -19,8 +19,8 @@ Insert date
 
 
 ```
-## An 'xts' object on 2005-01-01/2018-10-01 containing:
-##   Data: num [1:56, 1:150] 6.95 6.99 7.04 7.03 7.21 ...
+## An 'xts' object on 2005-01-01/2019-10-01 containing:
+##   Data: num [1:60, 1:150] 6.95 6.99 7.04 7.03 7.21 ...
 ##  - attr(*, "dimnames")=List of 2
 ##   ..$ : NULL
 ##   ..$ : chr [1:150] "luxus_supt" "luxus_demt" "luxus_occ" "luxus_adr" ...
@@ -59,7 +59,7 @@ Insert date
 
 ```
 ##  (Intercept)         date 
-## 3.425394e+00 8.289147e-05
+## 3.426536e+00 8.281937e-05
 ```
 
 <img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_fcst-1.png" title="" alt="" width="9in" height="5.7in" />
@@ -69,10 +69,10 @@ Insert date
 
 ```
 ##  (Intercept)         date 
-## 1.248866e+00 1.977929e-05
+## 1.249153e+00 1.976064e-05
 ```
 
-<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-1.png" title="" alt="" width="9in" height="5.7in" />
+<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-2.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Demand, ratio to employment 
@@ -176,3 +176,10 @@ Insert date
 
 ## ADR, real short-term
 <img src="../output_data/figure_us_overview_graphs/fig-upu_adr_real_st-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-upu_adr_real_st-2.png" title="" alt="" width="9in" height="5.7in" />
+
+## ADR, real short-term
+<img src="../output_data/figure_us_overview_graphs/fig-us_adr_real_st-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-us_adr_real_st-2.png" title="" alt="" width="9in" height="5.7in" />
+
+
+## ADR, real short-term
+<img src="../output_data/figure_us_overview_graphs/fig-upm_adr_real_st-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-upm_adr_real_st-2.png" title="" alt="" width="9in" height="5.7in" />

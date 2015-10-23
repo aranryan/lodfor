@@ -975,7 +975,7 @@ plot_title_3=function(plot, grtitle, footnote){
 # this is because I've used ggplot_gtable, and so the pieces aren't ggplot plot
 # elements, and that's what's expected in ggsave. Based on:
 #http://stackoverflow.com/questions/18406991/saving-a-graph-with-ggsave-after-using-ggplot-build-and-ggplot-gtable
-ggsave <- ggplot2::ggsave; body(ggsave) <- body(ggplot2::ggsave)[-2]
+#ggsave <- ggplot2::ggsave; body(ggsave) <- body(ggplot2::ggsave)[-2]
 plot_title_two1=function(p1, p2, grtitle, footnote, filename){
   gp1<- ggplot_gtable(ggplot_build(p1))
   gp2<- ggplot_gtable(ggplot_build(p2))

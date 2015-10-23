@@ -1,36 +1,13 @@
 
 
-
-
-
-
-if (!require(directlabels)) {
-  install.packages("directlabels")
-  require(directlabels)
-}
-
-if (!require(gridExtra)) {
-  install.packages("gridExtra")
-  require(gridExtra)
-}
-
-if (!require(gtable)) {
-  install.packages("gtable")
-  require(gtable)
-}
-
-if (!require(Cairo)) {
-  install.packages("Cairo")
-  require(Cairo)
-}
-
-if (!require(RColorBrewer)) {
-  install.packages("RColorBrewer")
-  require(RColorBrewer)
-}
-
+require(directlabels)
+require(gridExtra)
+require(gtable)
+require(Cairo)
+require(RColorBrewer)
 require(rmarkdown)
 require(knitr)
+require(ggplot2)
 
 # install.packages("extrafont")
 # library(extrafont)
@@ -52,7 +29,6 @@ ushist_q_m <- ushist_q %>%
   data.frame(date=index(.), .) %>%
   melt(id.vars = c("date"))
 
-
 #Displays palette and sets the ts1 theme
 
 #display.brewer.pal(10, "RdBu")
@@ -62,7 +38,7 @@ colors_ts1 <- scale_colour_manual(values = mypallete[c(10, 1, 5, 4)])
 # interpolate additional palette colors
 #mypal <- colorRampPalette( brewer.pal( 10 , "RdBu" ) )
 theme_ts1 <- function (base_size = 12, base_family = "Arial") {
-  theme_classic(base_size = base_size, base_family = base_family) %+replace%
+  theme_classic(base_size = base_size) %+replace%
     theme(                                 
       panel.grid.major.x=element_blank(),
       panel.grid.minor.x=element_blank(),
@@ -113,8 +89,17 @@ temp <- ushist_q_m %>%
 p1 <- ggplot(temp, aes(x = date, y=value)) +
   ggtitle(variable_text) +
   scale_y_continuous(labels=percent) +
-  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], color=mypallete[10:10], size=.6, linetype = "99")
+  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], color=mypallete[10:10], size=.6, linetype = 1)
 CairoPNG("output_data/figure_us_overview_graphs/fig-testR400dpi-occupancy_forecast.png", units="in", width=9, height=5.7, dpi=400)
 #CairoPDF("output_data/figure_us_overview_graphs/fig-testR400dpi-occupancy_forecast.pdf", width=9, height=5.7)
 plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
 dev.off()
+
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+p1 <- ggplot(temp, aes(x = date, y=value)) +
+  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], size=.6, linetype = 1)
+p1
+ggsave("output_data/figure_us_overview_graphs/fig-test_ggsave_1_R400dpi-occupancy_forecast.png", dpi=600)
+
+
+
