@@ -10,3 +10,4 @@ I added this file after seeing Hadley's suggestion to do this in an R markdown c
 ```{r, results ="asis", echo = FALSE}
 fig_files <- dir(pattern = "png$") 
 cat(paste0("* ", fig_files, " ![](", fig_files, ")\n"))
+```
