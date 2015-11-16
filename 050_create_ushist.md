@@ -94,12 +94,12 @@ head(temp)
 ## 1981-01-01 7.43333 1675.55 46.675 1163.91   10522.40   61.100 87.9333
 ## 1981-04-01 7.40000 1685.22 47.454 1163.67   10786.30   60.200 89.7667
 ##            us_usrecq can_gdp can_cpi  can_pc mex_gdp  mex_cpi    mex_pc
-## 1980-01-01         0  191254 42.2796 40.5779 1491.85 0.101089 0.0871655
-## 1980-04-01         1  190837 43.4352 41.6744 1501.59 0.106925 0.0936000
-## 1980-07-01         1  190770 44.6358 42.8243 1534.00 0.113918 0.1038080
-## 1980-10-01         0  192913 45.9055 44.1510 1578.43 0.119657 0.1060430
-## 1981-01-01         0  197732 47.4281 45.5894 1613.67 0.129351 0.1115040
-## 1981-04-01         0  199870 48.9277 46.6863 1655.48 0.137261 0.1192640
+## 1980-01-01         0  191254 42.2796 40.5779 1491.85 0.101089 0.0871625
+## 1980-04-01         1  190837 43.4352 41.6744 1501.59 0.106925 0.0935967
+## 1980-07-01         1  190770 44.6358 42.8243 1534.00 0.113918 0.1038040
+## 1980-10-01         0  192913 45.9055 44.1510 1578.43 0.119657 0.1060400
+## 1981-01-01         0  197732 47.4281 45.5894 1613.67 0.129351 0.1115000
+## 1981-04-01         0  199870 48.9277 46.6863 1655.48 0.137261 0.1192600
 ```
 
 ```r
@@ -231,18 +231,10 @@ rm(tempnames)
 autoplot(window(real$luxus_adr_sarpc, start="2000-01-01", end="2015-10-01"))
 ```
 
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
-```
-
 ![plot of chunk create_q](figure/create_q-2.png) 
 
 ```r
 autoplot(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2015-10-01"))
-```
-
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk create_q](figure/create_q-3.png) 
@@ -251,10 +243,6 @@ autoplot(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2015-10-01"))
 # merges onto ushist_q
 ushist_q <- merge(ushist_q, real)
 autoplot(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2015-10-01"))
-```
-
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk create_q](figure/create_q-4.png) 
@@ -267,18 +255,10 @@ ushist_q <- merge(ushist_q, out_str_ihg_mex_q,out_str_ihg_can_q)
 autoplot(window(ushist_q$totcan_adr_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
-```
-
 ![plot of chunk add_ihg_mex_can](figure/add_ihg_mex_can-1.png) 
 
 ```r
 autoplot(window(ushist_q$totcan_demd_sa, start="2000-01-01", end="2015-10-01"))
-```
-
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk add_ihg_mex_can](figure/add_ihg_mex_can-2.png) 
@@ -315,12 +295,12 @@ head(temp_opcl)
 
 ```
 ##            totus_oprms_sa totus_oprms_sf totus_oprms totus_clrms
-## 1987-01-01       45349.99      0.8053805       36524         458
-## 1987-04-01       39252.33      1.5351955       60260         141
-## 1987-07-01       36735.08      0.8727354       32060           0
-## 1987-10-01       32569.07      0.8032160       26160         350
-## 1988-01-01       31440.52      0.8476960       26652         165
-## 1988-04-01       35705.76      1.4716953       52548         991
+## 1987-01-01       45320.90      0.8058974       36524         458
+## 1987-04-01       39278.62      1.5350337       60294         141
+## 1987-07-01       36741.11      0.8725920       32060           0
+## 1987-10-01       32573.97      0.8030952       26160         350
+## 1988-01-01       31412.32      0.8484570       26652         165
+## 1988-04-01       35668.41      1.4711899       52475         991
 ```
 
 ```r
@@ -352,12 +332,12 @@ head(out_str_us_m$totus_supd) #monthly
 
 ```
 ##            totus_supd
-## 1987-01-01   2.864929
-## 1987-02-01   2.874962
-## 1987-03-01   2.894233
-## 1987-04-01   2.922380
-## 1987-05-01   2.968902
-## 1987-06-01   3.011908
+## 1987-01-01   2.865629
+## 1987-02-01   2.875662
+## 1987-03-01   2.894873
+## 1987-04-01   2.922997
+## 1987-05-01   2.969414
+## 1987-06-01   3.012617
 ```
 
 ```r
@@ -366,12 +346,12 @@ head(sup_qtr$totus_sups) # based on start of quarter
 
 ```
 ##            totus_sups
-## 1987-01-01   2.864929
-## 1987-04-01   2.922380
-## 1987-07-01   3.024367
-## 1987-10-01   3.038144
-## 1988-01-01   3.015525
-## 1988-04-01   3.065601
+## 1987-01-01   2.865629
+## 1987-04-01   2.922997
+## 1987-07-01   3.025076
+## 1987-10-01   3.038790
+## 1988-01-01   3.016259
+## 1988-04-01   3.066252
 ```
 
 ```r
@@ -380,12 +360,12 @@ head(sup_qtr$totus_supe) # based on start of quarter
 
 ```
 ##            totus_supe
-## 1987-01-01   2.922380
-## 1987-04-01   3.024367
-## 1987-07-01   3.038144
-## 1987-10-01   3.015525
-## 1988-01-01   3.065601
-## 1988-04-01   3.158674
+## 1987-01-01   2.922997
+## 1987-04-01   3.025076
+## 1987-07-01   3.038790
+## 1987-10-01   3.016259
+## 1988-01-01   3.066252
+## 1988-04-01   3.159428
 ```
 
 ```r
@@ -406,18 +386,10 @@ ushist_q <- data.frame(date=time(ushist_q), ushist_q) %>%
 autoplot(window(ushist_q$totus_oprms, start="1995-01-01", end="2015-10-01"))
 ```
 
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
-```
-
 ![plot of chunk add_opencl](figure/add_opencl-1.png) 
 
 ```r
 autoplot(window(ushist_q$totus_clrms, start="1995-01-01", end="2015-10-01"))
-```
-
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk add_opencl](figure/add_opencl-2.png) 
@@ -426,18 +398,10 @@ autoplot(window(ushist_q$totus_clrms, start="1995-01-01", end="2015-10-01"))
 autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
 ```
 
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
-```
-
 ![plot of chunk add_opencl](figure/add_opencl-3.png) 
 
 ```r
 autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
-```
-
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk add_opencl](figure/add_opencl-4.png) 
@@ -456,7 +420,7 @@ head(tempa_ts)
 ```
 
 ```
-## [1]  21385  41868 -18283 -48429  23589  41516
+## [1]  21302  41926 -18346 -48341  23506  41692
 ```
 
 ```r
@@ -474,8 +438,8 @@ head(tempa_ts)
 ```
 
 ```
-## [1]  0.007464408  0.014326679 -0.006045232 -0.015940324  0.007822518
-## [6]  0.013542532
+## [1]  0.007433621  0.014343497 -0.006064641 -0.015907977  0.007793097
+## [6]  0.013597056
 ```
 
 ```r
@@ -567,30 +531,22 @@ mp <- seas(y,
 
 ```
 ##            totus_schanger_sa totus_schanger_sf
-## 1987-01-01     -0.0008312483       0.008295657
-## 1987-04-01      0.0012434297       0.013083249
-## 1987-07-01     -0.0010697339      -0.004975498
-## 1987-10-01      0.0005023047      -0.016442629
-## 1988-01-01     -0.0005299016       0.008352420
-## 1988-04-01      0.0005150884       0.013027444
+## 1987-01-01     -0.0008238177       0.008257439
+## 1987-04-01      0.0012129268       0.013130571
+## 1987-07-01     -0.0010450623      -0.005019579
+## 1987-10-01      0.0005010228      -0.016408999
+## 1988-01-01     -0.0005217302       0.008314828
+## 1988-04-01      0.0005231488       0.013073907
 ```
 
 ```r
 autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
 ```
 
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
-```
-
 ![plot of chunk add_opencl](figure/add_opencl-8.png) 
 
 ```r
 autoplot(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2015-10-01"))
-```
-
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk add_opencl](figure/add_opencl-9.png) 
@@ -600,10 +556,6 @@ autoplot(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2015-1
 ushist_q <- merge(ushist_q, temp_schanger)
 
 autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
-```
-
-```
-## Warning: Removed 2 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk add_opencl](figure/add_opencl-10.png) 
@@ -782,28 +734,16 @@ ushist_a <- xts(read.zoo(a, split = 2))
 autoplot(ushist_a$totus_schange)
 ```
 
-```
-## Warning: Removed 22 rows containing missing values (geom_path).
-```
-
 ![plot of chunk create_a](figure/create_a-1.png) 
 
 ```r
 autoplot(ushist_a$luxus_revpar)
 ```
 
-```
-## Warning: Removed 22 rows containing missing values (geom_path).
-```
-
 ![plot of chunk create_a](figure/create_a-2.png) 
 
 ```r
 autoplot(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2015-10-01")))
-```
-
-```
-## Warning: Removed 1 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk create_a](figure/create_a-3.png) 

@@ -18,7 +18,7 @@ if (!require(seasonal)) {
   install.packages("seasonal")
   require(seasonal)
 }
-Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
+Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
 #checkX13()
 require("forecast")
 require("car")
@@ -117,6 +117,8 @@ seasonal_ad <- function (x,
                  monthly=12,
                  quarterly=4,
                  yearly=1)
+  
+
   plt_start <- as.POSIXlt(start(x))
   start <- c(plt_start$year+1900,plt_start$mon+1)
   print(start)
@@ -130,7 +132,7 @@ seasonal_ad <- function (x,
   # seas. This is a temporary fix. Long term I should figure out how to handle
   # so that I'm not defining a global object from within the function, but 
   # should be fine for now.
-  temp_seasonal_a <<- ts(as.numeric(x), start=start, frequency=freq)
+   temp_seasonal_a <<- ts(as.numeric(x), start=start, frequency=freq)
   
   print(head(temp_seasonal_a))
   print(str(temp_seasonal_a))

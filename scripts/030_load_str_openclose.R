@@ -3,8 +3,8 @@
 # I used it because I found a way to use that format in reading the data
 # would have liked to avoid it, as I later conver it with as.Date
 f <- function(x) as.yearmon(format(x, nsmall = 2), "%Y%m")
-fname_opens <- c("input_data/coopopen2015-08-18.txt")
-fname_closes <- c("input_data/coopclose2015-08-18.txt")
+fname_opens <- c("input_data/coopopen2015-10-19.txt")
+fname_closes <- c("input_data/coopclose2015-10-19.txt")
 
 # handles opens
 
@@ -187,6 +187,41 @@ for(n in seriesl_m){
 }
 temp_out_m$dummy <- NULL
 out_opcl_m <- merge(temp_out_m,out_opcl_m)
+
+
+# a <- out_opcl_m$totus_oprms
+# 
+# y <- a %>%
+#   convertIndex("yearmon")
+# temp_seasonal_a <- ts(y, start = start(y), end = end(y), frequency = 12)
+# 
+# 
+# temp_seasonal_a <<- ts(as.numeric(a), start=start, frequency=freq)
+# 
+# mp <- seas(temp_seasonal_a,
+#            transform.function = "log",
+#            regression.aictest = NULL,
+#            regression.variables = regressvar, #c("const", "easter[8]", "thank[3]"),
+#            identify.diff = c(0, 1),
+#            identify.sdiff = c(0, 1),
+#            forecast.maxlead = 30, # extends 30 quarters ahead
+#            x11.appendfcst = "yes", # appends the forecast of the seasonal factors
+#            dir = "output_data/" 
+# )
+# #inspect(mp)
+# # removes series that is no longer needed
+# # doesn't seem to work, maybe because I don't understand environments
+# # rm(temp_seasonal_a)
+# 
+# # grabs the seasonally adjusted series
+# tempdata_sa <- series(mp, "fct") # seasonally adjusted series
+# tempdata_sa <- series(mp, c("d11")) # seasonally adjusted series
+# tempdata_sf <- series(mp, c("d16")) # seasonal factors
+# tempdata_fct <- series(mp, "forecast.forecasts") # forecast of nonseasonally adjusted series
+# tempdata_irreg <- series(mp, c("d13")) # final irregular component
+
+
+
 
 #########
 #

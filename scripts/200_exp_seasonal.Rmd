@@ -1,0 +1,437 @@
+---
+title: "Untitled"
+author: "Tourism Economics"
+date: "November 12, 2015"
+output: html_document
+  
+---
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+require(directlabels)
+require(rmarkdown)
+require(knitr)
+require(RColorBrewer)
+require(gridExtra)
+require(gtable)
+require(Cairo)
+
+# If I put autodep=TRUE as an argument in the following then I get
+# some issues with the graphs, such as grey backgrounds and changes
+# in labeling. Maybe it somehow impacts the theme?
+#knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_us_overview_graphs/fig-', dev='CairoPNG', out.width='9in', out.height='5.7in', fig.width=9, fig.height=5.7, dpi=400)
+# tells it to keep going even if there is an error
+knitr::opts_chunk$set(error = TRUE)
+
+```
+
+
+```{r readchunk, echo=FALSE, message=FALSE, warning=FALSE}
+read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
+source('~/Project/R projects/lodfor/scripts/functions.R')
+
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+load("~/Project/R projects/lodfor/output_data/ushist_m.Rdata")
+```
+
+```{r define_theme, echo=FALSE, message=FALSE, warning=FALSE}
+#Displays palette and sets the ts1 theme
+
+#display.brewer.pal(10, "RdBu")
+mypallete <- brewer.pal( 10 , "RdBu" )
+colors_ts1 <- scale_colour_manual(values = mypallete[c(10, 1, 5, 4)])
+# I don't use the following, was an example I saw somewhere maybe as a way to 
+# interpolate additional palette colors
+#mypal <- colorRampPalette( brewer.pal( 10 , "RdBu" ) )
+theme_ts1 <- function(base_size = 12, base_family = "") {
+  theme_classic(base_size = base_size) %+replace%
+    theme(                                 
+      panel.grid.major.x=element_blank(),
+      panel.grid.minor.x=element_blank(),
+      panel.grid.minor.y=element_blank(),
+      axis.ticks.y=element_line(size=.2),
+      axis.ticks.x=element_line(size=.2),
+      panel.background=element_blank(),
+      legend.title=element_blank(),
+      legend.key=element_rect(fill="white", colour = "white"),
+      legend.key.size=unit(1, "cm"),
+      legend.text=element_text(size=rel(1)),
+      #legend.position = c(1, .1),
+      legend.justification = "right",
+      axis.line=element_line(size=.2),
+      axis.title.y=element_blank(),
+      axis.title.x=element_blank(),
+      axis.text=element_text(color="black",size=rel(.7)),
+      # following seems to adjust y-axis title
+      plot.title=element_text(size=base_size * .8, face="plain",hjust=0,vjust=1)
+    #theme(plot.title = element_text(lineheight=.8, face="bold"))
+    )
+}
+
+```
+
+```{r set_theme, echo=FALSE, message=FALSE, warning=FALSE}
+theme_set(theme_ts1())
+#this is also a useful theme to keep in mind
+#theme_classic()
+# this function gets the settings used by the current theme
+#theme_get()
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+temp_df <- ushist_m %>%
+  data.frame(date=time(.), .) %>%
+  select(date, totus_demd, totus_adr)
+
+x <- temp_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+head(x)
+
+temp_a <- as.ts(x, start = start(x), end = end(x))
+
+# runs seas worked across those series
+ll <- lapply(temp_a, function(e) try(seas(e, x11 = "")))
+# list failing models
+is.err <- sapply(ll, class) == "try-error"
+ll[is.err]
+# return final series of successful evaluations
+asa <- do.call(cbind, lapply(ll[!is.err], final))
+
+# convert to xts
+asa <- as.xts(asa)
+plot(asa$totus_demd)
+plot(x$totus_demd)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# adjusts the first series 
+m <- seas(temp_a[,1])
+summary(m)
+
+# this only adjusts the first series even though there are two
+m <- seas(temp_a)
+summary(m)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# adjusts the first series 
+m <- seas(temp_a[,1])
+summary(m)
+
+#final(m)
+plot(m)
+monthplot(m)
+#inspect(m)
+#out(m)
+static(m)
+#demo(seas)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+data(holiday)
+easter
+a <- genhol(easter, start = -10, end = 1, frequency = 4)
+
+
+```
+
+
+```{r}
+
+# sets up a single series to use for a few examples
+temp_df <- ushist_m %>%
+  data.frame(date=time(.), .) %>%
+  select(date, totus_demd)
+
+x <- temp_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+head(x)
+temp_ser <- as.ts(x, start = start(x), end = end(x))
+
+# uses default settings
+m1 <- seas(temp_ser)
+summary(m1)
+# this reports back the call
+#static(m1)
+
+m2 <- seas(x = temp_ser,
+     regression.variables = c("td", "easter[1]", "ls2001.Sep"), 
+     arima.model = "(1 1 0)(1 1 1)", 
+     regression.aictest = NULL, 
+    outlier = NULL, 
+    transform.function = "log")
+# the result is the same as the default call
+summary(m2)
+
+m3 <- seas(x = temp_ser,
+     regression.variables = c("td", "easter[1]"), 
+     regression.aictest = NULL, 
+     transform.function = "log")
+# the result is the same as the default call
+summary(m3)
+static(m3)
+
+```
+
+
+```{r}
+
+# shorten dates
+ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
+
+# sets up a single series to use for a few examples
+temp_df <- ushist_m_1 %>%
+  data.frame(date=time(.), .) %>%
+  select(date, totus_demd)
+
+x <- temp_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+head(x)
+temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
+
+# uses default settings
+m1 <- seas(temp_ser_ts)
+summary(m1)
+
+plot(m1)
+plot(final(m1))
+
+
+temp_sersa <- data_frame(
+   date = as.Date(time(temp_ser_ts)),
+   Original = temp_ser_ts,
+   SA = final(m1))
+
+
+a <- temp_sersa %>%
+   gather("variable", "value", -date) %>% 
+   mutate(variable = gsub("SA", "Seasonally adjusted by SEATS", variable)) %>%
+   ggplot(aes(x = date, y = value, colour = variable)) +
+   geom_line() +
+   labs(colour = "", x = "") +
+   scale_y_continuous("axis title", label = dollar) +
+   ggtitle("Title") +
+   theme(legend.position = "bottom")
+a
+
+```
+
+```{r}
+
+# shorten dates
+ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
+
+# sets up a single series to use for a few examples
+temp_df <- ushist_m_1 %>%
+  data.frame(date=time(.), .) %>%
+  select(date, totus_demd)
+
+x <- temp_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+x
+head(x)
+temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
+
+# uses default settings
+m1 <- seas(temp_ser_ts)
+m2 <- seas(temp_ser_ts,
+      regression.variables = c("tdnolpyear", "easter[1]", "labor[3]", "ls2001.Sep"),
+      regression.usertype = "holiday") 
+summary(m2)
+
+ea1 <- genhol(easter, start = -2, end = 0, frequency = 12)
+ea1 <- window(ea1, start=c(1987, 1), end=c(2018, 9)) 
+ea1
+
+# similar result as Easter, can get the same result if left -1 1
+m3 <- seas(x = temp_ser_ts,
+           regression.variables = c("tdnolpyear", "labor[3]", "ls2001.Sep"),
+           xreg = ea1, regression.usertype = "holiday",
+           regression.aictest = NULL)
+summary(m3)
+
+
+# The basic model used by X-13ARIMA-SEATS for Easter and Labor Day effects assumes that the level of activity changes on the w−th day before the holiday for a specified w, and remains at the new level until the day before the holiday
+summary(m1)
+summary(m2)
+
+
+plot(m1)
+plot(final(m1))
+
+
+temp_sersa <- data_frame(
+   date = as.Date(time(temp_ser_ts)),
+   #original = temp_ser_ts,
+   sa1 = final(m1),
+   sa2 = final(m3))
+
+temp <- temp_sersa %>%
+   gather("variable", "value", -date) %>% 
+   mutate(variable = gsub("SA", "Seasonally adjusted by SEATS", variable)) %>%
+   filter(date > "2012-01-01")
+p1 <- temp %>%
+   ggplot() +
+   geom_line(data = temp, aes(x = date, y = value, color=variable), size = .7) +
+   scale_color_manual(values = c(mypallete[3:3], "grey40")) +
+   labs(colour = "", x = "") +
+   scale_y_continuous("axis title") +
+   ggtitle("Title") +
+   theme(legend.position = "bottom")
+p1
+
+```
+
+
+
+```{r}
+# try setting up several user regression variables as part of a holiday group
+
+
+# shorten dates
+ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
+
+# sets up a single series to use for a few examples
+temp_df <- ushist_m_1 %>%
+  data.frame(date=time(.), .) %>%
+  select(date, totus_demd)
+
+x <- temp_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
+
+# create several labor day vector
+
+labor <-   as.Date(c("1931-04-05", "1987-03-27", "1991-04-16", "1996-04-01", "2018-04-21"))
+str(labor)
+str(easter)
+
+# days
+date <- seq(as.Date("1980-01-01"), as.Date("2030-01-01"), by = 1)
+df <- data.frame(date)
+library(lubridate)
+df1 <- df %>%
+  # uses wday from lubridate
+  mutate(wday = wday(date, label=TRUE)) %>%
+  # grepl returns a logical vector, here it's converted to numeric
+  mutate(satsun = as.numeric(grepl("Sat|Sun", wday))) %>%
+  # add columns of month day
+  mutate(month = months(date)) %>%
+  mutate(day = day(date)) %>%
+  # identify veterens day
+  mutate(vet = ifelse(month == "November" & day == 11, 1, 0)) %>%
+  #change values based on a elseif
+  mutate(vet_wkend = ifelse(vet == 1 & satsun == 1, 1, 0)) %>%
+  #summarise(sum(vet), sum(vet_wkend)) 
+  mutate(chr = ifelse(month == "December" & day == 25, 1, 0)) %>%
+  #change values based on a elseif
+  mutate(chr_wkend = ifelse(chr == 1 & satsun == 1, 1, 0)) %>%
+  # July 4
+  mutate(jlf = ifelse(month == "July" & day == 4, 1, 0)) %>%
+  #change values based on a elseif
+  mutate(jlf_wkend = ifelse(jlf == 1 & satsun == 1, 1, 0)) %>%
+  # Halloween
+  mutate(hlw = ifelse(month == "October" & day == 31, 1, 0)) %>%
+  #change values based on a elseif
+  mutate(hlw_wkend = ifelse(hlw == 1 & satsun == 1, 1, 0))
+
+# there are a few potential ways to proceed
+# create a vector of dates on which veterans day is on a weekend
+vet_wkend <- df1 %>%
+  filter(vet_wkend == 1)
+# use that vector to generate monthly holiday vector for seas
+# is a one in November when veterans day is on a weekend
+vet_wkend <- vet_wkend$date
+vet1 <- genhol(vet_wkend, start = 0, end = 0, frequency = 12)
+vet1 <- window(vet1, start=c(1987, 1), end=c(2018, 9)) 
+
+chr_wkend <- df1 %>%
+  filter(chr_wkend == 1)
+chr_wkend <- chr_wkend$date
+chr1 <- genhol(chr_wkend, start = 0, end = 0, frequency = 12)
+chr1 <- window(chr1, start=c(1987, 1), end=c(2018, 9)) 
+
+jlf_wkend <- df1 %>%
+  filter(jlf_wkend == 1)
+jlf_wkend <- jlf_wkend$date
+jlf1 <- genhol(jlf_wkend, start = 0, end = 0, frequency = 12)
+jlf1 <- window(jlf1, start=c(1987, 1), end=c(2018, 9)) 
+
+hlw_wkend <- df1 %>%
+  filter(hlw_wkend == 1)
+hlw_wkend <- hlw_wkend$date
+hlw1 <- genhol(hlw_wkend, start = 0, end = 0, frequency = 12)
+hlw1 <- window(hlw1, start=c(1987, 1), end=c(2018, 9)) 
+
+data(holiday)
+ea1 <- genhol(easter, start = -2, end = 0, frequency = 12)
+ea1 <- window(ea1, start=c(1987, 1), end=c(2018, 9)) 
+
+# only a couple regressors
+m2 <- seas(x = temp_ser_ts,
+           regression.variables = c("tdnolpyear", "labor[3]", "ls2001.Sep"),
+           xreg = cbind(ea1), 
+           regression.usertype = c("holiday"),
+           regression.aictest = NULL)
+summary(m2)
+
+# with more regressors
+m3 <- seas(x = temp_ser_ts,
+           regression.variables = c("tdnolpyear", "labor[3]", "ls2001.Sep", "thank[3]"),
+           xreg = cbind(ea1, vet1, chr1, jlf1), 
+           regression.usertype = c("holiday", "holiday2", "holiday3", "holiday4"),
+           regression.aictest = NULL)
+summary(m3)
+
+
+# The basic model used by X-13ARIMA-SEATS for Easter and Labor Day effects assumes that the level of activity changes on the w−th day before the holiday for a specified w, and remains at the new level until the day before the holiday
+
+
+plot(m3)
+plot(final(m3))
+
+
+temp_sersa <- data_frame(
+   date = as.Date(time(temp_ser_ts)),
+   #original = temp_ser_ts,
+   sa1 = final(m2),
+   sa2 = final(m3))
+
+temp <- temp_sersa %>%
+   gather("variable", "value", -date) %>% 
+   mutate(variable = gsub("SA", "Seasonally adjusted by SEATS", variable)) %>%
+   filter(date > "2012-01-01")
+p1 <- temp %>%
+   ggplot() +
+   geom_line(data = temp, aes(x = date, y = value, color=variable), size = .7) +
+   scale_color_manual(values = c(mypallete[3:3], "grey40")) +
+   labs(colour = "", x = "") +
+   scale_y_continuous("axis title") +
+   ggtitle("Title") +
+   theme(legend.position = "bottom")
+p1
+
+```

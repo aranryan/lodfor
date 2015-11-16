@@ -3,16 +3,18 @@ library(reshape2)
 library(ggplot2)
 
 n <- "totus" # "washingtondc"
-m <- "schanger" # "occ", "adr", "revpar", "supd") 
+m <-  "demd" # "occ", "adr", "revpar", "supd", "schanger") 
+
+load("output_data/ushist_q.Rdata")
+
 
 temp <- ushist_q #out_str_m
 
 series <- temp[ , paste(n, "_", m, sep="")]
 series_sa <- temp[ , paste(n, "_", m,  "_sa", sep="")]
 series_sf <- temp[ , paste(n, "_", m, "_sf", sep="")]
-series_irreg <- temp[ , paste(n, "_", m, "_irreg", sep="")]
 
-plot(series_sa)
+autoplot(series_sa)
 
 names(series) <- c("series")
 names(series_sa) <- c("series_sa")

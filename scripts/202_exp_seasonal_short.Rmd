@@ -1,0 +1,285 @@
+---
+title: "Untitled"
+author: "Tourism Economics"
+date: "November 13, 2015"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+require(directlabels)
+require(rmarkdown)
+require(knitr)
+require(RColorBrewer)
+require(gridExtra)
+require(gtable)
+require(Cairo)
+
+# If I put autodep=TRUE as an argument in the following then I get
+# some issues with the graphs, such as grey backgrounds and changes
+# in labeling. Maybe it somehow impacts the theme?
+#knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_exp_seasonal_short/fig-',  fig.show='asis', fig.keep='high')
+# tells it to keep going even if there is an error
+knitr::opts_chunk$set(error = TRUE)
+
+```
+
+
+```{r readchunk, echo=FALSE, message=FALSE, warning=FALSE}
+read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
+source('~/Project/R projects/lodfor/scripts/functions.R')
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+load("~/Project/R projects/lodfor/output_data/ushist_m.Rdata")
+```
+
+```{r define_theme, echo=FALSE, message=FALSE, warning=FALSE}
+#Displays palette and sets the ts1 theme
+
+#display.brewer.pal(10, "RdBu")
+mypallete <- brewer.pal( 10 , "RdBu" )
+colors_ts1 <- scale_colour_manual(values = mypallete[c(10, 1, 5, 4)])
+# I don't use the following, was an example I saw somewhere maybe as a way to 
+# interpolate additional palette colors
+#mypal <- colorRampPalette( brewer.pal( 10 , "RdBu" ) )
+theme_ts1 <- function(base_size = 12, base_family = "") {
+  theme_classic(base_size = base_size) %+replace%
+    theme(                                 
+      panel.grid.major.x=element_blank(),
+      panel.grid.minor.x=element_blank(),
+      panel.grid.minor.y=element_blank(),
+      axis.ticks.y=element_line(size=.2),
+      axis.ticks.x=element_line(size=.2),
+      panel.background=element_blank(),
+      legend.title=element_blank(),
+      legend.key=element_rect(fill="white", colour = "white"),
+      legend.key.size=unit(1, "cm"),
+      legend.text=element_text(size=rel(1)),
+      #legend.position = c(1, .1),
+      legend.justification = "right",
+      axis.line=element_line(size=.2),
+      axis.title.y=element_blank(),
+      axis.title.x=element_blank(),
+      axis.text=element_text(color="black",size=rel(.7)),
+      # following seems to adjust y-axis title
+      plot.title=element_text(size=base_size * .8, face="plain",hjust=0,vjust=1)
+    #theme(plot.title = element_text(lineheight=.8, face="bold"))
+    )
+}
+
+```
+
+```{r set_theme, echo=FALSE, message=FALSE, warning=FALSE}
+theme_set(theme_ts1())
+#this is also a useful theme to keep in mind
+#theme_classic()
+# this function gets the settings used by the current theme
+#theme_get()
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# shorten dates
+ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
+
+# sets up a single series to use for a few examples
+temp_df <- ushist_m_1 %>%
+  data.frame(date=time(.), .) %>%
+  select(date, totus_demd)
+
+x <- temp_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+head(x)
+temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
+
+# uses default settings
+m1 <- seas(temp_ser_ts, 
+           forecast.maxlead = 30,# extends 30 quarters ahead
+           seats.appendfcst="yes") 
+summary(m1)
+
+
+m2 <- seas(x = temp_ser_ts,
+     regression.variables = c("td", "easter[1]", "ls2001.Sep"), 
+     arima.model = "(1 1 0)(1 1 1)", 
+     regression.aictest = NULL, 
+    outlier = NULL, 
+    transform.function = "log")
+# the result is the same as the default call
+summary(m2)
+
+```
+
+
+## fundamental identities of seasonal adjustment
+Y = T * I * (S * TD)
+all.equal(AirPassengers,  
+series(m, "seats.trend") *
+         series(m, "seats.irregular") * series(m, "seats.adjustfac"))
+
+
+Name   |   Small   | Description of table  
+-------|----------|------------------------------
+trend  |   s12    | final SEATS trend component  
+seasonal |  s10    | final SEATS seasonal component  
+irregular | s13   |  final SEATS irregular component  
+seasonaladj | s11 | final SEATS seasonal adjustment component   
+transitory | s14 | final SEATS transitory component   
+adjustfac | s16 | final SEATS combined adjustment factors  
+adjustmentratio | s18 | final SEATS adjustment ratio  
+trendfcstdecomp | tfd | forecast of the trend component  
+seasonalfcstdecomp |  sfd | forecast of the seasonal component  
+seriesfcstdecomp | ofd | forecast of the series component  
+seasonaladjfcstdecomp | afd | forecast of the final SEATS seasonal adjustment  
+transitoryfcstdecomp | yfd | forecast of the transitory component  
+seasadjconst |  sec | final SEATS seasonal adjustment with constant term included  
+trendconst | stc | final SEATS trend component with constant term included  
+totaladjustment | sta |total adjustment factors for SEATS seasonal adjustment  
+
+```{r}
+
+# temp_ser_fullout <- data_frame(
+#    date = as.Date(time(temp_ser_ts)),
+#    #original = temp_ser_ts,
+#    oa1 = original(m1),
+#    sa1 = final(m1),
+#    sa1_trend = series(m1, "s12"),
+#    sa1_seasonal = series(m1, "s10"),
+#    sa1_irregular = series(m1, "s13"),
+#    sa1_sf = series(m1, "s16")
+#    )
+
+# when I append the forecast, I think I end up with series of 
+# different lengths so rather than use the approach above, 
+# I had to switch to the approach below
+
+  tempdata_y <- as.xts(temp_ser_ts, start = start(x), end = end(x))
+  tempdata_oa1 <- as.xts(original(m1))
+  tempdata_sa1 <- as.xts(final(m1)) # seasonally adjusted series
+  tempdata_sa1_trend <- as.xts(series(m1, "s12"))
+  tempdata_sa1_seasonal = as.xts(series(m1, "s10"))
+  tempdata_sa1_irregular = as.xts(series(m1, "s13"))
+  tempdata_sa1_sf = as.xts(series(m1, "s16"))
+
+  # names the objects
+  names(tempdata_y) <- "y"
+  names(tempdata_oa1) <- "oa1"
+  names(tempdata_sa1) <- "sa1"
+  names(tempdata_sa1_trend) <- "sa1_trend" 
+  names(tempdata_sa1_seasonal) <- "sa1_seasonal" 
+  names(tempdata_sa1_irregular) <- "sa1_irregular"
+  names(tempdata_sa1_sf) <- "sa1_sf" 
+  
+  # merges the adjusted series onto the existing xts object with the unadjusted
+  # series
+  temp_ser_fullout <- merge(tempdata_y, tempdata_oa1, tempdata_sa1, 
+                            tempdata_sa1_trend, tempdata_sa1_seasonal,   
+                            tempdata_sa1_irregular, tempdata_sa1_sf) %>%
+      data.frame(date=as.Date(time(.)), ., row.names=NULL)
+
+temp_ser_fullout <- temp_ser_fullout %>%
+  mutate(oa1_a = sa1_trend * sa1_irregular *sa1_sf) %>%
+  mutate(oa1_b = sa1 * sa1_sf) 
+
+```
+
+code | description
+-----|----------------------
+oa1 | original series  
+sa1 | seasonally adjusted series  
+sa1_trend | trend component (s12)
+sa1_seasonal | seasonal component (s10)  
+sa1_irregular | irregular component (s13)  
+sa1_sf | final combined (seasonal/trading day/holiday) factors (s16)  
+oa1_a | original = trend * irregular * combined (seasonal/trading day/holiday) adjustment factors
+oa1_b | original = seasonally adjusted series * combined (seasonal/trading day/holiday) adjustment factors
+
+### Example calculations
+In this table we have two ways to get back to the original series.   
+* oa1_a = trend * irregular * combined (seasonal/trading day/holiday) adjustment factors or   
+* oa1_b = seasonally adjusted series * combined (seasonal/trading day/holiday) adjustment factors
+  
+
+```{r}
+
+a <- temp_ser_fullout %>%
+  filter(date > as.Date("1987-01-01") & date < as.Date("2015-09-01")) 
+
+kable(tail(a, n=12), digits = 4, row.names = FALSE)
+
+
+
+```
+
+## So which are the seasonal factors?
+
+It's sometimes hard to get a clear understanding from the documentation.  
+I've seen reference to the "combined" factors in the D16 (and presumably also s16) table as being the __combined__ (seasonal/trading day/holiday) factors. 
+
+There is also reference to a "total adjustment factors for SEATS seasonal adjustment".
+
+```{r}
+
+temp_ser_fullout <- data_frame(
+   date = as.Date(time(temp_ser_ts)),
+   #original = temp_ser_ts,
+   oa1 = original(m1),
+   sa1 = final(m1),
+   sa1_trend = series(m1, "s12"),
+   sa1_seasonal = series(m1, "s10"),
+   sa1_irregular = series(m1, "s13"),
+   sa1_sf = series(m1, "s16"),
+   sa1_total = series(m1, "sta")
+   )
+
+kable(tail(temp_ser_fullout, n=12), digits = 4)
+
+```
+
+
+
+```{r}
+
+# comparing two seasonal models
+
+temp_sersa <- data_frame(
+   date = as.Date(time(temp_ser_ts)),
+   #original = temp_ser_ts,
+   oa1 = original(m1),
+   sa1 = final(m1),
+   oa2 = original(m2),
+   sa2 = final(m2)
+   )
+```
+
+
+### graph title
+
+```{r}
+
+
+temp <- temp_sersa %>%
+  gather("variable", "value", -date) %>% 
+  mutate(variable = gsub("SA", "Seasonally adjusted by SEATS", variable)) %>%
+  filter(date > "2012-01-01") %>%
+  filter(variable %in% c("oa1", "sa1"))
+
+p1 <- temp %>%
+   ggplot()
+p1 <- p1 + geom_line(data = temp, aes(x = date, y = value, color=variable), size = .7) 
+p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey40"))
+p1 <- p1 + labs(colour = "", x = "")
+p1 <- p1 + scale_y_continuous("axis title")
+p1 <- p1 + ggtitle("Title")
+p1 <- p1 + theme(legend.position = "bottom")
+p1
+
+
+```
+

@@ -41,7 +41,7 @@ fpath <- c("~/Project/R projects/lodfor/")
 #load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
 
 
-fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_09_14.csv")
+fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_10_15.csv")
 # the check.names piece fixes the issueof the column names coming in with
 # quotes and spaces due to the Oxford file format that is visible when 
 # you open the csv file in notepad
@@ -122,16 +122,16 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ## 2014-07-01 4017.20  0.042747656
 ## 2014-10-01 4037.85  0.020720671
 ## 2015-01-01 4044.32  0.006424773
-## 2015-04-01 4081.07  0.036845702
-## 2015-07-01 4101.48  0.020155127
-## 2015-10-01 4131.13  0.029231464
+## 2015-04-01 4083.40  0.039215590
+## 2015-07-01 4099.66  0.016023293
+## 2015-10-01 4128.05  0.027988919
 ```
 
 ###Load FRED data
 
 ```
 ## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
-## extra): downloaded length 12551 != reported length 200
+## extra): downloaded length 12568 != reported length 200
 ```
 
 ```
@@ -146,10 +146,6 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 
 ```
 ## [1] "FEDFUNDS" "GDPPOT"   "USRECQ"
-```
-
-```
-## Warning: Removed 62 rows containing missing values (geom_path).
 ```
 
 ![](040_load_usmacro_files/figure-html/fred_data-1.png) 

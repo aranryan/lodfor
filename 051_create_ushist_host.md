@@ -110,12 +110,12 @@ head(temp_usmac)
 ## 1981-01-01 7.43333 1675.55 46.675 1163.91   10522.40   61.100 87.9333
 ## 1981-04-01 7.40000 1685.22 47.454 1163.67   10786.30   60.200 89.7667
 ##            us_usrecq can_gdp can_cpi  can_pc mex_gdp  mex_cpi    mex_pc
-## 1980-01-01         0  191254 42.2796 40.5779 1491.85 0.101089 0.0871655
-## 1980-04-01         1  190837 43.4352 41.6744 1501.59 0.106925 0.0936000
-## 1980-07-01         1  190770 44.6358 42.8243 1534.00 0.113918 0.1038080
-## 1980-10-01         0  192913 45.9055 44.1510 1578.43 0.119657 0.1060430
-## 1981-01-01         0  197732 47.4281 45.5894 1613.67 0.129351 0.1115040
-## 1981-04-01         0  199870 48.9277 46.6863 1655.48 0.137261 0.1192640
+## 1980-01-01         0  191254 42.2796 40.5779 1491.85 0.101089 0.0871625
+## 1980-04-01         1  190837 43.4352 41.6744 1501.59 0.106925 0.0935967
+## 1980-07-01         1  190770 44.6358 42.8243 1534.00 0.113918 0.1038040
+## 1980-10-01         0  192913 45.9055 44.1510 1578.43 0.119657 0.1060400
+## 1981-01-01         0  197732 47.4281 45.5894 1613.67 0.129351 0.1115000
+## 1981-04-01         0  199870 48.9277 46.6863 1655.48 0.137261 0.1192600
 ```
 
 ```r
@@ -258,10 +258,6 @@ grapht <- ushist_q_df %>%
   xts() %>%
   window(.,start="2000-01-01", end="2015-10-01")
 autoplot(grapht, facets = NULL)
-```
-
-```
-## Warning: Removed 6 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk calc_real](figure/calc_real-8.png) 
@@ -1203,10 +1199,6 @@ grapht <- ushist_q_df %>%
   xts() %>%
   window(.,start="2000-01-01", end="2015-10-01")
 autoplot(grapht, facets = NULL)
-```
-
-```
-## Warning: Removed 6 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk calc_real](figure/calc_real-9.png) 
@@ -2373,18 +2365,10 @@ ushist_a <- xts(read.zoo(a, split = 2))
 autoplot(ushist_a$luxusxxx_revpar)
 ```
 
-```
-## Warning: Removed 22 rows containing missing values (geom_path).
-```
-
 ![plot of chunk create_a](figure/create_a-1.png) 
 
 ```r
 autoplot(window(ushist_a$totusxxx_occ, start=as.Date("1987-01-01"), end=as.Date("2015-01-01")))
-```
-
-```
-## Warning: Removed 1 rows containing missing values (geom_path).
 ```
 
 ![plot of chunk create_a](figure/create_a-2.png) 
