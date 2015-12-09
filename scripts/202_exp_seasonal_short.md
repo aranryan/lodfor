@@ -27,7 +27,7 @@ November 13, 2015
 ```
 ## 
 ## Call:
-## seas(x = temp_ser_ts, forecast.save = "fct")
+## seas(x = temp_ser_ts, forecast.maxlead = 30, seats.appendfcst = "yes")
 ## 
 ## Coefficients:
 ##                     Estimate Std. Error z value Pr(>|z|)    
@@ -79,11 +79,11 @@ November 13, 2015
 ```
 
 
-## fundamental identities of seasonal adjustment
-Y = T * I * (S * TD)
-all.equal(AirPassengers,  
-series(m, "seats.trend") *
-         series(m, "seats.irregular") * series(m, "seats.adjustfac"))
+## Fundamental identities of seasonal adjustment
+### Y = T \* I \* (S \* TD)
+
+For example
+series(m, "seats.trend") \* series(m, "seats.irregular") \* series(m, "seats.adjustfac")
 
 
 Name   |   Small   | Description of table  
@@ -106,6 +106,8 @@ totaladjustment | sta |total adjustment factors for SEATS seasonal adjustment
 
 
 
+## Simple series codes for use in examples
+
 code | description
 -----|----------------------
 oa1 | original series  
@@ -114,30 +116,30 @@ sa1_trend | trend component (s12)
 sa1_seasonal | seasonal component (s10)  
 sa1_irregular | irregular component (s13)  
 sa1_sf | final combined (seasonal/trading day/holiday) factors (s16)  
-oa1_a | original = trend * irregular * combined (seasonal/trading day/holiday) adjustment factors
-oa1_b | original = seasonally adjusted series * combined (seasonal/trading day/holiday) adjustment factors
+oa1_a | original = trend \* irregular \* combined (seasonal/trading day/holiday) adjustment factors
+oa1_b | original = seasonally adjusted series \* combined (seasonal/trading day/holiday) adjustment factors
 
 ### Example calculations
 In this table we have two ways to get back to the original series.   
-* oa1_a = trend * irregular * combined (seasonal/trading day/holiday) adjustment factors or   
-* oa1_b = seasonally adjusted series * combined (seasonal/trading day/holiday) adjustment factors
+- oa1_a = trend \* irregular \* combined (seasonal/trading day/holiday) adjustment factors or   
+- oa1_b = seasonally adjusted series \* combined (seasonal/trading day/holiday) adjustment factors
   
 
 
-date             oa1      sa1   sa1_trend   sa1_seasonal   sa1_irregular   sa1_sf    oa1_a    oa1_b
------------  -------  -------  ----------  -------------  --------------  -------  -------  -------
-2014-10-01    3.3616   3.2023      3.2016         1.0455          1.0002   1.0498   3.3616   3.3616
-2014-11-01    2.8817   3.2070      3.2139         0.9007          0.9979   0.8986   2.8817   2.8817
-2014-12-01    2.5759   3.2399      3.2257         0.7965          1.0044   0.7951   2.5759   2.5759
-2015-01-01    2.6576   3.2365      3.2337         0.8148          1.0009   0.8211   2.6576   2.6576
-2015-02-01    3.0474   3.2406      3.2380         0.9488          1.0008   0.9404   3.0474   3.0474
-2015-03-01    3.2823   3.2377      3.2413         1.0192          0.9989   1.0138   3.2823   3.2823
-2015-04-01    3.3039   3.2458      3.2446         1.0210          1.0004   1.0179   3.3039   3.3039
-2015-05-01    3.3637   3.2463      3.2482         1.0336          0.9994   1.0362   3.3637   3.3637
-2015-06-01    3.6511   3.2511      3.2524         1.1249          0.9996   1.1230   3.6511   3.6511
-2015-07-01    3.7683   3.2603      3.2569         1.1511          1.0010   1.1558   3.7683   3.7683
-2015-08-01    3.5391   3.2450      3.2635         1.0976          0.9944   1.0906   3.5391   3.5391
-2015-09-01    3.4047   3.2858      3.2730         1.0339          1.0039   1.0362   3.4047   3.4047
+date               y      oa1      sa1   sa1_trend   sa1_seasonal   sa1_irregular   sa1_sf    oa1_a    oa1_b
+-----------  -------  -------  -------  ----------  -------------  --------------  -------  -------  -------
+2014-09-01    3.2561   3.2561   3.1770      3.1916         1.0266          0.9954   1.0249   3.2561   3.2561
+2014-10-01    3.3616   3.3616   3.2023      3.2016         1.0455          1.0002   1.0498   3.3616   3.3616
+2014-11-01    2.8817   2.8817   3.2070      3.2139         0.9007          0.9979   0.8986   2.8817   2.8817
+2014-12-01    2.5759   2.5759   3.2399      3.2257         0.7965          1.0044   0.7951   2.5759   2.5759
+2015-01-01    2.6576   2.6576   3.2365      3.2337         0.8148          1.0009   0.8211   2.6576   2.6576
+2015-02-01    3.0474   3.0474   3.2406      3.2380         0.9488          1.0008   0.9404   3.0474   3.0474
+2015-03-01    3.2823   3.2823   3.2377      3.2413         1.0192          0.9989   1.0138   3.2823   3.2823
+2015-04-01    3.3039   3.3039   3.2458      3.2446         1.0210          1.0004   1.0179   3.3039   3.3039
+2015-05-01    3.3637   3.3637   3.2463      3.2482         1.0336          0.9994   1.0362   3.3637   3.3637
+2015-06-01    3.6511   3.6511   3.2511      3.2524         1.1249          0.9996   1.1230   3.6511   3.6511
+2015-07-01    3.7683   3.7683   3.2603      3.2569         1.1511          1.0010   1.1558   3.7683   3.7683
+2015-08-01    3.5391   3.5391   3.2450      3.2635         1.0976          0.9944   1.0906   3.5391   3.5391
 
 ## So which are the seasonal factors?
 
@@ -147,20 +149,20 @@ I've seen reference to the "combined" factors in the D16 (and presumably also s1
 There is also reference to a "total adjustment factors for SEATS seasonal adjustment".
 
 
-date             oa1      sa1   sa1_trend   sa1_seasonal   sa1_irregular   sa1_sf   sa1_total
------------  -------  -------  ----------  -------------  --------------  -------  ----------
-2014-10-01    3.3616   3.2023      3.2016         1.0455          1.0002   1.0498      1.0498
-2014-11-01    2.8817   3.2070      3.2139         0.9007          0.9979   0.8986      0.8986
-2014-12-01    2.5759   3.2399      3.2257         0.7965          1.0044   0.7951      0.7951
-2015-01-01    2.6576   3.2365      3.2337         0.8148          1.0009   0.8211      0.8211
-2015-02-01    3.0474   3.2406      3.2380         0.9488          1.0008   0.9404      0.9404
-2015-03-01    3.2823   3.2377      3.2413         1.0192          0.9989   1.0138      1.0138
-2015-04-01    3.3039   3.2458      3.2446         1.0210          1.0004   1.0179      1.0179
-2015-05-01    3.3637   3.2463      3.2482         1.0336          0.9994   1.0362      1.0362
-2015-06-01    3.6511   3.2511      3.2524         1.1249          0.9996   1.1230      1.1230
-2015-07-01    3.7683   3.2603      3.2569         1.1511          1.0010   1.1558      1.1558
-2015-08-01    3.5391   3.2450      3.2635         1.0976          0.9944   1.0906      1.0906
-2015-09-01    3.4047   3.2858      3.2730         1.0339          1.0039   1.0362      1.0362
+date        original      oa1      sa1   sa1_trend   sa1_seasonal   sa1_irregular   sa1_sf   sa1_total
+---------  ---------  -------  -------  ----------  -------------  --------------  -------  ----------
+Sep 2014      3.2561   3.2561   3.1770      3.1916         1.0266          0.9954   1.0249      1.0249
+Oct 2014      3.3616   3.3616   3.2023      3.2016         1.0455          1.0002   1.0498      1.0498
+Nov 2014      2.8817   2.8817   3.2070      3.2139         0.9007          0.9979   0.8986      0.8986
+Dec 2014      2.5759   2.5759   3.2399      3.2257         0.7965          1.0044   0.7951      0.7951
+Jan 2015      2.6576   2.6576   3.2365      3.2337         0.8148          1.0009   0.8211      0.8211
+Feb 2015      3.0474   3.0474   3.2406      3.2380         0.9488          1.0008   0.9404      0.9404
+Mar 2015      3.2823   3.2823   3.2377      3.2413         1.0192          0.9989   1.0138      1.0138
+Apr 2015      3.3039   3.3039   3.2458      3.2446         1.0210          1.0004   1.0179      1.0179
+May 2015      3.3637   3.3637   3.2463      3.2482         1.0336          0.9994   1.0362      1.0362
+Jun 2015      3.6511   3.6511   3.2511      3.2524         1.1249          0.9996   1.1230      1.1230
+Jul 2015      3.7683   3.7683   3.2603      3.2569         1.1511          1.0010   1.1558      1.1558
+Aug 2015      3.5391   3.5391   3.2450      3.2635         1.0976          0.9944   1.0906      1.0906
 
 
 
@@ -170,4 +172,118 @@ date             oa1      sa1   sa1_trend   sa1_seasonal   sa1_irregular   sa1_s
 ### graph title
 
 ![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-8-1.png) 
+
+
+## Converting quarterly to monthly using seasonal factors
+
+
+
+
+### Monthly series and seasonal factors
+
+
+date           oa1      sa1   sa1_sf
+---------  -------  -------  -------
+Oct 2014    3.3616   3.2023   1.0498
+Nov 2014    2.8817   3.2070   0.8986
+Dec 2014    2.5759   3.2399   0.7951
+Jan 2015    2.6576   3.2365   0.8211
+Feb 2015    3.0474   3.2406   0.9404
+Mar 2015    3.2823   3.2377   1.0138
+Apr 2015    3.3039   3.2458   1.0179
+May 2015    3.3637   3.2463   1.0362
+Jun 2015    3.6511   3.2511   1.1230
+Jul 2015    3.7683   3.2603   1.1558
+Aug 2015    3.5391   3.2450   1.0906
+Sep 2015    3.4047   3.2858   1.0362
+
+![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-10-1.png) 
+
+### Quarterly series and seasonal factors
+
+
+date           oa1      sa1   sa1_sf
+---------  -------  -------  -------
+Oct 2012    2.7430   3.0055   0.9127
+Jan 2013    2.7825   3.0140   0.9232
+Apr 2013    3.2186   3.0279   1.0630
+Jul 2013    3.3352   3.0361   1.0985
+Oct 2013    2.8014   3.0681   0.9131
+Jan 2014    2.8787   3.1145   0.9243
+Apr 2014    3.3499   3.1521   1.0628
+Jul 2014    3.4846   3.1753   1.0974
+Oct 2014    2.9404   3.2181   0.9137
+Jan 2015    2.9940   3.2366   0.9250
+Apr 2015    3.4387   3.2373   1.0622
+Jul 2015    3.5725   3.2573   1.0968
+
+![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-11-1.png) 
+
+### Use quarterly to estimate monthly
+
+Use the seasonally adjusted quarterly data, and the monthly seasonal factors, to estimate monthly un-adjusted series.
+
+
+date          oa1     sa1   sa1_sf    sa1q    oa1q   oa1_pchya   oa1q_pchya
+---------  ------  ------  -------  ------  ------  ----------  -----------
+Sep 2014    3.256   3.177    1.025   3.175   3.254       4.56%        5.20%
+Oct 2014    3.362   3.202    1.050   3.218   3.378       6.00%        5.74%
+Nov 2014    2.882   3.207    0.899   3.218   2.892       3.20%        3.75%
+Dec 2014    2.576   3.240    0.795   3.218   2.559       5.56%        6.00%
+Jan 2015    2.658   3.237    0.821   3.237   2.658       4.90%        4.49%
+Feb 2015    3.047   3.241    0.940   3.237   3.044       4.04%        4.10%
+Mar 2015    3.282   3.238    1.014   3.237   3.281       3.27%        3.63%
+Apr 2015    3.304   3.246    1.018   3.237   3.295       2.95%        2.31%
+May 2015    3.364   3.246    1.036   3.237   3.354       1.81%        1.94%
+Jun 2015    3.651   3.251    1.123   3.237   3.635       3.20%        3.04%
+Jul 2015    3.768   3.260    1.156   3.257   3.765       3.53%        3.10%
+Aug 2015    3.539   3.245    1.091   3.257   3.553      -0.32%        0.80%
+
+![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-12-1.png) ![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-12-2.png) 
+
+
+
+```
+## 
+## Call:
+## lm(formula = oa1 ~ oa1q, data = tempm1)
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -0.124650 -0.007857  0.000209  0.009152  0.139669 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) -0.005544   0.005824  -0.952    0.342    
+## oa1q         1.002305   0.002255 444.528   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.01937 on 343 degrees of freedom
+##   (88 observations deleted due to missingness)
+## Multiple R-squared:  0.9983,	Adjusted R-squared:  0.9983 
+## F-statistic: 1.976e+05 on 1 and 343 DF,  p-value: < 2.2e-16
+```
+
+```
+## 
+## Call:
+## lm(formula = oa1_pchya ~ oa1q_pchya, data = tempm1)
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -0.058853 -0.004922  0.000126  0.005171  0.051723 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(>|t|)    
+## (Intercept) 0.0017639  0.0006998   2.521   0.0122 *  
+## oa1q_pchya  0.9125414  0.0176641  51.661   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.01097 on 331 degrees of freedom
+##   (100 observations deleted due to missingness)
+## Multiple R-squared:  0.8897,	Adjusted R-squared:  0.8893 
+## F-statistic:  2669 on 1 and 331 DF,  p-value: < 2.2e-16
+```
 

@@ -15,12 +15,13 @@ require(RColorBrewer)
 require(gridExtra)
 require(gtable)
 require(Cairo)
+require(xtable)
 
 # If I put autodep=TRUE as an argument in the following then I get
 # some issues with the graphs, such as grey backgrounds and changes
 # in labeling. Maybe it somehow impacts the theme?
 #knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
-knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=TRUE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_exp_seasonal_short/fig-',  fig.show='asis', fig.keep='high')
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_exp_seasonal_short/fig-',  fig.show='asis', fig.keep='high')
 # tells it to keep going even if there is an error
 knitr::opts_chunk$set(error = TRUE)
 
@@ -35,6 +36,8 @@ source('~/Project/R projects/lodfor/scripts/functions.R')
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 load("~/Project/R projects/lodfor/output_data/ushist_m.Rdata")
+load("~/Project/R projects/lodfor/output_data/ushist_q.Rdata")
+
 ```
 
 ```{r define_theme, echo=FALSE, message=FALSE, warning=FALSE}
@@ -117,11 +120,11 @@ summary(m2)
 ```
 
 
-## fundamental identities of seasonal adjustment
-Y = T * I * (S * TD)
-all.equal(AirPassengers,  
-series(m, "seats.trend") *
-         series(m, "seats.irregular") * series(m, "seats.adjustfac"))
+## Fundamental identities of seasonal adjustment
+### Y = T \* I \* (S \* TD)
+
+For example
+series(m, "seats.trend") \* series(m, "seats.irregular") \* series(m, "seats.adjustfac")
 
 
 Name   |   Small   | Description of table  
@@ -189,6 +192,8 @@ temp_ser_fullout <- temp_ser_fullout %>%
 
 ```
 
+## Simple series codes for use in examples
+
 code | description
 -----|----------------------
 oa1 | original series  
@@ -197,13 +202,13 @@ sa1_trend | trend component (s12)
 sa1_seasonal | seasonal component (s10)  
 sa1_irregular | irregular component (s13)  
 sa1_sf | final combined (seasonal/trading day/holiday) factors (s16)  
-oa1_a | original = trend * irregular * combined (seasonal/trading day/holiday) adjustment factors
-oa1_b | original = seasonally adjusted series * combined (seasonal/trading day/holiday) adjustment factors
+oa1_a | original = trend \* irregular \* combined (seasonal/trading day/holiday) adjustment factors
+oa1_b | original = seasonally adjusted series \* combined (seasonal/trading day/holiday) adjustment factors
 
 ### Example calculations
 In this table we have two ways to get back to the original series.   
-* oa1_a = trend * irregular * combined (seasonal/trading day/holiday) adjustment factors or   
-* oa1_b = seasonally adjusted series * combined (seasonal/trading day/holiday) adjustment factors
+- oa1_a = trend \* irregular \* combined (seasonal/trading day/holiday) adjustment factors or   
+- oa1_b = seasonally adjusted series \* combined (seasonal/trading day/holiday) adjustment factors
   
 
 ```{r}
@@ -226,19 +231,28 @@ There is also reference to a "total adjustment factors for SEATS seasonal adjust
 
 ```{r}
 
-temp_ser_fullout <- data_frame(
-   date = as.Date(time(temp_ser_ts)),
-   #original = temp_ser_ts,
-   oa1 = original(m1),
-   sa1 = final(m1),
-   sa1_trend = series(m1, "s12"),
-   sa1_seasonal = series(m1, "s10"),
-   sa1_irregular = series(m1, "s13"),
-   sa1_sf = series(m1, "s16"),
-   sa1_total = series(m1, "sta")
-   )
+temp_ser_fullout <- merge(
+   # creates and merges invididual zoo series
+   original = as.zoo(temp_ser_ts),
+   oa1 = as.zoo(original(m1)),
+   sa1 = as.zoo(final(m1)),
+   sa1_trend = as.zoo(series(m1, "s12")),
+   sa1_seasonal = as.zoo(series(m1, "s10")),
+   sa1_irregular = as.zoo(series(m1, "s13")),
+   sa1_sf = as.zoo(series(m1, "s16")),
+   sa1_total = as.zoo(series(m1, "sta"))) %>%
+   # converts to xts
+   as.xts(order.by = as.yearmon(index(.)))
 
-kable(tail(temp_ser_fullout, n=12), digits = 4)
+# this is strange, but I can't do it all in a dplyr chain
+# maybe something to do with NAs?
+# need to dump it out first, then call kable
+a <- temp_ser_fullout %>%
+  data.frame(date=time(.), .) %>%
+  filter(date < "2015-09-01")
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+
 
 ```
 
@@ -248,14 +262,15 @@ kable(tail(temp_ser_fullout, n=12), digits = 4)
 
 # comparing two seasonal models
 
-temp_sersa <- data_frame(
-   date = as.Date(time(temp_ser_ts)),
-   #original = temp_ser_ts,
-   oa1 = original(m1),
-   sa1 = final(m1),
-   oa2 = original(m2),
-   sa2 = final(m2)
-   )
+temp_sersa <- merge(
+   # creates and merges invididual zoo series
+   oa1 = as.zoo(original(m1)),
+   sa1 = as.zoo(final(m1)),
+   oa2 = as.zoo(original(m2)),
+   sa2 = as.zoo(final(m2))) %>%
+   # converts to xts
+   as.xts(order.by = as.yearmon(index(.)))
+
 ```
 
 
@@ -265,9 +280,10 @@ temp_sersa <- data_frame(
 
 
 temp <- temp_sersa %>%
+  data.frame(date=as.Date(time(.)), .) %>%
   gather("variable", "value", -date) %>% 
   mutate(variable = gsub("SA", "Seasonally adjusted by SEATS", variable)) %>%
-  filter(date > "2012-01-01") %>%
+  filter(date > "2012-01-01" & date < "2015-09-01") %>%
   filter(variable %in% c("oa1", "sa1"))
 
 p1 <- temp %>%
@@ -279,6 +295,229 @@ p1 <- p1 + scale_y_continuous("axis title")
 p1 <- p1 + ggtitle("Title")
 p1 <- p1 + theme(legend.position = "bottom")
 p1
+
+
+```
+
+
+## Converting quarterly to monthly using seasonal factors
+
+
+```{r}
+
+# getting data ready
+
+# shorten dates
+ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
+ushist_q_1 <- ushist_q["1987-01-01/2015-09-01"]
+
+# sets up a single series to use for a few examples
+x <- ushist_m_1 %>%
+  data.frame(date=time(.), .) %>%
+  select(date, totus_demd) %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+tempm_ts <- as.ts(x, start = start(x), end = end(x))
+
+x <- ushist_q_1 %>%
+  data.frame(date=time(.), .) %>%
+  select(date, totus_demd) %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+tempq_ts <- as.ts(x, start = start(x), end = end(x))
+
+# create monthly model
+mmod <- seas(tempm_ts, 
+           forecast.maxlead = 30,# extends 30 quarters ahead
+           seats.appendfcst="yes",
+           # adding this resulted in multiplicative factors
+           # I'm not sure why that's the case, without I was 
+           # getting additive factors when running on quarterly data
+           transform.function = "log") 
+
+# create quarterly model
+qmod <- seas(tempq_ts, 
+           forecast.maxlead = 30,# extends 30 quarters ahead
+           seats.appendfcst="yes",
+           # adding this resulted in multiplicative factors
+           # I'm not sure why that's the case, without I was 
+           # getting additive factors when running on quarterly data
+           transform.function = "log") 
+
+# use monthly to create data frame
+tempm <- merge(
+   # creates and merges invididual zoo series
+   oa1 = as.zoo(original(mmod)),
+   sa1 = as.zoo(final(mmod)),
+   sa1_sf = as.zoo(series(mmod, "s16"))) %>%
+   # converts to xts
+   as.xts(order.by = as.yearmon(index(.)))
+
+# use quarterly to create data frame
+tempq <- merge(
+   # creates and merges invididual zoo series
+   oa1 = as.zoo(original(qmod)),
+   sa1 = as.zoo(final(qmod)),
+   sa1_sf = as.zoo(series(qmod, "s16"))) %>%
+   # converts to xts
+   as.xts(order.by = as.yearmon(index(.)))
+
+```
+
+### Monthly series and seasonal factors
+
+```{r}
+# look at monthly
+a <- tempm %>%
+  data.frame(date=time(.), .) %>%
+  filter(date <= "2015-09-01")
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+# graph monthly
+tempm_graph <- tempm %>%
+  data.frame(date=as.Date(time(.)), .) %>%
+  gather("variable", "value", -date) %>%
+  filter(variable %in% c("oa1", "sa1")) %>%
+  filter(date <= "2015-09-01")
+
+p1 <- tempm_graph %>%
+   ggplot()
+p1 <- p1 + geom_line(data = tempm_graph, aes(x = date, y = value, color=variable), size = .7) 
+p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey40"))
+p1 <- p1 + labs(colour = "", x = "")
+p1 <- p1 + scale_y_continuous("axis title")
+p1 <- p1 + ggtitle("Title")
+p1 <- p1 + theme(legend.position = "bottom")
+p1
+
+```
+
+### Quarterly series and seasonal factors
+
+```{r}
+# look at quarterly
+a <- tempq %>%
+  data.frame(date=time(.), .) %>%
+  filter(date < "2015-09-01")
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+# graph quarterly
+tempq_graph <- tempq %>%
+  data.frame(date=as.Date(time(.)), .) %>%
+  gather("variable", "value", -date) %>%
+  filter(variable %in% c("oa1", "sa1")) %>%
+  filter(date < "2015-09-01")
+
+p1 <- tempq_graph %>%
+   ggplot()
+p1 <- p1 + geom_line(data = tempq_graph, aes(x = date, y = value, color=variable), size = .7) 
+p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey40"))
+p1 <- p1 + labs(colour = "", x = "")
+p1 <- p1 + scale_y_continuous("axis title")
+p1 <- p1 + ggtitle("Title")
+p1 <- p1 + theme(legend.position = "bottom")
+p1
+
+
+```
+
+### Use quarterly to estimate monthly
+
+Use the seasonally adjusted quarterly data, and the monthly seasonal factors, to estimate monthly un-adjusted series.
+
+```{r}
+
+# use quarterly data to estimate monthly
+# creates a sequnce of dats
+sq <- seq(as.Date(start(tempq)), as.Date(end(tempq), frac = 1), by = "month") %>%
+  as.yearmon(.)
+# uses that sequence of dates
+zmo <- na.approx(tempq, xout = sq, method = "const")
+
+# drop the original series and seasonal factors
+zmo <- zmo %>%
+  data.frame(date=as.Date(time(.)), .) %>%
+  select(-oa1, -sa1_sf) %>%
+  rename(sa1q = sa1) %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() 
+
+tempm1 <- merge(tempm, zmo)
+
+# create a monthly series that is calculated as the
+# sa-adjusted quarterly data times the monthly seasonal
+# factors
+tempm1 <- tempm1 %>%
+  transform(oa1q = sa1q * sa1_sf) %>%
+  transform(oa1_pchya = oa1 / lag(oa1, 12) - 1) %>%
+  transform(oa1q_pchya = oa1q / lag(oa1q, 12) - 1) %>%
+  xts()
+
+# look at data
+a <- tempm1 %>%
+  data.frame(date=time(.), .) %>%
+  filter(date < "2015-09-01") %>%
+  mutate_each(funs(sprintf("%1.2f%%",100*.)), contains("_pchya"))
+kable(tail(a, n=12), digits = 3, row.names=FALSE, align = c("l", rep("r", 7)))
+
+# graph data
+temp_graph <- tempm1 %>%
+  data.frame(date=as.Date(time(.)), .) %>%
+  gather("variable", "value", -date) %>%
+  filter(variable %in% c("oa1", "sa1", "oa1q")) %>%
+  filter(date < "2015-09-01" & date > "2013-01-01")
+
+p1 <- temp_graph %>%
+   ggplot()
+p1 <- p1 + geom_line(data = temp_graph, aes(x = date, y = value, color=variable), size = .7) 
+p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey40", mypallete[7:7]))
+p1 <- p1 + labs(colour = "", x = "")
+p1 <- p1 + scale_y_continuous("axis title")
+p1 <- p1 + ggtitle("Title")
+p1 <- p1 + theme(legend.position = "bottom")
+p1
+
+# look at it on a percentage change from prior year basis
+temp_graph <- tempm1 %>%
+  data.frame(date=as.Date(time(.)), .) %>%
+  #mutate_each(funs(pchya = . / lag(., 12) - 1), -date) %>%
+  gather("variable", "value", -date) %>%
+  filter(variable %in% c("oa1_pchya", "oa1q_pchya")) %>%
+  filter(date < "2015-09-01" & date > "2010-01-01")
+
+p1 <- temp_graph %>%
+   ggplot()
+p1 <- p1 + geom_line(data = temp_graph, aes(x = date, y = value, color=variable), size = .7) 
+p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey40", mypallete[7:7]))
+p1 <- p1 + labs(colour = "", x = "")
+p1 <- p1 + scale_y_continuous("axis title")
+p1 <- p1 + ggtitle("Title")
+p1 <- p1 + theme(legend.position = "bottom")
+p1
+
+write.zoo(tempm1, file="output_data/tempm1.csv", sep=",")
+
+```
+
+
+```{r }
+
+lmmod_1 <- lm(oa1 ~ oa1q, data = tempm1)
+summary(lmmod_1)
+# need to set chunk option as results='asis' if I want this table to appear
+#tab <- xtable(summary(lmmod_1)$coef, digits=c(0, 2, 2, 1, 2))
+#print(tab, type="html")
+
+lmmod_2 <- lm(oa1_pchya ~ oa1q_pchya, data = tempm1)
+summary(lmmod_2)
+#plot(lmmod_2)
+#tab <- xtable(summary(lmmod_2)$coef, digits=c(0, 2, 2, 1, 2))
+#print(tab, type="html")
+
+
+
 
 
 ```
