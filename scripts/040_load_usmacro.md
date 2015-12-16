@@ -131,7 +131,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 
 ```
 ## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
-## extra): downloaded length 12568 != reported length 200
+## extra): downloaded length 12602 != reported length 200
 ```
 
 ```
@@ -141,7 +141,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 
 ```
 ## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
-## extra): downloaded length 8958 != reported length 200
+## extra): downloaded length 9028 != reported length 200
 ```
 
 ```

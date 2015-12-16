@@ -38,11 +38,7 @@ Insert date
 ## Demand, monthly + GDP 
 
 ```
-## function () 
-## {
-##     stop("This function should not be called directly")
-## }
-## <environment: namespace:dplyr>
+## [1] "totus_oprms"
 ```
 
 <img src="../output_data/figure_us_overview_graphs/fig-demand_monthly_gdp-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-demand_monthly_gdp-2.png" title="" alt="" width="9in" height="5.7in" />
@@ -112,11 +108,7 @@ Insert date
 ## ADR, growth, short-term 
 
 ```
-## function () 
-## {
-##     stop("This function should not be called directly")
-## }
-## <environment: namespace:dplyr>
+## [1] "totus_oprms"
 ```
 
 <img src="../output_data/figure_us_overview_graphs/fig-adr_gr_st-1.png" title="" alt="" width="9in" height="5.7in" />
