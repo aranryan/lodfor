@@ -11,22 +11,25 @@ Setup
 ```{r readchunk}
 #read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
 source('~/Project/R projects/lodfor/scripts/functions.R')
-getwd()
+
 ```
 
 ```{r reference}
+fpath <- c("~/Project/R projects/lodfor")
 
 # reference file to use in converting market names to shorter abbreviations
 colc <- c(rep("character",4))
-host_str_simp <- read.csv("./reference/host_str_simp.csv", header = TRUE, sep = ",", colClasses=colc)
+fname <- paste0(fpath, "/reference/host_str_simp.csv")
+host_str_simp <- read.csv(fname, header = TRUE, sep = ",", colClasses=colc)
 
 # imports list of MSAs based on Census and corresponding BLS codes
 colc <- rep("character", 10)
-m_cen_blsces <- read.csv("./input_data/m_cen_blsces.csv", head=TRUE, colClasses=colc) 
+fname <- paste0(fpath, "/input_data/m_cen_blsces.csv")
+m_cen_blsces <- read.csv(fname, head=TRUE, colClasses=colc) 
 str(m_cen_blsces)
 
 # name of file to read
-fname <- c("./input_data/Host - top 20 - ByMarket - 2015-07-27.csv")
+fname <- paste0(fpath, "/input_data/Host - top 20 - ByMarket - 2015-07-27.csv")
 ```
 
 # load STR data
@@ -159,6 +162,9 @@ raw_str_us_host <- data_7%>%
 ```{r save_output}
 
 # saves Rdata version of the data
-save(raw_str_us_host, file="output_data/raw_str_us_host.Rdata")
-write.csv(mkt_list, file="output_data/mkt_list_host.csv", row.names=FALSE)
+fname <- paste0(fpath, "/output_data/raw_str_us_host.Rdata")
+save(raw_str_us_host, file=fname)
+
+fname <- paste0(fpath, "/output_data/mkt_list_host.csv")
+write.csv(mkt_list, file=fname, row.names=FALSE)
 ```

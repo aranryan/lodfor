@@ -9,101 +9,19 @@ Setup
 source('~/Project/R projects/lodfor/scripts/functions.R')
 ```
 
-```
-## Loading required package: rmarkdown
-## Loading required package: knitr
-## Loading required package: grid
-## Loading required package: xlsx
-## Loading required package: rJava
-## Loading required package: xlsxjars
-## Loading required package: tframe
-## Loading required package: tframePlus
-## Loading required package: lubridate
-## Loading required package: stringr
-## Loading required package: scales
-## Loading required package: zoo
-## 
-## Attaching package: 'zoo'
-## 
-## The following objects are masked from 'package:base':
-## 
-##     as.Date, as.Date.numeric
-## 
-## Loading required package: xts
-## Loading required package: seasonal
-## 
-## seasonal now supports the HTML version of X13, which offers a more
-## accessible output via the out() function. For best user experience, 
-## download the HTML version from:
-## 
-##   http://www.census.gov/srd/www/x13as/x13down_pc.html
-## 
-## and copy x13ashtml.exe to:
-## 
-##   C:/Aran Installed/x13as
-## Loading required package: forecast
-## Loading required package: timeDate
-## This is forecast 6.1 
-## 
-## Loading required package: car
-## Loading required package: reshape2
-## Loading required package: ggplot2
-## Loading required package: tidyr
-## Loading required package: plyr
-## 
-## Attaching package: 'plyr'
-## 
-## The following object is masked from 'package:lubridate':
-## 
-##     here
-## 
-## Loading required package: dplyr
-## 
-## Attaching package: 'dplyr'
-## 
-## The following objects are masked from 'package:plyr':
-## 
-##     arrange, count, desc, failwith, id, mutate, rename, summarise,
-##     summarize
-## 
-## The following objects are masked from 'package:xts':
-## 
-##     first, last
-## 
-## The following objects are masked from 'package:lubridate':
-## 
-##     intersect, setdiff, union
-## 
-## The following objects are masked from 'package:stats':
-## 
-##     filter, lag
-## 
-## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union
-## 
-## Loading required package: lazyeval
-## Loading required package: broom
-## Loading required package: assertthat
-```
 
 ```r
-getwd()
-```
+fpath <- c("~/Project/R projects/lodfor")
 
-```
-## [1] "C:/Users/Aran/Documents/Project/R projects/lodfor/scripts"
-```
-
-
-```r
 # reference file to use in converting market names to shorter abbreviations
 colc <- c(rep("character",4))
-host_str_simp <- read.csv("../reference/host_str_simp.csv", header = TRUE, sep = ",", colClasses=colc)
+fname <- paste0(fpath, "/reference/host_str_simp.csv")
+host_str_simp <- read.csv(fname, header = TRUE, sep = ",", colClasses=colc)
 
 # imports list of MSAs based on Census and corresponding BLS codes
 colc <- rep("character", 10)
-m_cen_blsces <- read.csv("../input_data/m_cen_blsces.csv", head=TRUE, colClasses=colc) 
+fname <- paste0(fpath, "/input_data/m_cen_blsces.csv")
+m_cen_blsces <- read.csv(fname, head=TRUE, colClasses=colc) 
 str(m_cen_blsces)
 ```
 
@@ -131,7 +49,7 @@ str(m_cen_blsces)
 
 ```r
 # name of file to read
-fname <- c("../input_data/Host - top 20 - ByMarket - 2015-07-27.csv")
+fname <- paste0(fpath, "/input_data/Host - top 20 - ByMarket - 2015-07-27.csv")
 ```
 
 # load STR data
@@ -210,7 +128,14 @@ data_4 <- data_3 %>%
   mutate(country = ifelse(area_name_simp == "Maui, HI", "usa", country)) %>%
   mutate(country = ifelse(area_name_simp == "Oahu, HI", "usa", country)) %>%
   mutate(country = ifelse(area_name_simp == "Maui and Oahu, HI", "usa", country)) %>%
-  mutate(country = ifelse(area_name_simp == "United States", "usa", country)) %>%
+  mutate(country = ifelse(area_name_simp == "United States", "usa", country)) 
+  
+  # pause to create a list of area_sh codes and the corresponding market names
+  mkt_list <- data_4 %>%  
+   select(area_sh, area_name_simp, area_name_cen) %>%
+   distinct(., area_sh)
+
+data_5 <- data_4 %>%
   select(date, var, seg_text, area_sh, country, value) %>%
   mutate(seg_abrev = ifelse(seg_text == "All Chain Scales","tot", 
                ifelse(seg_text == "Upscale & Above","upa", 
@@ -218,12 +143,11 @@ data_4 <- data_3 %>%
                ifelse(seg_text == "Upper Upscale", "upu", 
                ifelse(seg_text == "Upscale","ups", 
                       NA)))))) %>%
-  mutate(geo = paste0(area_sh, country)) %>%
-  mutate(seggeo = paste(seg_abrev, geo, sep="_")) %>%
+  mutate(seggeo = paste(seg_abrev, area_sh, country, sep="_")) %>%
   select(date, seggeo, var, value)
 
 # spreads into series in columns
-data_5 <- data_4 %>%
+data_6 <- data_5 %>%
   mutate(segvar = paste(seggeo,var,sep="_")) %>%
   select(date,segvar,value) %>%
   spread(segvar, value)
@@ -244,13 +168,13 @@ be a good way to fill small holes
 ```r
 # drops columns that are all NA
 # haven't figured out a less complex way to write this, but there must be
-data_5 <- data_5[, !apply(is.na(data_5), 2, all)]
+data_6 <- data_6[, !apply(is.na(data_6), 2, all)]
 
 # first had to make it numeric, because it was characters for some reason
-data_6 <- as.data.frame(sapply(data_5, as.numeric)) 
-data_6$date <- data_5$date
+data_7 <- as.data.frame(sapply(data_6, as.numeric)) 
+data_7$date <- data_6$date
 
-raw_str_us_host <- data_6%>%
+raw_str_us_host <- data_7%>%
  # select(1:12) %>%
   read.zoo() %>%
   lapply(., FUN=na.contiguous) %>%
@@ -262,5 +186,9 @@ raw_str_us_host <- data_6%>%
 
 ```r
 # saves Rdata version of the data
-save(raw_str_us_host, file="output_data/raw_str_us_host.Rdata")
+fname <- paste0(fpath, "/output_data/raw_str_us_host.Rdata")
+save(raw_str_us_host, file=fname)
+
+fname <- paste0(fpath, "/output_data/mkt_list_host.csv")
+write.csv(mkt_list, file=fname, row.names=FALSE)
 ```
