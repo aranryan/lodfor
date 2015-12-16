@@ -40,9 +40,9 @@ knitr::opts_chunk$set(error = TRUE)
 ```
 
 ```{r readchunk}
-read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
+#read_chunk('~/Project/R projects/lodfor/scripts/functions_combined.R')
 source('~/Project/R projects/lodfor/scripts/setup.R')
-source('~/Project/R projects/lodfor/scripts/functions.R')
+source('~/Project/R projects/lodfor/scripts/functions_combined.R')
 
 ```
 

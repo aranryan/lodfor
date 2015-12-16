@@ -15,7 +15,7 @@ Then I went through a more thorough reworking. I realized I could do the calcula
 Setup
 ```{r readchunk}
 #read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-source('~/Project/R projects/lodfor/scripts/functions.R')
+source('~/Project/R projects/lodfor/scripts/functions_combined.R')
 ```
 
 

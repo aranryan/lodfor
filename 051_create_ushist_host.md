@@ -16,7 +16,7 @@ Setup
 
 ```r
 #read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-source('~/Project/R projects/lodfor/scripts/functions.R')
+source('~/Project/R projects/lodfor/scripts/functions_combined.R')
 ```
 
 

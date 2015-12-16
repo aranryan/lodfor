@@ -9,7 +9,7 @@
 # quarterly seasonal factors
 
 source("scripts/setup.R")
-source("scripts/functions.R")
+#source("scripts/functions.R")
 source("scripts/functions_combined.R")
 
 # read raw STR monthly files

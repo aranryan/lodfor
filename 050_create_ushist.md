@@ -11,7 +11,7 @@ Setup
 
 ```r
 #read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-source('~/Project/R projects/lodfor/scripts/functions.R')
+source('~/Project/R projects/lodfor/scripts/functions_combined.R')
 ```
 
 Creates a us historical databank. Combines the STR data with selected macro data and calculates a few series
