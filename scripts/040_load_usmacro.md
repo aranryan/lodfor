@@ -33,7 +33,15 @@ if (!require(quantmod)) {
   install.packages("quantmod")
   require(quantmod)
 }
+```
 
+```
+## Loading required package: quantmod
+## Loading required package: TTR
+## Version 0.4-0 included new data defaults. See ?getSymbols.
+```
+
+```r
 fpath <- c("~/Project/R projects/lodfor/")
 
 # when kniting from the button, I either needed the full path or to add "../" 
@@ -41,7 +49,7 @@ fpath <- c("~/Project/R projects/lodfor/")
 #load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
 
 
-fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_10_15.csv")
+fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
 # the check.names piece fixes the issueof the column names coming in with
 # quotes and spaces due to the Oxford file format that is visible when 
 # you open the csv file in notepad
@@ -123,11 +131,23 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ## 2014-10-01 4037.85  0.020720671
 ## 2015-01-01 4044.32  0.006424773
 ## 2015-04-01 4083.40  0.039215590
-## 2015-07-01 4099.66  0.016023293
-## 2015-10-01 4128.05  0.027988919
+## 2015-07-01 4104.45  0.020780065
+## 2015-10-01 4119.60  0.014846410
 ```
 
 ###Load FRED data
+
+```
+##     As of 0.4-0, 'getSymbols' uses env=parent.frame() and
+##  auto.assign=TRUE by default.
+## 
+##  This  behavior  will be  phased out in 0.5-0  when the call  will
+##  default to use auto.assign=FALSE. getOption("getSymbols.env") and 
+##  getOptions("getSymbols.auto.assign") are now checked for alternate defaults
+## 
+##  This message is shown once per session and may be disabled by setting 
+##  options("getSymbols.warning4.0"=FALSE). See ?getSymbols for more details.
+```
 
 ```
 ## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
