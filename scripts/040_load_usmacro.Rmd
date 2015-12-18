@@ -25,7 +25,7 @@ Also, I've modified it to pull FRED data using a quandl package.
 #sets up to later shorten data based on current date 
 cur_year <- year(Sys.time())
 end_year <- cur_year +15
-end_year <- round(end_year,-1) -1
+end_year <- round(end_year,-1)
 end_date <- paste(end_year,"-10-01",sep="")
 ```
 
