@@ -6,7 +6,7 @@ Setup
 
 ```r
 #read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-source('~/Project/R projects/lodfor/scripts/functions_combined.R')
+#source('~/Project/R projects/lodfor/scripts/functions_combined.R')
 ```
 
 
@@ -66,11 +66,11 @@ row1 <- first1 %>%
 row1[1] <- c("seg_text")
 row1[2] <- c("geo_text")
 row1[3] <- c("var")
-row1 <- str_replace(row1,"/","-")
+row1 <- stringr::str_replace(row1,"/","-")
 # earlier version in which row1 was a data frame
 #row1 <- lapply(row1[1,], function(x) str_replace(x,"/","-"))
 a <- as.character(row1[4:length(row1)]) %>%
-  str_replace("/","-") %>%
+  stringr::str_replace("/","-") %>%
   as.yearmon(., "%Y-%B") %>%
   as.Date() %>%
   as.character()

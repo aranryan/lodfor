@@ -1,3 +1,7 @@
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
 
 ########
 #
@@ -34,8 +38,8 @@ row1 <- unlist(row1)
 # then create row2
 row2 <- first2[2,2:ncol(first2)]
 
-# use car::recode for simple recoding
-row2 <- recode(row2, '"Supply" = "supt"; "Demand" = "demt"; 
+# simple recoding
+row2 <- car::recode(row2, '"Supply" = "supt"; "Demand" = "demt"; 
                "Revenue" = "rmrevt"')
 row2 <- unlist(row2)
 series_names <- paste(row1, row2, sep="_")
@@ -89,11 +93,15 @@ a1 <- data_m %>%
   separate(segvar, c("seg", "variable"), sep = "[^[:alnum:]]+") %>%
   # filters to keep segments in the list to_keep
   filter(seg %in% to_keep) %>%
-  spread(variable,value) %>%
-  melt(id=c("date","seg"), na.rm=FALSE) %>%
   mutate(variable = paste(seg, "_", variable, sep='')) %>%
   select(-seg) %>%
-  dcast(date ~ variable)
+  spread(variable,value) 
+
+# %>%
+#   reshape2::melt(id=c("date","seg"), na.rm=FALSE) %>%
+#   mutate(variable = paste(seg, "_", variable, sep='')) %>%
+# 
+#   reshape2::dcast(date ~ variable)
 
 raw_str_us <- a1
 

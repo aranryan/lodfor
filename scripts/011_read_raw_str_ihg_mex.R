@@ -1,3 +1,9 @@
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+library(xlsx, warn.conflicts=FALSE)
+library(lubridate, warn.conflicts=FALSE)
 
 #######
 #
@@ -23,12 +29,12 @@ fname5 <- c("input_data/IHG Mexico upm consistent reporters - 695195_UPPERMIDSCA
 # load STR data
 #
 
-temp1 <- read.xlsx(fname1, sheetName="Sheet1", startRow=1,colIndex =1:4,
+temp1 <- xlsx::read.xlsx(fname1, sheetName="Sheet1", startRow=1,colIndex =1:4,
                   header = TRUE)
 
 # reads in trend report for 2008 forward
 # reads STR trend report in pesos
-temp2 <- read.xlsx(fname2, sheetName="8) Raw Data", startRow=5,colIndex =2:18,
+temp2 <- xlsx::read.xlsx(fname2, sheetName="8) Raw Data", startRow=5,colIndex =2:18,
                    header = TRUE)
 # dplyr chain that filters to drop rows where the YYYYM ends in 13
 # or starts with TOTAL, and then also drops the NA row that appears at bottom
@@ -40,7 +46,7 @@ temp2b <- temp2 %>% filter(!grepl("STR", Date) &  !is.na(Date))  %>%
   # pastes on 1 to be the day
   mutate(date=paste("1", Date, sep=" ")) %>%
   # converts to date using dmy from lubridate package
-  mutate(date=dmy(date)) %>%
+  mutate(date=lubridate::dmy(date)) %>%
   # takes it out of POSIXlt format
   mutate(date=as.Date(date)) %>%
   select(date, upmmex_supt=Supply, upmmex_demt=Demand, upmmex_rmrevt=Revenue) %>%
@@ -49,7 +55,7 @@ temp2b <- temp2 %>% filter(!grepl("STR", Date) &  !is.na(Date))  %>%
 
 # does the same as above, but using the more recent trend report, data from 2009 forward
 # reads STR trend report in pesos
-temp4 <- read.xlsx(fname4, sheetName="8) Raw Data", startRow=5,colIndex =2:18,
+temp4 <- xlsx::read.xlsx(fname4, sheetName="8) Raw Data", startRow=5,colIndex =2:18,
                    header = TRUE)
 # dplyr chain that filters to drop rows where the YYYYM ends in 13
 # or starts with TOTAL, and then also drops the NA row that appears at bottom
@@ -61,7 +67,7 @@ temp4b <- temp4 %>% filter(!grepl("STR", Date) &  !is.na(Date))  %>%
   # pastes on 1 to be the day
   mutate(date=paste("1", Date, sep=" ")) %>%
   # converts to date using dmy from lubridate package
-  mutate(date=dmy(date)) %>%
+  mutate(date=lubridate::dmy(date)) %>%
   # takes it out of POSIXlt format
   mutate(date=as.Date(date)) %>%
   select(date, upmmex_supt=Supply, upmmex_demt=Demand, upmmex_rmrevt=Revenue) 
@@ -80,7 +86,7 @@ plot(raw_str_mex_pesos$upmmex_rmrevt)
 # trend data in USD
 
 # reads STR trend report in USD
-temp3 <- read.xlsx(fname3, sheetName="8) Raw Data", startRow=5,colIndex =2:18,
+temp3 <- xlsx::read.xlsx(fname3, sheetName="8) Raw Data", startRow=5,colIndex =2:18,
                    header = TRUE)
 # dplyr chain that filters to drop rows where the YYYYM ends in 13
 # or starts with TOTAL, and then also drops the NA row that appears at bottom
@@ -144,10 +150,10 @@ a1 <- raw_str_ihg_mex %>%
   # filters to keep segments in the list to_keep
   filter(seg %in% to_keep) %>%
   spread(variable,value) %>%
-  melt(id=c("date","seg"), na.rm=FALSE) %>%
+  reshape2::melt(id=c("date","seg"), na.rm=FALSE) %>%
   mutate(variable = paste(seg, "_", variable, sep='')) %>%
   select(-seg) %>%
-  dcast(date ~ variable)
+  reshape2::dcast(date ~ variable)
 
 raw_str_ihg_mex <- a1
 

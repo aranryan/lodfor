@@ -1,3 +1,7 @@
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
 
 ###############
 #
@@ -32,7 +36,7 @@ out_str_us_q <- create_sa_str_q(str_us_q1)
 b_m <- as.data.frame(out_str_us_m$date )
 colnames(b_m) <- c("date")
 b_m <- b_m %>% 
-   transform(totus_strdays = sapply(date, days_in_month,leap_impact=0)) %>%
+   transform(totus_strdays = sapply(date, arlodr::days_in_month,leap_impact=0)) %>%
   read.zoo(drop=FALSE) 
 
 # for quarterly, we need to to extend to the end of the quarterly series
@@ -52,7 +56,7 @@ newma <- index(newm)
 newm_df<- as.data.frame(newm)
 newm_df$date <- rownames(newm_df)
 newm_df <- newm_df %>%
-   transform(totus_strdays = sapply(date, days_in_month,leap_impact=0)) %>%
+   transform(totus_strdays = sapply(date, arlodr::days_in_month,leap_impact=0)) %>%
    select(-newm)
 newm <- read.zoo(newm_df, drop=FALSE) 
 #sums zoo object to quarterly
