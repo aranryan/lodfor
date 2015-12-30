@@ -1,4 +1,7 @@
-
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
 
 
 #########################################

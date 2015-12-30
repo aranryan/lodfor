@@ -1,12 +1,9 @@
 
 # reads in a us forecast from an excel file and saves as an Rdata file
 
-# using XLConnect, which happened to work
-# require(XLConnect)
-# wb = loadWorkbook(forwb)
-# setMissingValue(wb, value = c("NA"))
-# tempa <- readWorksheet(wb, sheet="Sheet1", startRow=1, endRow=100, startCol=1, 
-#                        endCol=200, header = TRUE)
+library(xts, warn.conflicts=FALSE)
+library(readxl, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
 
 forwb <- c(paste("~/Project/lodging forecast/STR - Aug 2015/working/", "output_q_STR_2015Augv12", ".xlsx", sep=""))
 

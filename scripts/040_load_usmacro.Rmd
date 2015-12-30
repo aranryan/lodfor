@@ -11,8 +11,12 @@ output:
 Setup
 ```{r readchunk}
 #read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-source('~/Project/R projects/lodfor/scripts/functions_combined.R')
+#source('~/Project/R projects/lodfor/scripts/functions_combined.R')
 #setwd("./output_data/")
+library(arlodr, warn.conflicts=FALSE)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
 ```
 
 
@@ -23,7 +27,7 @@ Also, I've modified it to pull FRED data using a quandl package.
 
 ```{r load_macro}
 #sets up to later shorten data based on current date 
-cur_year <- year(Sys.time())
+cur_year <- lubridate::year(Sys.time())
 end_year <- cur_year +15
 end_year <- round(end_year,-1)
 end_date <- paste(end_year,"-10-01",sep="")
@@ -43,16 +47,16 @@ fpath <- c("~/Project/R projects/lodfor/")
 # in front of each
 #load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
 
-
-fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
+fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
+#fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
 # the check.names piece fixes the issueof the column names coming in with
 # quotes and spaces due to the Oxford file format that is visible when 
 # you open the csv file in notepad
-temp <- read.csv(fname, header=TRUE, sep=",", check.names=FALSE) 
+temp <- read.csv(fname, header=TRUE, sep=",", check.names=FALSE, stringsAsFactors=FALSE) 
 # puts column names into lower case
 names(temp) <- tolower(names(temp))
 # trims leading and trailing whitespace
-names(temp) <- str_trim(names(temp))
+names(temp) <- stringr::str_trim(names(temp))
 colnames(temp)
 
 # changes $ and & in the wd_gdp$& column name
@@ -87,10 +91,11 @@ oe_usmac_q <- temp_2 %>%
   mutate(geo = ifelse(geo == "ca", "can", geo)) %>%
   mutate(geo = ifelse(geo == "mx", "mex", geo)) %>%
   # recombine the geo and var
-  mutate(geovar = paste(geo, variable, sep="_")) %>%
+  mutate(geovar = as.character(paste(geo, variable, sep="_"))) %>%
   select(-geo, -variable) %>%
   spread(geovar, value) %>%
-  read.zoo() %>%
+  data.frame() %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
   xts(frequency=4)
 
 # shortens data based on end date established at start of script
@@ -101,6 +106,13 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ```{r plots, echo=FALSE}
 
 autoplot(oe_usmac_q$us_gdp)
+
+a <- oe_usmac_q %>%
+  data.frame(date=time(.), .)
+
+str(oe_usmac_q)
+str(temp_2)
+str(temp)
 
 autoplot(oe_usmac_q$us_up)
 autoplot(oe_usmac_q$us_et)
@@ -162,8 +174,8 @@ autoplot(oe_usmac_q$us_usrecq)
 ###Writing out files
 ```{r write_output}
 # writes csv versions of the output files
-write.zoo(oe_usmac_q, file="../output_data/oe_usmac_q.csv", sep=",")
+write.zoo(oe_usmac_q, file=paste(fpath,"output_data/oe_usmac_q.csv", sep=""))
 # saves Rdata versions of the output files
-save(oe_usmac_q, file="../output_data/oe_usmac_q.Rdata")
+save(oe_usmac_q, file=paste(fpath,"output_data/oe_usmac_q.Rdata", sep=""))
 ```
 

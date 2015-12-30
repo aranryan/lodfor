@@ -7,8 +7,12 @@ Setup
 
 ```r
 #read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-source('~/Project/R projects/lodfor/scripts/functions_combined.R')
+#source('~/Project/R projects/lodfor/scripts/functions_combined.R')
 #setwd("./output_data/")
+library(arlodr, warn.conflicts=FALSE)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
 ```
 
 
@@ -20,7 +24,7 @@ Also, I've modified it to pull FRED data using a quandl package.
 
 ```r
 #sets up to later shorten data based on current date 
-cur_year <- year(Sys.time())
+cur_year <- lubridate::year(Sys.time())
 end_year <- cur_year +15
 end_year <- round(end_year,-1)
 end_date <- paste(end_year,"-10-01",sep="")
@@ -33,31 +37,23 @@ if (!require(quantmod)) {
   install.packages("quantmod")
   require(quantmod)
 }
-```
 
-```
-## Loading required package: quantmod
-## Loading required package: TTR
-## Version 0.4-0 included new data defaults. See ?getSymbols.
-```
-
-```r
 fpath <- c("~/Project/R projects/lodfor/")
 
 # when kniting from the button, I either needed the full path or to add "../" 
 # in front of each
 #load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
 
-
-fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
+fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
+#fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
 # the check.names piece fixes the issueof the column names coming in with
 # quotes and spaces due to the Oxford file format that is visible when 
 # you open the csv file in notepad
-temp <- read.csv(fname, header=TRUE, sep=",", check.names=FALSE) 
+temp <- read.csv(fname, header=TRUE, sep=",", check.names=FALSE, stringsAsFactors=FALSE) 
 # puts column names into lower case
 names(temp) <- tolower(names(temp))
 # trims leading and trailing whitespace
-names(temp) <- str_trim(names(temp))
+names(temp) <- stringr::str_trim(names(temp))
 colnames(temp)
 ```
 
@@ -106,10 +102,11 @@ oe_usmac_q <- temp_2 %>%
   mutate(geo = ifelse(geo == "ca", "can", geo)) %>%
   mutate(geo = ifelse(geo == "mx", "mex", geo)) %>%
   # recombine the geo and var
-  mutate(geovar = paste(geo, variable, sep="_")) %>%
+  mutate(geovar = as.character(paste(geo, variable, sep="_"))) %>%
   select(-geo, -variable) %>%
   spread(geovar, value) %>%
-  read.zoo() %>%
+  data.frame() %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
   xts(frequency=4)
 
 # shortens data based on end date established at start of script
@@ -117,7 +114,74 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ```
 
 ###A few plots
-![](040_load_usmacro_files/figure-html/plots-1.png) ![](040_load_usmacro_files/figure-html/plots-2.png) ![](040_load_usmacro_files/figure-html/plots-3.png) ![](040_load_usmacro_files/figure-html/plots-4.png) ![](040_load_usmacro_files/figure-html/plots-5.png) ![](040_load_usmacro_files/figure-html/plots-6.png) 
+![](040_load_usmacro_files/figure-html/plots-1.png) 
+
+```
+## An 'xts' object on 1980-01-01/2030-10-01 containing:
+##   Data: num [1:204, 1:41] 42.3 43.4 44.6 45.9 47.4 ...
+##  - attr(*, "dimnames")=List of 2
+##   ..$ : NULL
+##   ..$ : chr [1:41] "can_cpi" "can_gdp" "can_pc" "jp_rxd" ...
+##   Indexed by objects of class: [Date] TZ: UTC
+##   xts Attributes:  
+##  NULL
+```
+
+```
+## 'data.frame':	10004 obs. of  4 variables:
+##  $ date    : Date, format: "1980-01-01" "1980-04-01" ...
+##  $ geo     : chr  "us" "us" "us" "us" ...
+##  $ variable: chr  "ipnr" "ipnr" "ipnr" "ipnr" ...
+##  $ value   : num  150 143 144 147 150 ...
+```
+
+```
+## 'data.frame':	244 obs. of  42 variables:
+##  $ date      : Date, format: "1980-01-01" "1980-04-01" ...
+##  $ us_ipnr   : num  150 143 144 147 150 ...
+##  $ us_if     : num  309 287 288 297 301 ...
+##  $ us_gdp    : num  1631 1598 1596 1625 1659 ...
+##  $ us_rlg    : num  12 10.5 11 12.4 13 ...
+##  $ us_psh    : num  1132 1099 1269 1386 1363 ...
+##  $ us_smp    : num  110 108 123 133 132 ...
+##  $ us_rrx    : num  105 105 101 103 107 ...
+##  $ us_cd     : num  59.8 53.3 55.6 57.4 59 ...
+##  $ us_domd   : num  1634 1586 1572 1611 1648 ...
+##  $ us_inrs   : num  111 109 109 112 112 ...
+##  $ us_ipde   : num  55.5 51.6 52 52.7 54.2 ...
+##  $ us_rcorp  : num  0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 ...
+##  $ us_iconstr: num  198 177 180 191 189 ...
+##  $ us_popnipa: num  226754 227389 228070 228689 229155 ...
+##  $ us_pop    : num  226263 226962 227574 228100 228629 ...
+##  $ us_popw   : num  166762 167416 168111 168694 169279 ...
+##  $ us_et     : num  99862 98953 98899 99499 100239 ...
+##  $ us_yhat   : num  1641 1650 1659 1667 1676 ...
+##  $ us_wc     : num  50.6 52.5 53.5 54.3 54.6 ...
+##  $ us_cpi    : num  79 81.7 83.2 85.6 87.9 ...
+##  $ us_pc     : num  42.4 43.4 44.4 45.5 46.7 ...
+##  $ us_pgdp   : num  42.9 43.8 44.8 46 47.2 ...
+##  $ us_eci    : num  0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 39.8 40.4 ...
+##  $ us_pedy   : num  1147 1131 1145 1167 1164 ...
+##  $ us_penwall: num  9239 9582 9985 10327 10522 ...
+##  $ us_cogtp  : num  59.4 51.8 53.6 58.8 61.1 ...
+##  $ us_conw   : num  -811 -831 -827 -836 -868 ...
+##  $ us_up     : num  6.3 7.33 7.67 7.4 7.43 ...
+##  $ mx_gdp    : num  1492 1502 1534 1578 1614 ...
+##  $ mx_cpi    : num  0.101 0.107 0.114 0.12 0.129 ...
+##  $ mx_pc     : num  0.0872 0.0936 0.1038 0.106 0.1115 ...
+##  $ ca_gdp    : num  192198 191779 191712 193866 198708 ...
+##  $ ca_cpi    : num  42.3 43.4 44.6 45.9 47.4 ...
+##  $ ca_pc     : num  40.5 41.6 42.7 44 45.5 ...
+##  $ us_gfnc   : num  39.4 43.1 40.4 39.9 40.8 ...
+##  $ us_gf     : num  157 161 158 159 162 ...
+##  $ wd_wpo_wti: num  35.8 39.5 37.8 36.3 38 ...
+##  $ jp_rxd    : num  244 232 220 211 206 ...
+##  $ wd_gdp    : num  6993790 6963350 7005310 7071400 7124310 ...
+##  $ wd_gdpppp : num  7461810 7426450 7459970 7512850 7584190 ...
+##  $ wd_gdpnusd: num  2763640 2777270 2791130 2805220 2828700 ...
+```
+
+![](040_load_usmacro_files/figure-html/plots-2.png) ![](040_load_usmacro_files/figure-html/plots-3.png) ![](040_load_usmacro_files/figure-html/plots-4.png) ![](040_load_usmacro_files/figure-html/plots-5.png) ![](040_load_usmacro_files/figure-html/plots-6.png) 
 
 ```
 ##             us_gdp  us_gdp_cagr
@@ -138,18 +202,6 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ###Load FRED data
 
 ```
-##     As of 0.4-0, 'getSymbols' uses env=parent.frame() and
-##  auto.assign=TRUE by default.
-## 
-##  This  behavior  will be  phased out in 0.5-0  when the call  will
-##  default to use auto.assign=FALSE. getOption("getSymbols.env") and 
-##  getOptions("getSymbols.auto.assign") are now checked for alternate defaults
-## 
-##  This message is shown once per session and may be disabled by setting 
-##  options("getSymbols.warning4.0"=FALSE). See ?getSymbols for more details.
-```
-
-```
 ## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
 ## extra): downloaded length 12602 != reported length 200
 ```
@@ -161,11 +213,15 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 
 ```
 ## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
-## extra): downloaded length 9028 != reported length 200
+## extra): downloaded length 8958 != reported length 200
 ```
 
 ```
 ## [1] "FEDFUNDS" "GDPPOT"   "USRECQ"
+```
+
+```
+## Warning: Removed 66 rows containing missing values (geom_path).
 ```
 
 ![](040_load_usmacro_files/figure-html/fred_data-1.png) 
@@ -174,8 +230,8 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 
 ```r
 # writes csv versions of the output files
-write.zoo(oe_usmac_q, file="../output_data/oe_usmac_q.csv", sep=",")
+write.zoo(oe_usmac_q, file=paste(fpath,"output_data/oe_usmac_q.csv", sep=""))
 # saves Rdata versions of the output files
-save(oe_usmac_q, file="../output_data/oe_usmac_q.Rdata")
+save(oe_usmac_q, file=paste(fpath,"output_data/oe_usmac_q.Rdata", sep=""))
 ```
 

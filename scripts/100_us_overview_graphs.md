@@ -36,35 +36,14 @@ Insert date
 
 
 ## Demand, monthly + GDP 
-
-```
-## [1] "totus_oprms"
-```
-
-<img src="../output_data/figure_us_overview_graphs/fig-demand_monthly_gdp-1.png" title="" alt="" width="9in" height="5.7in" />
-
-```
-## Error in regexpr("\\.([[:alnum:]]+)$", x): argument "filename" is missing, with no default
-```
-
-<img src="../output_data/figure_us_overview_graphs/fig-demand_monthly_gdp-2.png" title="" alt="" width="9in" height="5.7in" />
+<img src="../output_data/figure_us_overview_graphs/fig-demand_monthly_gdp-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-demand_monthly_gdp-2.png" title="" alt="" width="9in" height="5.7in" />
 
 ## Demand and GDP with forecast 
-
-```
-## Error in regexpr("\\.([[:alnum:]]+)$", x): argument "filename" is missing, with no default
-```
-
 <img src="../output_data/figure_us_overview_graphs/fig-demand_gdp_forecast-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Demand, ratio to population 
 
-```
-## Error in regexpr("\\.([[:alnum:]]+)$", x): argument "filename" is missing, with no default
-```
-
-<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Demand, ratio to population forecast
@@ -108,12 +87,20 @@ Insert date
 ## Occupancy labled
 
 ```
+## Error in paste("Average", year(start_mean), "to", year(end_xaxis), sep = " "): could not find function "year"
+```
+
+```
 ## Error in regexpr("\\.([[:alnum:]]+)$", x): argument "filename" is missing, with no default
 ```
 
 <img src="../output_data/figure_us_overview_graphs/fig-occupancy_labled-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## Occupancy with forecast
+
+```
+## Error in paste("Average", year(start_mean), "to", year(end_xaxis), sep = " "): could not find function "year"
+```
 
 ```
 ## Error in regexpr("\\.([[:alnum:]]+)$", x): argument "filename" is missing, with no default
@@ -179,7 +166,15 @@ Insert date
 ## ADR, growth, short-term 
 
 ```
-## [1] "totus_oprms"
+## function () 
+## {
+##     stop("This function should not be called directly")
+## }
+## <environment: namespace:dplyr>
+```
+
+```
+## Error in function_list[[i]](value): could not find function "melt"
 ```
 
 ```
@@ -207,6 +202,14 @@ Insert date
 
 
 ## RevPAR, real long-term, with forecast
+
+```
+## Error in paste(year(as.Date(holdcurrent[1, "date"])), "Q", quarter(as.Date(holdcurrent[1, : could not find function "year"
+```
+
+```
+## Error in paste(holdcurrent_date, " $", holdcurrent_ob, sep = ""): object 'holdcurrent_date' not found
+```
 
 ```
 ## Error in regexpr("\\.([[:alnum:]]+)$", x): argument "filename" is missing, with no default
@@ -305,6 +308,14 @@ Insert date
 ## ADR, real short-term
 
 ```
+## Error in paste(year(as.Date(holdcurrent[1, "date"])), "Q", quarter(as.Date(holdcurrent[1, : could not find function "year"
+```
+
+```
+## Error in paste(holdcurrent_date, " $", holdcurrent_ob, sep = ""): object 'holdcurrent_date' not found
+```
+
+```
 ## Error in regexpr("\\.([[:alnum:]]+)$", x): argument "filename" is missing, with no default
 ```
 
@@ -318,6 +329,14 @@ Insert date
 
 
 ## ADR, real short-term
+
+```
+## Error in paste(year(as.Date(holdcurrent[1, "date"])), "Q", quarter(as.Date(holdcurrent[1, : could not find function "year"
+```
+
+```
+## Error in paste(holdcurrent_date, " $", holdcurrent_ob, sep = ""): object 'holdcurrent_date' not found
+```
 
 ```
 ## Error in regexpr("\\.([[:alnum:]]+)$", x): argument "filename" is missing, with no default
@@ -334,6 +353,14 @@ Insert date
 ## ADR, real short-term
 
 ```
+## Error in paste(year(as.Date(holdcurrent[1, "date"])), "Q", quarter(as.Date(holdcurrent[1, : could not find function "year"
+```
+
+```
+## Error in paste(holdcurrent_date, " $", holdcurrent_ob, sep = ""): object 'holdcurrent_date' not found
+```
+
+```
 ## Error in regexpr("\\.([[:alnum:]]+)$", x): argument "filename" is missing, with no default
 ```
 
@@ -347,6 +374,14 @@ Insert date
 
 
 ## ADR, real short-term
+
+```
+## Error in paste(year(as.Date(holdcurrent[1, "date"])), "Q", quarter(as.Date(holdcurrent[1, : could not find function "year"
+```
+
+```
+## Error in paste(holdcurrent_date, " $", holdcurrent_ob, sep = ""): object 'holdcurrent_date' not found
+```
 
 ```
 ## Error in regexpr("\\.([[:alnum:]]+)$", x): argument "filename" is missing, with no default

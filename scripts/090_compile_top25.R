@@ -2,6 +2,13 @@
 # creates a top 25 compilation file that has quarterly demand and supply 
 # calculated for various groups of markets. Not indexed.
 
+library(arlodr, warn.conflicts=FALSE)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+library(seasonal, warn.conflicts=FALSE)
+Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
+
 fpath <- c("~/Project/R projects/lodfor/")
 load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
 
@@ -9,7 +16,8 @@ load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
 ushist_q_m <- ushist_q %>%
   window(end = as.Date("2015-10-01")) %>%
   data.frame(date=index(.), .) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
+  #reshape2::melt(id.vars = c("date"))
 
 # create dataframe with sums of selected markets
 # could be done as a function for a given list of metros
@@ -194,7 +202,8 @@ top25_sets <- merge(temp_top25us, temp_topcoast, temp_topcoastwony,
 
 # works by first adding unadjusted ADR, occ and RevPAR to the full dataframe
 temp1 <- top25_sets %>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
+ # melt(id.vars = c("date")) %>%
   separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
   # drop anything that is already seasonally adjusted, because it is the sum of various
   # adjusted series, which I'm not using in this current setup
@@ -212,6 +221,7 @@ temp_selected <- temp1 %>%
   mutate(segvar = paste(seg,var, sep="_")) %>%
   select(date,segvar,value) %>%
   spread(segvar, value)
+
 
 # selects what isn't going to be adjusted but is still useful
 temp_nonadj <- temp1 %>%
@@ -256,7 +266,8 @@ out_temp_1 <- temp_selected2 %>%
   mutate(supd_sa = supd / supd_sf) %>%
   # puts it back into a wide data frame, with one column for each series
   # days is a series for each segment/market\
-  melt(id=c("date","seg"), na.rm=FALSE) %>%
+  gather(variable, value, -date, -seg) %>%
+  #reshape2::melt(id=c("date","seg"), na.rm=FALSE) %>%
   mutate(variable = paste(seg, "_", variable, sep='')) %>%
   select(-seg) %>%
   spread(variable,value) %>%

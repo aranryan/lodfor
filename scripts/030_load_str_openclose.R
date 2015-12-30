@@ -1,4 +1,10 @@
 
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
+
 # in the following yearmon is a class for representing monthly data
 # I used it because I found a way to use that format in reading the data
 # would have liked to avoid it, as I later conver it with as.Date
@@ -38,7 +44,7 @@ opens_m <- read.delim(fname_opens, stringsAsFactors=FALSE) %>%
   mutate(seg = gsub("Economy Chains", "ecous", seg)) %>%
   mutate(seg = gsub("Independents", "indus", seg)) 
 
-a <- melt(opens_m, id=c("date","seg"), na.rm=FALSE)
+a <- reshape2::melt(opens_m, id=c("date","seg"), na.rm=FALSE)
 a$variable <- paste(a$seg, "_", a$variable, sep='')
 a$seg <- NULL
 opens_m <- a %>%
@@ -70,7 +76,7 @@ closes_m <- read.delim(fname_closes, stringsAsFactors=FALSE) %>%
   mutate(seg = gsub("Economy Chains", "ecous", seg)) %>%
   mutate(seg = gsub("Independents", "indus", seg)) 
 
-a <- melt(closes_m, id=c("date","seg"), na.rm=FALSE)
+a <- reshape2::melt(closes_m, id=c("date","seg"), na.rm=FALSE)
 a$variable <- paste(a$seg, "_", a$variable, sep='')
 a$seg <- NULL
 closes_m <- a %>%
@@ -261,19 +267,19 @@ out_opcl_q <- merge(temp_out_q,out_opcl_q)
 # monthly
 tail(out_opcl_m)
 
-autoplot(out_opcl_m$totus_oprms)
-autoplot(out_opcl_m$totus_oprms_sa)
+autoplot.zoo(out_opcl_m$totus_oprms)
+autoplot.zoo(out_opcl_m$totus_oprms_sa)
 
-autoplot(out_opcl_m$totus_clrms)
+autoplot.zoo(out_opcl_m$totus_clrms)
 
 # quarterly
 a <- window(out_opcl_q, start = as.Date("2000-01-01"), end=as.Date("2016-01-01"))
 tail(a)
 
-autoplot(out_opcl_q$totus_oprms)
-autoplot(out_opcl_q$totus_oprms_sa)
+autoplot.zoo(out_opcl_q$totus_oprms)
+autoplot.zoo(out_opcl_q$totus_oprms_sa)
 
-autoplot(out_opcl_q$totus_clrms)
+autoplot.zoo(out_opcl_q$totus_clrms)
 
 
 #########################

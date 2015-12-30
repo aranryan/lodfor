@@ -15,7 +15,11 @@ Then I went through a more thorough reworking. I realized I could do the calcula
 Setup
 ```{r readchunk}
 #read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-source('~/Project/R projects/lodfor/scripts/functions_combined.R')
+#source('~/Project/R projects/lodfor/scripts/functions_combined.R')
+library(arlodr, warn.conflicts=FALSE)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+#library(tidyr, warn.conflicts=FALSE)
 ```
 
 

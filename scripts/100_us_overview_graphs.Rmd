@@ -22,8 +22,8 @@ output:
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
 require(directlabels)
-require(rmarkdown)
-require(knitr)
+#require(rmarkdown)
+#require(knitr)
 require(RColorBrewer)
 require(gridExtra)
 require(gtable)
@@ -41,8 +41,14 @@ knitr::opts_chunk$set(error = TRUE)
 
 ```{r readchunk}
 #read_chunk('~/Project/R projects/lodfor/scripts/functions_combined.R')
-source('~/Project/R projects/lodfor/scripts/setup.R')
-source('~/Project/R projects/lodfor/scripts/functions_combined.R')
+#source('~/Project/R projects/lodfor/scripts/setup.R')
+#source('~/Project/R projects/lodfor/scripts/functions_combined.R')
+library(arlodr, warn.conflicts=FALSE)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(ggplot2, warn.conflicts=FALSE)
+library(scales, warn.conflicts=FALSE)
+library(lubridate, warn.conflicts=FALSE)
 
 ```
 
@@ -102,7 +108,7 @@ load(paste(fpath, "output_data/top25compile.Rdata", sep=""))
 ushist_m_m <- ushist_m %>%
   window(end = as.Date("2015-12-01")) %>%
   data.frame(date=index(.),.) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
 # I used to have a version of ushist_m as a dataframe, but I'm not sure
 # I need it, so I've stopped creating it and left ushist_m as an xts object
 
@@ -110,18 +116,18 @@ ushist_m_m <- ushist_m %>%
 outf_str_us_m_m <- outf_str_us_m %>%
   window(end = as.Date("2014-09-01")) %>%
   data.frame(date=index(.),.) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
 
 # puts the quarterly ushist into a melted data frame
 ushist_q_m <- ushist_q %>%
   window(end = as.Date("2017-10-01")) %>%
   data.frame(date=index(.), .) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
 
 # this is in an actual tidy format with date and seg columns to describe the
 # observations, and then variables in the columns
 ushist_q_td <- data.frame(date=time(ushist_q), ushist_q)%>%
-    melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
   separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
   spread(var, value)
 
@@ -141,14 +147,14 @@ ushist_q_td <- data.frame(date=time(ushist_q), ushist_q)%>%
 # this is in an actual tidy format with date and seg columns to describe the
 # observations, and then variables in the columns
 usfor_q_td <- data.frame(date=time(usfor_q), usfor_q)%>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
   separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
   spread(var, value)
 
 # this is in an actual tidy format with date and seg columns to describe the
 # observations, and then variables in the columns
 top25compile_td <- top25compile %>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
   separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
   spread(var, value)
   # filter to just top25us 
@@ -218,7 +224,7 @@ usfor_q <- merge(usfor_q, real)
 usfor_q_m <- usfor_q %>%
   window(end = as.Date("2017-10-01")) %>%
   data.frame(date=index(.), .) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
 
 ```
 
@@ -277,7 +283,7 @@ theme_set(theme_ts1())
 
 ## Demand, monthly + GDP 
 ```{r demand_monthly_gdp}
-n#sets variable and text items
+#sets variable and text items
 todo <- c("totus_demd_sa")
 grtitle <- c("US room demand and GDP")
 
@@ -308,7 +314,7 @@ p1 <- ggplot() +
   scale_color_manual(values = c(mypallete[7:7], "grey40", "grey40"),  labels=c(variable_legend_1,variable_legend_2, "text"))
 p1
 
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 
 # png(filename=paste(fpath_graphs,"demand_gdp.png",sep=""),
@@ -393,7 +399,7 @@ p1 <- ggplot() +
                 ,ymin=-Inf  # to bottom of graph
                 ,ymax=Inf), # to top of graph
                 fill="grey40", alpha=0.2)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 # a <- recordPlot()
 # replayPlot(a)
 #print(plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote))
@@ -432,7 +438,7 @@ temp <- ushist_q_m %>%
   spread(variable, value) %>%
   mutate(dem_popw = totus_demd_sa * 365 / us_popw*1000) %>%
   select(date, dem_popw) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
 
 p1 <- ggplot() +
   geom_line(data = temp, aes(x = date, y = value, color = variable), size = .7) +
@@ -440,7 +446,7 @@ p1 <- ggplot() +
 
   scale_color_manual(values = c(mypallete[10:10], "grey70")) +
   stat_smooth(data = temp, aes(x = date, y = value), method=lm, fill = "grey90", color="grey40", alpha=.4, span=.7, se = FALSE)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 ```
 
@@ -461,7 +467,7 @@ temp <- usfor_q_m %>%
   spread(variable, value) %>%
   mutate(dem_popw = totus_demd_sa * 365 / us_popw*1000) %>%
   select(date, dem_popw) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
 
 # modifies the dataframe
 # adds a column based on date to be the subset pre recession
@@ -489,7 +495,7 @@ p1 <- ggplot() +
  geom_line(data = subset(temp_a, hist == 0), aes(x = date, y = fitted, color = "grey70"), size = .9, linetype="99") 
 
   # stat_smooth(data = temp, aes(x = date, y = value), method=lm, fill = "grey90", color="grey40", alpha=.4, span=.7, se = FALSE)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 ```
 
@@ -510,7 +516,7 @@ temp <- usfor_q_m %>%
   spread(variable, value) %>%
   mutate(dem_popw = log(totus_demd_sa * 365 / us_popw*1000)) %>%
   select(date, dem_popw) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
 
 # modifies the dataframe
 # adds a column based on date to be the subset pre recession
@@ -550,7 +556,7 @@ geom_rect(data=subset(recession_df_m, start_rec >= min(temp_a$date)), #trims len
                 fill="grey40", alpha=0.2)
 
 p2
-plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 ```
 
@@ -571,7 +577,7 @@ temp <- ushist_q_m %>%
   spread(variable, value) %>%
   mutate(dem_et = totus_demd_sa * 365 / us_et*1000) %>%
   select(date, dem_et) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
 
 p1 <- ggplot() +
   geom_line(data = temp, aes(x = date, y = value, color = variable), size = .7) +
@@ -579,7 +585,7 @@ p1 <- ggplot() +
  scale_x_date(date_breaks = "1 year", labels = date_format("%y")) +
  scale_color_manual(values = c(mypallete[10:10], "grey70")) +
  stat_smooth(data = temp, aes(x = date, y = value), method=lm, fill = "grey90", color="grey40", alpha=.4, span=1, se = FALSE)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 ## Occupancy labled
@@ -616,7 +622,7 @@ p1 <- ggplot(data = temp, aes(x = date, y=value, color = measure)) +
 # this direct label stopped working in Sep 2015
 # p1 <- direct.label (p1,
 # list ("lines2" , hjust = 0 , vjust = 1 , cex = 1 ))
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 # direct.label(p,"lines2")
 # direct.label(p,"first.qp")
@@ -657,7 +663,7 @@ p1 <- ggplot(temp, aes(x = date, y=value)) +
   scale_y_continuous(labels=percent) +
   annotate("text", x = as.Date("1998-01-01"), y = holdmean+.006, size=3,
         label = c(paste("Long-term average: ",sprintf("%.1f%%", holdmean*100), "\n(2000 to 2014)",sep="")))
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
  
 ```
 
@@ -676,7 +682,7 @@ variable_text <- c("Seasonally adjusted")
 temp <- ushist_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date"))%>%
+  gather(variable, value, -date)%>%
   mutate(group_date = cut(date, breaks = as.Date(c("1987-01-01", "1998-01-01","2015-10-01"))))
 
 p1 <- ggplot(data = temp, aes(x = date, y = value, color = variable, shape = factor(group_date))) +
@@ -686,7 +692,7 @@ p1 <- ggplot(data = temp, aes(x = date, y = value, color = variable, shape = fac
   stat_smooth(method="lm", fill = "grey60", 
               color="grey60", span=.7, se = FALSE)+ 
   scale_y_continuous(labels = dollar)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 
@@ -702,14 +708,14 @@ variable_text <- c("")
 temp <- ushist_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
 
 p1 <- ggplot() +
   geom_line(data = temp, aes(x = date, y = value, color = variable), size = .8) +
  ggtitle(variable_text) + 
 scale_color_manual(values = c(mypallete[10:10], "grey60")) + 
   scale_y_continuous(labels = dollar)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 ## ADR, real short-term
@@ -724,7 +730,7 @@ variable_text <- c("")
 temp <- ushist_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
   mutate(group_date = cut(date, breaks = as.Date(c("2004-01-01", "2008-04-01", "2010-01-01","2015-10-01"))))
 
 p1 <- ggplot(data = temp, aes(x = date, y = value, shape = factor(group_date))) + 
@@ -734,7 +740,7 @@ p1 <- ggplot(data = temp, aes(x = date, y = value, shape = factor(group_date))) 
  geom_line(stat="smooth", method="lm",
               color="grey60", size=.6, alpha=.8, span=.7, se = FALSE) +
   scale_y_continuous(labels = dollar)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 ## ADR, short-term
@@ -749,7 +755,7 @@ variable_text <- c("")
 temp <- ushist_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date)%>%
   mutate(group_date = cut(date, breaks = as.Date(c("2004-01-01", "2008-04-01", "2010-01-01","2015-10-01"))))
 
 p1 <- ggplot(data = temp, aes(x = date, y = value, shape = factor(group_date))) + 
@@ -759,7 +765,7 @@ p1 <- ggplot(data = temp, aes(x = date, y = value, shape = factor(group_date))) 
     geom_line(stat="smooth", method="lm",
               color="grey60", size=.6, alpha=.8, span=.7, se = FALSE) +
   scale_y_continuous(labels = dollar)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 
@@ -775,7 +781,7 @@ variable_text <- c("")
 temp <- ushist_m_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date)%>%
   mutate(group_date = cut(date, breaks = as.Date(c("2004-01-01", "2008-04-01", "2010-01-01","2015-10-01"))))
 
 p1 <- ggplot(data = temp, aes(x = date, y = value, shape = factor(group_date))) + 
@@ -784,7 +790,7 @@ p1 <- ggplot(data = temp, aes(x = date, y = value, shape = factor(group_date))) 
 geom_line(stat="smooth", method="lm",
               color="grey60", size=.6, alpha=.8, span=.7, se = FALSE) +
   scale_y_continuous(labels = dollar)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 #write.csv(temp, file="output_data/temp.csv", row.names=FALSE)
 ```
@@ -802,7 +808,7 @@ variable_text <- c("")
 temp <- usfor_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
   mutate(group_date = cut(date, breaks = as.Date(c("2000-01-01", "2008-04-01", "2010-01-01","2017-01-01"))))
 
 p1 <- ggplot(data = temp, aes(x = date, y = value, shape = factor(group_date))) + 
@@ -813,7 +819,7 @@ geom_line(data = temp[temp$date>=as.Date("2015-04-01"),], aes(x= date, y=value, 
  stat_smooth(method="lm", fill = "grey70", 
              color="grey60", alpha=.4, span=.8, se = FALSE)+ 
   scale_y_continuous(labels = dollar)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 
@@ -832,13 +838,14 @@ variable_text <- c("")
 temp <- ushist_q_m %>% 
   filter(variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
   select(-variable) %>%
   mutate(group_date = cut(date, breaks = as.Date(c("2004-01-01", "2008-01-01", "2009-10-01","2015-10-01")))) %>%
   mutate(cagr = (value / lag(value))^4 -1, pchya = (value/lag(value, 4)) -1) %>%
   select(-value) %>%
  # filter(date >= starta, date <= enda) %>%
-  melt(id.vars = c("date", "group_date")) %>%
+ # reshape2::melt(id.vars = c("date", "group_date")) %>%
+  gather(variable, value, -date, -group_date) %>%
   transform(value = as.numeric(value))
 
 start_xaxis <- as.Date("2008-01-01") # for x-axis
@@ -857,7 +864,7 @@ p1 <- ggplot(data = temp, aes(x = date, y = value, group=variable)) +
  scale_x_date(labels = date_format("%Y"), date_breaks = "1 year", date_minor_breaks = "3 months") 
 # useful
 #http://stackoverflow.com/questions/10151123/how-to-specify-columns-in-facet-grid-or-how-to-change-labels-in-facet-wrap
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 
@@ -873,13 +880,13 @@ variable_text <- c("Seasonally adjusted, compound annual growth rate")
 temp <- ushist_q_m %>% 
   filter(variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
   select(-variable) %>%
 #  mutate(group_date = cut(date, breaks = as.Date(c("2004-01-01", "2008-01-01", "2009-10-01","2015-01-01")))) %>%
   mutate(cagr = (value / lag(value))^4 -1) %>%
   select(-value) %>%
  # filter(date >= starta, date <= enda) %>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
   transform(value = as.numeric(value))
 
 start_xaxis <- as.Date("2003-01-01") # for x-axis
@@ -898,7 +905,7 @@ p1 <- ggplot(data = temp, aes(x = date, y = value, group=variable)) +
  scale_x_date(labels = date_format("%Y"), date_breaks = "1 year", date_minor_breaks = "3 months") 
 # useful
 #http://stackoverflow.com/questions/10151123/how-to-specify-columns-in-facet-grid-or-how-to-change-labels-in-facet-wrap
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 ```
 
@@ -915,7 +922,7 @@ variable_text <- c("")
 temp <- ushist_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
 
 # calculating mean from a certain date forward
 holdmean <- temp %>%
@@ -936,7 +943,7 @@ p1 <- p1 + geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #
                 ,ymin=-Inf  # to bottom of graph
                 ,ymax=Inf), # to top of graph
                  fill="grey40", alpha=0.2)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 
@@ -955,7 +962,7 @@ variable_text <- c("")
 temp <- usfor_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
 
 # calculating mean from a certain date forward
 holdmean <- temp %>%
@@ -1005,7 +1012,7 @@ p2 <- p1 +
   geom_hline(aes(yintercept=holdhigh), color="grey60", size=.5, alpha=.6) +
   annotate("text", x = as.Date("2007-07-01"), y = holdhigh+2, size=3,
            label = c(paste("Previous peak: $",sprintf("%0.f", holdhigh), "\n(2007 Q3)",sep="")))
-plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 
 ```
@@ -1036,7 +1043,7 @@ temp <- ushist_q_m %>%
     data.frame(date=index(.), .) %>%
     # puts it back into a tidy format with observations based on date and seg
     # and variables in the columns
-    melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
      separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
     spread(var, value) %>%
     mutate(seg = as.factor(seg))
@@ -1060,7 +1067,7 @@ p1 <- p1 + geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #
                 ,ymin=-Inf  # to bottom of graph
                 ,ymax=Inf), # to top of graph
                  fill="grey40", alpha=0.2)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 
@@ -1078,7 +1085,7 @@ variable_text <- c("Seasonally adjusted")
 temp <- ushist_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date")) %>%
+    gather(variable, value, -date) %>%
   mutate(value = value / 100)
 
 p1 <- ggplot() + 
@@ -1097,7 +1104,7 @@ p1 <- p1+
                 ,ymin=-Inf  # to bottom of graph
                 ,ymax=Inf), # to top of graph
                  fill="grey40", alpha=0.2)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 ## Household net wealth
@@ -1115,7 +1122,7 @@ end_max <- as.Date("2009-10-01")
 temp <- usfor_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date")) %>%
+    gather(variable, value, -date) %>%
     mutate(value = value / 1000) 
 
 # calculates max over selected period and appends it to temp
@@ -1149,7 +1156,7 @@ p1 <- p1+
                 ,ymin=-Inf  # to bottom of graph
                 ,ymax=Inf), # to top of graph
                  fill="grey40", alpha=0.2)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 temp5 <- subset(recession_df_m, start_rec >= min(temp$date))
 ```
@@ -1167,7 +1174,7 @@ temp <- top25compile %>%
   xts() %>%
   index_q_xts(.,index_year=index_year) %>%
   data.frame(date=index(.), .) %>%
-  melt(id.vars = c("date"))
+    gather(variable, value, -date)
 
 temp <- temp %>%
   filter(grepl('demd_sa', variable)) %>%
@@ -1184,7 +1191,7 @@ temp2 <- ushist_q_m %>%
     as.xts %>%
     index_q_xts(index_year=index_year) %>%
     data.frame(date=index(.), .) %>%
-    melt(id.vars = c("date"))
+      gather(variable, value, -date)
   
 temp <- rbind(temp, temp2)
 
@@ -1203,7 +1210,7 @@ p1 <- ggplot() +
   theme(legend.position=c(.5, .75)) +
     scale_x_date(date_breaks = "1 year", labels = date_format("%Y")) +
   scale_color_manual(values = c(mypallete[10:10], mypallete[8:8], "grey40", mypallete[2:2], mypallete[4:4]))
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 ## Top 25 supply
@@ -1218,7 +1225,7 @@ temp <- top25compile %>%
   xts() %>%
   index_q_xts(.,index_year=index_year) %>%
   data.frame(date=index(.), .) %>%
-  melt(id.vars = c("date"))
+    gather(variable, value, -date)
 
 temp <- temp %>%
   filter(grepl('supd_sa', variable)) %>%
@@ -1235,7 +1242,7 @@ temp2 <- ushist_q_m %>%
     as.xts %>%
     index_q_xts(index_year=index_year) %>%
     data.frame(date=index(.), .) %>%
-    melt(id.vars = c("date"))
+      gather(variable, value, -date)
   
 temp <- rbind(temp, temp2)
 
@@ -1254,7 +1261,7 @@ p1 <- ggplot() +
   theme(legend.position=c(.5, .75)) +
   scale_x_date(date_breaks = "1 year", labels = date_format("%Y")) +
   scale_color_manual(values = c(mypallete[10:10], mypallete[8:8], "grey40", mypallete[2:2], mypallete[4:4]))
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 ## San Francisco demand
@@ -1288,7 +1295,7 @@ temp <- rbind(temp1, temp2) %>%
     data.frame(date=index(.), .) %>%
     # puts it back into a tidy format with observations based on date and seg
     # and variables in the columns
-    melt(id.vars = c("date")) %>%
+      gather(variable, value, -date) %>%
      separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
     spread(var, value) %>%
     mutate(seg = as.factor(seg))
@@ -1313,7 +1320,7 @@ geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #trims lengt
                 ,ymin=-Inf  # to bottom of graph
                 ,ymax=Inf), # to top of graph
                 fill="grey40", alpha=0.2)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 
@@ -1348,7 +1355,7 @@ temp <- rbind(temp1, temp2) %>%
     data.frame(date=index(.), .) %>%
     # puts it back into a tidy format with observations based on date and seg
     # and variables in the columns
-    melt(id.vars = c("date")) %>%
+      gather(variable, value, -date)%>%
      separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
     spread(var, value) %>%
     mutate(seg = as.factor(seg))
@@ -1373,7 +1380,7 @@ geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #trims lengt
                 ,ymin=-Inf  # to bottom of graph
                 ,ymax=Inf), # to top of graph
                 fill="grey40", alpha=0.2)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 
@@ -1408,7 +1415,7 @@ temp <- rbind(temp1, temp2) %>%
     data.frame(date=index(.), .) %>%
     # puts it back into a tidy format with observations based on date and seg
     # and variables in the columns
-    melt(id.vars = c("date")) %>%
+      gather(variable, value, -date) %>%
      separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
     spread(var, value) %>%
     mutate(seg = as.factor(seg))
@@ -1433,7 +1440,7 @@ geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #trims lengt
                 ,ymin=-Inf  # to bottom of graph
                 ,ymax=Inf), # to top of graph
                 fill="grey40", alpha=0.2)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 ```
 
@@ -1464,7 +1471,7 @@ temp <- temp1 %>%
     data.frame(date=index(.), .) %>%
     # puts it back into a tidy format with observations based on date and seg
     # and variables in the columns
-    melt(id.vars = c("date")) %>%
+      gather(variable, value, -date) %>%
      separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
     spread(var, value) %>%
     mutate(seg = as.factor(seg))
@@ -1489,7 +1496,7 @@ geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #trims lengt
                 ,ymin=-Inf  # to bottom of graph
                 ,ymax=Inf), # to top of graph
                 fill="grey40", alpha=0.2)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 ```
 
@@ -1525,7 +1532,7 @@ temp <- rbind(temp1, temp2) %>%
     data.frame(date=index(.), .) %>%
     # puts it back into a tidy format with observations based on date and seg
     # and variables in the columns
-    melt(id.vars = c("date")) %>%
+      gather(variable, value, -date) %>%
      separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
     spread(var, value) %>%
     mutate(seg = as.factor(seg))
@@ -1551,7 +1558,7 @@ geom_rect(data=subset(recession_df_m, start_rec >= min(temp$date)), #trims lengt
                 ,ymin=-Inf  # to bottom of graph
                 ,ymax=Inf), # to top of graph
                 fill="grey40", alpha=0.2)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 ```
 
 ## ADR, real short-term
@@ -1568,7 +1575,7 @@ end_mean <- as.Date("2014-10-01")
 temp <- ushist_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date")) %>%
+    gather(variable, value, -date) %>%
   mutate(group_date = cut(date, breaks = as.Date(c("1995-01-01", "2001-01-01", 
                                                    "2004-07-01", "2008-04-01", 
                                                    "2009-07-01","2015-10-01"))))
@@ -1608,13 +1615,13 @@ p2 <- p2 +
   geom_hline(aes(yintercept=holdhigh), color="grey60", size=.5, alpha=.6) +
   annotate("text", x = as.Date("2000-10-01"), y = holdhigh+6, size=3,
            label = c(paste("Previous peak: $",sprintf("%0.f", holdhigh), "\n(2000 Q4)",sep="")))
-plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 # add lines
 p3 <- p1 + 
   geom_line(stat="smooth",  method="lm", 
               color="grey60", size=.6, alpha=.8, span=1, se = FALSE) 
-plot_title_3(plot=p3, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p3, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 ```
 
@@ -1633,7 +1640,7 @@ end_mean <- as.Date("2014-10-01")
 temp <- ushist_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date")) %>%
+    gather(variable, value, -date)%>%
   mutate(group_date = cut(date, breaks = as.Date(c("1995-01-01", "2001-01-01", 
                                                    "2004-07-01", "2008-04-01", 
                                                    "2009-07-01","2015-10-01"))))
@@ -1673,13 +1680,13 @@ p2 <- p2 +
   geom_hline(aes(yintercept=holdhigh), color="grey60", size=.5, alpha=.6) +
   annotate("text", x = as.Date("2007-10-01"), y = holdhigh+6, size=3,
            label = c(paste("Previous peak: $",sprintf("%0.f", holdhigh), "\n(2007 Q4)",sep="")))
-plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 # add lines
 p3 <- p1 + 
   geom_line(stat="smooth",  method="lm", 
               color="grey60", size=.6, alpha=.8, span=1, se = FALSE) 
-plot_title_3(plot=p3, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p3, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 ```
 
@@ -1697,7 +1704,7 @@ end_mean <- as.Date("2014-10-01")
 temp <- ushist_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date")) %>%
+    gather(variable, value, -date) %>%
   mutate(group_date = cut(date, breaks = as.Date(c("1995-01-01", "2001-01-01", 
                                                    "2004-07-01", "2008-04-01", 
                                                    "2009-07-01","2015-10-01"))))
@@ -1738,13 +1745,13 @@ p2 <- p2 +
   geom_hline(aes(yintercept=holdhigh), color="grey60", size=.5, alpha=.6) +
   annotate("text", x = as.Date("2007-07-01"), y = holdhigh+2, size=3,
            label = c(paste("Previous peak: $",sprintf("%0.f", holdhigh), "\n(2007 Q3)",sep="")))
-plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 # add lines
 p3 <- p1 + 
   geom_line(stat="smooth",  method="lm", 
               color="grey60", size=.6, alpha=.8, span=1, se = FALSE) 
-plot_title_3(plot=p3, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p3, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 ```
 
@@ -1763,7 +1770,7 @@ end_mean <- as.Date("2014-10-01")
 temp <- ushist_q_m %>% 
   filter(date >= starta, date <= enda, variable == todo) %>%
   spread(variable, value) %>%
-  melt(id.vars = c("date")) %>%
+    gather(variable, value, -date)%>%
   mutate(group_date = cut(date, breaks = as.Date(c("1995-01-01", "2001-01-01", 
                                                    "2004-07-01", "2008-04-01", 
                                                    "2009-07-01","2015-10-01"))))
@@ -1804,12 +1811,12 @@ p2 <- p2 +
   geom_hline(aes(yintercept=holdhigh), color="grey60", size=.5, alpha=.6) +
   annotate("text", x = as.Date("2007-07-01"), y = holdhigh+2, size=3,
            label = c(paste("Previous peak: $",sprintf("%0.f", holdhigh), "\n(2007 Q3)",sep="")))
-plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote, filename = c("temp.png")NN)
 
 # add lines
 p3 <- p1 + 
   geom_line(stat="smooth",  method="lm", 
               color="grey60", size=.6, alpha=.8, span=1, se = FALSE) 
-plot_title_3(plot=p3, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p3, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 ```

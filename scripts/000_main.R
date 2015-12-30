@@ -10,7 +10,7 @@
 
 #source("scripts/setup.R")
 #source("scripts/functions.R")
-source("scripts/functions_combined.R")
+#source("scripts/functions_combined.R")
 
 # read raw STR monthly files
 # results saved in Rdata file (dataframe)
@@ -28,6 +28,7 @@ rmarkdown::render("scripts/013_read_raw_str_us_host.Rmd")
 source("scripts/020_prep_str.R")
 source("scripts/021_prep_str_host.R")
 
+
 # reads STR opens and closes directly from Excel source file
 # results saved in Rdata (xts) and csv files
 source("scripts/030_load_str_openclose.R")
@@ -35,11 +36,10 @@ source("scripts/030_load_str_openclose.R")
 # reads macro source file
 # results saved in Rdata (xts) and csv files
 rmarkdown::render('scripts/040_load_usmacro.Rmd')
-#knit("scripts/load_usmacro.Rmd")
 
 # creates the ushist file
-knit("scripts/050_create_ushist.Rmd")
-knit("scripts/051_create_ushist_host.Rmd")
+rmarkdown::render('scripts/050_create_ushist.Rmd')
+rmarkdown::render('scripts/051_create_ushist_host.Rmd')
 
 # runs simple forecast 
 #source("scripts/060_simple_forecast.R")
