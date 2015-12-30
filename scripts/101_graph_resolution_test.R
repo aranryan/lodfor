@@ -7,18 +7,23 @@ require(Cairo)
 require(RColorBrewer)
 require(rmarkdown)
 require(knitr)
-require(ggplot2)
+
 
 # install.packages("extrafont")
 # library(extrafont)
 # font_import() # this gets fonts installed anywhere on your computer, 
 # most commonly from MS Office install fonts. 
 # It takes a long while.
-#loadfonts()
+# loadfonts()
 
-read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-source('~/Project/R projects/lodfor/scripts/functions.R')
-
+#read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
+#source('~/Project/R projects/lodfor/scripts/functions.R')
+library(arlodr, warn.conflicts=FALSE)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(ggplot2, warn.conflicts=FALSE)
+library(scales, warn.conflicts=FALSE)
+library(lubridate, warn.conflicts=FALSE)
 
 fpath <- c("~/Project/R projects/lodfor/")
 load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
@@ -27,7 +32,7 @@ load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
 ushist_q_m <- ushist_q %>%
   window(end = as.Date("2017-10-01")) %>%
   data.frame(date=index(.), .) %>%
-  melt(id.vars = c("date"))
+  gather(variable, value, -date)
 
 #Displays palette and sets the ts1 theme
 
@@ -92,10 +97,10 @@ p1 <- ggplot(temp, aes(x = date, y=value)) +
   geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], color=mypallete[10:10], size=.6, linetype = 1)
 CairoPNG("output_data/figure_us_overview_graphs/fig-testR400dpi-occupancy_forecast.png", units="in", width=9, height=5.7, dpi=400)
 #CairoPDF("output_data/figure_us_overview_graphs/fig-testR400dpi-occupancy_forecast.pdf", width=9, height=5.7)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 dev.off()
 
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 p1 <- ggplot(temp, aes(x = date, y=value)) +
   geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], size=.6, linetype = 1)
 p1

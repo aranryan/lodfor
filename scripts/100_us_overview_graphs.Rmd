@@ -1811,7 +1811,7 @@ p2 <- p2 +
   geom_hline(aes(yintercept=holdhigh), color="grey60", size=.5, alpha=.6) +
   annotate("text", x = as.Date("2007-07-01"), y = holdhigh+2, size=3,
            label = c(paste("Previous peak: $",sprintf("%0.f", holdhigh), "\n(2007 Q3)",sep="")))
-plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote, filename = c("temp.png")NN)
+plot_title_3(plot=p2, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
 
 # add lines
 p3 <- p1 + 
