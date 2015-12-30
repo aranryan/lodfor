@@ -1,4 +1,8 @@
-
+library(arlodr, warn.conflicts=FALSE)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+library(lubridate, warn.conflicts=FALSE)
 
 #######
 #
@@ -104,14 +108,14 @@ temp1_lodhstbk_a <- data.frame(date=time(suma), suma)%>%
 lodhstbk_q <- temp1_lodhstbk_q %>%
   simp_xts() %>%
   data.frame(date=time(.), .) %>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
   separate(variable, c("variable", "area_sh"), sep = "_(?!.*_)", extra="merge") %>%
   spread(variable, value)
 
 lodhstbk_a <- temp1_lodhstbk_a %>%
   simp_xts() %>%
   data.frame(date=time(.), .) %>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
   separate(variable, c("variable", "area_sh"), sep = "_(?!.*_)", extra="merge") %>%
   spread(variable, value)
 

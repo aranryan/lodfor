@@ -1,3 +1,7 @@
+library(arlodr, warn.conflicts=FALSE)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
 
 
 # end of data
@@ -35,7 +39,7 @@ a
 # this is in an actual tidy format with date and seg columns to describe the
 # observations, and then variables in the columns
 ushist_host_q_td <- data.frame(date=time(ushist_host_q), ushist_host_q)%>%
-  melt(id.vars = c("date")) %>%
+  gather(variable, value, -date) %>%
   separate(variable, c("seg", "var"), sep = "_", extra="merge") %>%
   spread(var, value) 
 
