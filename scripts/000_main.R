@@ -19,7 +19,7 @@ source("scripts/011_read_raw_str_ihg_mex.R")
 source("scripts/012_read_raw_str_ihg_can.R")
 rmarkdown::render("scripts/013_read_raw_str_us_host.Rmd") 
 
-# create monthl and quarterly seasonal factors, only run if necessary
+# create monthly and quarterly seasonal factors, only run if necessary
 # results saved in Rdata files (dataframe)
 #source("scripts/014_create_seasonal.R")
 

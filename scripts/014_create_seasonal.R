@@ -1,3 +1,9 @@
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+library(seasonal, warn.conflicts=FALSE)
+Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
 
 ########
 #
@@ -30,21 +36,25 @@ str_us_q <- temp_str_us[[2]]
                     -ends_with("_rmrevt"), 
                     -ends_with("_supt"))
 
-dont_q_cols <- c("anaheim_supd|neworleans_supd|oahu_supd|sanfranchisco_supd|tampa_supd")
+# why isn't there a dont_m_cols list?
+dont_q_cols <- c("anaheim_supd|neworleans_supd|oahu_supd|sanfrancisco_supd|tampa_supd")
 
 
 # creates seasonal factors and saves as Rdata files
 # monthly
-  str_us_m_factors <- seas_factors_m(str_us_m, dont_q_cols)
+  str_us_m_factors <- seas_factors_m(str_m, dont_q_cols)
   save(str_us_m_factors, file="output_data/str_us_m_factors.Rdata")
   # quarterly
-  str_us_q_factors <- seas_factors_q(str_us_q)
+  str_us_q_factors <- seas_factors_q(str_q, dont_q_cols)
   save(str_us_q_factors, file="output_data/str_us_q_factors.Rdata")
 
 ###############
 #
 # IHG Mexico
 
+dont_m_cols <- c("blank")
+dont_q_cols <- c("blank")
+  
 load("output_data/raw_str_ihg_mex.Rdata")
 temp_str_ihg_mex <- load_str(raw_str_ihg_mex)
 
@@ -52,17 +62,33 @@ temp_str_ihg_mex <- load_str(raw_str_ihg_mex)
 str_ihg_mex_m <- temp_str_ihg_mex[[1]]
 str_ihg_mex_q <- temp_str_ihg_mex[[2]]
 
+# drops series that aren't going to be adjusted
+str_m <- select(str_ihg_mex_m, 
+                -ends_with("_days"), 
+                -ends_with("_demt"), 
+                -ends_with("_rmrevt"), 
+                -ends_with("_supt"))
+
+str_q <- select(str_ihg_mex_q, 
+                -ends_with("_days"), 
+                -ends_with("_demt"), 
+                -ends_with("_rmrevt"), 
+                -ends_with("_supt"))
+
 # creates seasonal factors and saves as Rdata files
 # monthly
-str_ihg_mex_m_factors <- seas_factors_m(str_ihg_mex_m)
+str_ihg_mex_m_factors <- seas_factors_m(str_m, dont_m_cols)
 save(str_ihg_mex_m_factors, file="output_data/str_ihg_mex_m_factors.Rdata")
 # quarterly
-str_ihg_mex_q_factors <- seas_factors_q(str_ihg_mex_q)
+str_ihg_mex_q_factors <- seas_factors_q(str_q, dont_q_cols)
 save(str_ihg_mex_q_factors, file="output_data/str_ihg_mex_q_factors.Rdata")
 
 ###############
 #
 # IHG Canada
+
+dont_m_cols <- c("blank")
+dont_q_cols <- c("blank")
 
 load("output_data/raw_str_ihg_can.Rdata")
 temp_str_ihg_can <- load_str(raw_str_ihg_can)
@@ -71,12 +97,25 @@ temp_str_ihg_can <- load_str(raw_str_ihg_can)
 str_ihg_can_m <- temp_str_ihg_can[[1]]
 str_ihg_can_q <- temp_str_ihg_can[[2]]
 
+# drops series that aren't going to be adjusted
+str_m <- select(str_ihg_can_m, 
+                -ends_with("_days"), 
+                -ends_with("_demt"), 
+                -ends_with("_rmrevt"), 
+                -ends_with("_supt"))
+
+str_q <- select(str_ihg_can_q, 
+                -ends_with("_days"), 
+                -ends_with("_demt"), 
+                -ends_with("_rmrevt"), 
+                -ends_with("_supt"))
+
 # creates seasonal factors and saves as Rdata files
 # monthly
-str_ihg_can_m_factors <- seas_factors_m(str_ihg_can_m)
+str_ihg_can_m_factors <- seas_factors_m(str_m, dont_m_cols)
 save(str_ihg_can_m_factors, file="output_data/str_ihg_can_m_factors.Rdata")
 # quarterly
-str_ihg_can_q_factors <- seas_factors_q(str_ihg_can_q)
+str_ihg_can_q_factors <- seas_factors_q(str_q, dont_q_cols)
 save(str_ihg_can_q_factors, file="output_data/str_ihg_can_q_factors.Rdata")
 
 ###############
