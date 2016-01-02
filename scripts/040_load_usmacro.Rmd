@@ -105,7 +105,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ###A few plots
 ```{r plots, echo=FALSE}
 
-autoplot(oe_usmac_q$us_gdp)
+autoplot.zoo(oe_usmac_q$us_gdp)
 
 a <- oe_usmac_q %>%
   data.frame(date=time(.), .)
@@ -114,10 +114,10 @@ str(oe_usmac_q)
 str(temp_2)
 str(temp)
 
-autoplot(oe_usmac_q$us_up)
-autoplot(oe_usmac_q$us_et)
-autoplot(oe_usmac_q$us_rcorp)
-autoplot(oe_usmac_q$us_pc)
+autoplot.zoo(oe_usmac_q$us_up)
+autoplot.zoo(oe_usmac_q$us_et)
+autoplot.zoo(oe_usmac_q$us_rcorp)
+autoplot.zoo(oe_usmac_q$us_pc)
 
 temp <- (oe_usmac_q$us_gdp)
 # percentage growth
@@ -125,7 +125,7 @@ tempdiff <- diff(temp)/lag(temp)
 # annualized growth
 tempcagr <- (temp/lag(temp))^4-1
 #plotting annualized growth
-autoplot(window(tempcagr, start=as.Date("2013-01-01"), end=as.Date("2015-10-01")))
+autoplot.zoo(window(tempcagr, start=as.Date("2013-01-01"), end=as.Date("2015-10-01")))
 tempa <- merge(temp, tempdiff, tempcagr)
 
 # take a look at GDP growth rate as a check
@@ -168,7 +168,7 @@ us_usrecq <- us_usrecq %>%
   xts()
 
 oe_usmac_q <- merge(oe_usmac_q, us_usrecq)
-autoplot(oe_usmac_q$us_usrecq)
+autoplot.zoo(oe_usmac_q$us_usrecq)
 ```
 
 ###Writing out files

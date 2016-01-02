@@ -19,7 +19,7 @@ Setup
 library(arlodr, warn.conflicts=FALSE)
 library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
-#library(tidyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
 ```
 
 
@@ -123,17 +123,17 @@ Index the personal cons price deflator to average 100 in 2014
 # US
 us_pcindex <- index_q(temp_usmac$us_pc, index_year=2014)
 names(us_pcindex) <- "us_pcindex"
-autoplot(us_pcindex)
+autoplot.zoo(us_pcindex)
 
 # Canada
 can_pcindex <- index_q(temp_usmac$can_pc, index_year=2014)
 names(can_pcindex) <- "can_pcindex"
-autoplot(can_pcindex)
+autoplot.zoo(can_pcindex)
 
 # Mexico
 mex_pcindex <- index_q(temp_usmac$mex_pc, index_year=2014)
 names(mex_pcindex) <- "mex_pcindex"
-autoplot(mex_pcindex)
+autoplot.zoo(mex_pcindex)
 
 # combines as a dataframe
 pcindex <- merge(us_pcindex, can_pcindex, mex_pcindex) %>%
@@ -169,17 +169,17 @@ str_q <- temp_str_q2[,colSums(is.na(temp_str_q2))<nrow(temp_str_q2)] %>%
  read.zoo() %>%
  xts()
 
-autoplot(window(str_q$upachcil_adr_sar, start="2000-01-01", end="2014-10-01"))
-autoplot(window(str_q$upachcil_revpar_sa, start="2000-01-01", end="2014-10-01"))
-autoplot(window(str_q$upachcil_revpar, start="2000-01-01", end="2014-10-01"))
-autoplot(window(str_q$luxusxxx_adr, start="2000-01-01", end="2014-10-01"))
+autoplot.zoo(window(str_q$upachcil_adr_sar, start="2000-01-01", end="2014-10-01"))
+autoplot.zoo(window(str_q$upachcil_revpar_sa, start="2000-01-01", end="2014-10-01"))
+autoplot.zoo(window(str_q$upachcil_revpar, start="2000-01-01", end="2014-10-01"))
+autoplot.zoo(window(str_q$luxusxxx_adr, start="2000-01-01", end="2014-10-01"))
 
 # merges onto ushist_q
 ushist_q <- merge(temp_usmac, str_q)
 
-autoplot(window(ushist_q$upausxxx_adr, start="2000-01-01", end="2014-10-01"))
-autoplot(window(ushist_q$upausxxx_adr_sa, start="2000-01-01", end="2014-10-01"))
-autoplot(window(ushist_q$upausxxx_adr_sar, start="2000-01-01", end="2014-10-01"))
+autoplot.zoo(window(ushist_q$upausxxx_adr, start="2000-01-01", end="2014-10-01"))
+autoplot.zoo(window(ushist_q$upausxxx_adr_sa, start="2000-01-01", end="2014-10-01"))
+autoplot.zoo(window(ushist_q$upausxxx_adr_sar, start="2000-01-01", end="2014-10-01"))
 
 ushist_q_df <- ushist_q %>%
   data.frame(date=time(.), .)
@@ -191,7 +191,7 @@ grapht <- ushist_q_df %>%
   read.zoo() %>%
   xts() %>%
   window(.,start="2000-01-01", end="2015-10-01")
-autoplot(grapht, facets = NULL)
+autoplot.zoo(grapht, facets = NULL)
 
 # simple graph with variables for selected geo
 segment <- c("upanwyny")
@@ -205,7 +205,7 @@ grapht <- ushist_q_df %>%
   read.zoo() %>%
   xts() %>%
   window(.,start="2000-01-01", end="2015-10-01")
-autoplot(grapht, facets = NULL)
+autoplot.zoo(grapht, facets = NULL)
 ```
 
 
@@ -336,14 +336,16 @@ b
 # takes it from a tidy format and melts it, and then creates the unique
 # variable names and then reads into a zoo object spliting on the 
 # second column
-a <- melt(tb2, id=c("date","seg"), na.rm=FALSE)
+#a <- melt(tb2, id=c("date","seg"), na.rm=FALSE)
+a <- tb2 %>%
+  gather(variable, value, -date, -seg)
 a$variable <- paste(a$seg, "_", a$var, sep='')
 a$seg <- NULL
 ushist_a <- xts(read.zoo(a, split = 2))
 
 # looking at a few graphs
-autoplot(ushist_a$luxusxxx_revpar)
-autoplot(window(ushist_a$totusxxx_occ, start=as.Date("1987-01-01"), end=as.Date("2015-01-01")))
+autoplot.zoo(ushist_a$luxusxxx_revpar)
+autoplot.zoo(window(ushist_a$totusxxx_occ, start=as.Date("1987-01-01"), end=as.Date("2015-01-01")))
 ```
 
 Creating monthly historical databank

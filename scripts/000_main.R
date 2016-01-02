@@ -28,7 +28,6 @@ rmarkdown::render("scripts/013_read_raw_str_us_host.Rmd")
 source("scripts/020_prep_str.R")
 source("scripts/021_prep_str_host.R")
 
-
 # reads STR opens and closes directly from Excel source file
 # results saved in Rdata (xts) and csv files
 source("scripts/030_load_str_openclose.R")

@@ -8,20 +8,23 @@ output:
 ---
 
 Setup
-```{r readchunk}
+
+```r
 #read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-#source('~/Project/R projects/lodfor/scripts/functions_combined.R')
-library(arlodr, warn.conflicts=FALSE)
-library(zoo, warn.conflicts=FALSE)
-library(xts, warn.conflicts=FALSE)
-Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
-library(seasonal, warn.conflicts=FALSE)
-library(dplyr, warn.conflicts=FALSE)
-library(tidyr, warn.conflicts=FALSE)
+source('~/Project/R projects/lodfor/scripts/functions.R')
 ```
 
 Creates a us historical databank. Combines the STR data with selected macro data and calculates a few series
-```{r load}
+
+```r
+# require("tidyr")
+# require("zoo")
+# require("xts")
+# require("ggplot2")
+# require("tframePlus")
+# require("seasonal")
+# Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
+# checkX13()
 
 fpath <- c("~/Project/R projects/lodfor/") 
 #macro data
@@ -41,7 +44,8 @@ fpath <- c("~/Project/R projects/lodfor/")
 ```
 
 The initial steps do the quarterly databank. Monthly is done further below.
-```{r create_q}
+
+```r
 # selects certain series to bring in. Others just stay in macro in case they 
 # are needed in future.
 temp <- oe_usmac_q %>%
@@ -64,15 +68,32 @@ temp <- oe_usmac_q %>%
          us_usrecq,
          can_gdp,
          can_cpi,
-         can_pc,
          mex_gdp,
-         mex_cpi,
-         mex_pc
+         mex_cpi
          ) %>%
   read.zoo %>%
   as.xts
-head(temp)
+```
 
+```
+## Error in eval(expr, envir, enclos): object 'us_usrecq' not found
+```
+
+```r
+head(temp)
+```
+
+```
+##             us_gdp
+## 1980-01-01 1631.22
+## 1980-04-01 1598.15
+## 1980-07-01 1595.72
+## 1980-10-01 1625.30
+## 1981-01-01 1658.93
+## 1981-04-01 1646.82
+```
+
+```r
 # merges dataframes. the all.=TRUE piece ensures all the rows
 # in the first dataframe are included
 ushist_q <- merge(temp, out_str_us_q, all=TRUE) 
@@ -96,10 +117,37 @@ ushist_q <- merge(temp, out_str_us_q, all=TRUE)
 
 # first index the personal cons price deflator to average 100 in 2014
 us_pc_index <- index_q(ushist_q$us_pc, index_year=2014)
-names(us_pc_index) <- "us_pc_index"
-ushist_q <- merge(ushist_q, us_pc_index)
-autoplot.zoo(ushist_q$us_pc_index)
+```
 
+```
+## Error in hasTsp(x): attempt to set an attribute on NULL
+```
+
+```r
+names(us_pc_index) <- "us_pc_index"
+```
+
+```
+## Error in names(us_pc_index) <- "us_pc_index": object 'us_pc_index' not found
+```
+
+```r
+ushist_q <- merge(ushist_q, us_pc_index)
+```
+
+```
+## Error in merge.xts(ushist_q, us_pc_index): object 'us_pc_index' not found
+```
+
+```r
+autoplot(ushist_q$us_pc_index)
+```
+
+```
+## Error: Objects of type NULL not supported by autoplot.  Please use qplot() or ggplot() instead.
+```
+
+```r
 # select the series that contain adr or revpar and convert to real
 # the way this works is that matches works on a regular expression
 # I wrote a regular expression that is taking _adr_ or _revpar_
@@ -108,35 +156,137 @@ autoplot.zoo(ushist_q$us_pc_index)
 real_df <- data.frame(ushist_q) %>%
   select(matches("_adr$|_adr_sa|_revpar$|_revpar_sa")) %>% 
   mutate_each(funs(ind = ( . / us_pc_index)*100))
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'us_pc_index' not found
+```
+
+```r
 # adds on a time index to get it back to xts
 temp <- data.frame(date=time(ushist_q)) 
 real_df <- cbind(temp,real_df)
+```
+
+```
+## Error in cbind(temp, real_df): object 'real_df' not found
+```
+
+```r
 real <- read.zoo(real_df)
+```
+
+```
+## Error in read.zoo(real_df): object 'real_df' not found
+```
+
+```r
 real <- xts(real)
+```
 
+```
+## Error in xts(real): object 'real' not found
+```
 
+```r
 # renames series 
 tempnames <- names(real)
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'real' not found
+```
+
+```r
 tempnames <- paste(tempnames,"rpc",sep="")
+```
+
+```
+## Error in paste(tempnames, "rpc", sep = ""): object 'tempnames' not found
+```
+
+```r
 tempnames
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'tempnames' not found
+```
+
+```r
 names(real) <- tempnames
+```
+
+```
+## Error in eval(expr, envir, enclos): object 'tempnames' not found
+```
+
+```r
 rm(tempnames)
+```
 
-autoplot.zoo(window(real$luxus_adr_sarpc, start="2000-01-01", end="2015-10-01"))
-autoplot.zoo(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2015-10-01"))
+```
+## Warning in rm(tempnames): object 'tempnames' not found
+```
 
+```r
+autoplot(window(real$luxus_adr_sarpc, start="2000-01-01", end="2015-10-01"))
+```
+
+```
+## Error in window(real$luxus_adr_sarpc, start = "2000-01-01", end = "2015-10-01"): object 'real' not found
+```
+
+```r
+autoplot(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2015-10-01"))
+```
+
+```
+## Warning: Removed 2 rows containing missing values (geom_path).
+```
+
+![plot of chunk create_q](figure/create_q-1.png) 
+
+```r
 # merges onto ushist_q
 ushist_q <- merge(ushist_q, real)
-autoplot.zoo(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2015-10-01"))
+```
+
+```
+## Error in merge.xts(ushist_q, real): object 'real' not found
+```
+
+```r
+autoplot(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2015-10-01"))
+```
+
+```
+## Error in hasTsp(x): attempt to set an attribute on NULL
 ```
 
 
-```{r add_ihg_mex_can}
+
+```r
 # merges onto ushist_q
 ushist_q <- merge(ushist_q, out_str_ihg_mex_q,out_str_ihg_can_q)
-autoplot.zoo(window(ushist_q$totcan_adr_sa, start="2000-01-01", end="2015-10-01"))
-autoplot.zoo(window(ushist_q$totcan_demd_sa, start="2000-01-01", end="2015-10-01"))
+autoplot(window(ushist_q$totcan_adr_sa, start="2000-01-01", end="2015-10-01"))
 ```
+
+```
+## Warning: Removed 3 rows containing missing values (geom_path).
+```
+
+![plot of chunk add_ihg_mex_can](figure/add_ihg_mex_can-1.png) 
+
+```r
+autoplot(window(ushist_q$totcan_demd_sa, start="2000-01-01", end="2015-10-01"))
+```
+
+```
+## Warning: Removed 3 rows containing missing values (geom_path).
+```
+
+![plot of chunk add_ihg_mex_can](figure/add_ihg_mex_can-2.png) 
 
 Adds open close data
 
@@ -151,7 +301,8 @@ Calculate sups for quarterly data by taking supd of the first month of the quart
 supe is the end of the quarter, so it should be set equal to the start of
 supply from the next quarter
 
-```{r add_opencl}
+
+```r
 # process is to create a quarterly object with open close and start/end of 
 # period supply, and then merge it onto the quarterly object we're building
 
@@ -165,7 +316,19 @@ temp_opcl <- data.frame(date=time(out_opcl_q), out_opcl_q) %>%
   read.zoo %>%
   as.xts
 head(temp_opcl)
+```
 
+```
+##            totus_oprms_sa totus_oprms_sf totus_oprms totus_clrms
+## 1987-01-01       45349.99      0.8053805       36524         458
+## 1987-04-01       39252.33      1.5351955       60260         141
+## 1987-07-01       36735.08      0.8727354       32060           0
+## 1987-10-01       32569.07      0.8032160       26160         350
+## 1988-01-01       31440.52      0.8476960       26652         165
+## 1988-04-01       35705.76      1.4716953       52548         991
+```
+
+```r
 # setting up end of period and start of period supply quarterly
 
 # use monthly supply to calculate start of quarter supply
@@ -190,9 +353,47 @@ sup_qtr$totus_supe <- stats:::lag(sup_qtr$totus_sups, k=-1)
 
 # as a check
 head(out_str_us_m$totus_supd) #monthly
-head(sup_qtr$totus_sups) # based on start of quarter
-head(sup_qtr$totus_supe) # based on start of quarter
+```
 
+```
+##            totus_supd
+## 1987-01-01   2.865101
+## 1987-02-01   2.875134
+## 1987-03-01   2.894506
+## 1987-04-01   2.922419
+## 1987-05-01   2.968822
+## 1987-06-01   3.011714
+```
+
+```r
+head(sup_qtr$totus_sups) # based on start of quarter
+```
+
+```
+##            totus_sups
+## 1987-01-01   2.865101
+## 1987-04-01   2.922419
+## 1987-07-01   3.024173
+## 1987-10-01   3.038255
+## 1988-01-01   3.015697
+## 1988-04-01   3.065640
+```
+
+```r
+head(sup_qtr$totus_supe) # based on start of quarter
+```
+
+```
+##            totus_supe
+## 1987-01-01   2.922419
+## 1987-04-01   3.024173
+## 1987-07-01   3.038255
+## 1987-10-01   3.015697
+## 1988-01-01   3.065640
+## 1988-04-01   3.158598
+```
+
+```r
 # combine with ushist_q did in two steps just so
 # I had a way to look at temp_opcl if I wanted to
 temp_opcl <- merge(temp_opcl, sup_qtr)
@@ -207,25 +408,88 @@ ushist_q <- data.frame(date=time(ushist_q), ushist_q) %>%
   as.xts
 
 # looking at data
-autoplot.zoo(window(ushist_q$totus_oprms, start="1995-01-01", end="2015-10-01"))
-autoplot.zoo(window(ushist_q$totus_clrms, start="1995-01-01", end="2015-10-01"))
-autoplot.zoo(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
-autoplot.zoo(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
+autoplot(window(ushist_q$totus_oprms, start="1995-01-01", end="2015-10-01"))
+```
 
+```
+## Warning: Removed 2 rows containing missing values (geom_path).
+```
+
+![plot of chunk add_opencl](figure/add_opencl-1.png) 
+
+```r
+autoplot(window(ushist_q$totus_clrms, start="1995-01-01", end="2015-10-01"))
+```
+
+```
+## Warning: Removed 2 rows containing missing values (geom_path).
+```
+
+![plot of chunk add_opencl](figure/add_opencl-2.png) 
+
+```r
+autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
+```
+
+```
+## Warning: Removed 3 rows containing missing values (geom_path).
+```
+
+![plot of chunk add_opencl](figure/add_opencl-3.png) 
+
+```r
+autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
+```
+
+```
+## Warning: Removed 3 rows containing missing values (geom_path).
+```
+
+![plot of chunk add_opencl](figure/add_opencl-4.png) 
+
+```r
 # looking at it as a ts
 tempa <- na.exclude(ushist_q$totus_schange)*1000000
 tempa_ts <<- ts(as.numeric(tempa), start=c(1987, 1), frequency=4)
 plot(tempa_ts)
-head(tempa_ts)
-monthplot(tempa_ts)
+```
 
+![plot of chunk add_opencl](figure/add_opencl-5.png) 
+
+```r
+head(tempa_ts)
+```
+
+```
+## [1]  21252  41635 -17978 -48368  23456  41401
+```
+
+```r
+monthplot(tempa_ts)
+```
+
+![plot of chunk add_opencl](figure/add_opencl-6.png) 
+
+```r
 # looking at schanger
 tempa <- na.exclude(ushist_q$totus_schanger)
 tempa_ts <<- ts(as.numeric(tempa), start=c(1987, 1), frequency=4)
 #plot(tempa_ts)
 head(tempa_ts)
-monthplot(tempa_ts)
+```
 
+```
+## [1]  0.007417540  0.014246759 -0.005944766 -0.015919664  0.007777970
+## [6]  0.013504847
+```
+
+```r
+monthplot(tempa_ts)
+```
+
+![plot of chunk add_opencl](figure/add_opencl-7.png) 
+
+```r
 # if I adjust as seas, it works, but my function didn't
 # I think the issue is that my function requires a transform.function ="log"
 # which I don't think works with negative values
@@ -236,6 +500,13 @@ x <- ushist_q$totus_schanger
   #stores the name
   holdn <- names(x)
   print(holdn)
+```
+
+```
+## [1] "totus_schanger"
+```
+
+```r
   # trims the NAs from the series
   x <- na.trim(x)
   # this series y is used in the output, just outputs the original series
@@ -249,12 +520,29 @@ mp <- seas(y,
              identify.sdiff = c(0, 1),
              forecast.maxlead = 30, # extends 30 quarters ahead
              x11.appendfcst = "yes", # appends the forecast of the seasonal factors
-             dir = "output_data")
+             dir = "output_data/" )
+```
 
+```
+## All X-13ARIMA-SEATS output files have been copied to 'output_data/'.
+```
+
+```r
   # grabs the seasonally adjusted series
   tempdata_sa <- series(mp, c("d11")) # seasonally adjusted series
   tempdata_sf <- series(mp, c("d16")) # seasonal factors
   tempdata_fct <- series(mp, "forecast.forecasts") # forecast of nonseasonally adjusted series
+```
+
+```
+## Warning in dir.create(dir): 'output_data' already exists
+```
+
+```
+## All X-13ARIMA-SEATS output files have been copied to 'output_data/'.
+```
+
+```r
   tempdata_irreg <- series(mp, c("d13")) # final irregular component
   
   # creates xts objects
@@ -284,33 +572,115 @@ mp <- seas(y,
   read.zoo %>%
   as.xts
   head(temp_schanger)
+```
 
-autoplot.zoo(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
-autoplot.zoo(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2015-10-01"))
+```
+##            totus_schanger_sa totus_schanger_sf
+## 1987-01-01     -0.0008564807       0.008274020
+## 1987-04-01      0.0012888254       0.012957934
+## 1987-07-01     -0.0010908399      -0.004853926
+## 1987-10-01      0.0004962851      -0.016415950
+## 1988-01-01     -0.0005443572       0.008322327
+## 1988-04-01      0.0005928311       0.012912016
+```
 
+```r
+autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
+```
+
+```
+## Warning: Removed 3 rows containing missing values (geom_path).
+```
+
+![plot of chunk add_opencl](figure/add_opencl-8.png) 
+
+```r
+autoplot(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2015-10-01"))
+```
+
+```
+## Warning: Removed 3 rows containing missing values (geom_path).
+```
+
+![plot of chunk add_opencl](figure/add_opencl-9.png) 
+
+```r
 # merge onto ushist_q
 ushist_q <- merge(ushist_q, temp_schanger)
 
-autoplot.zoo(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
+autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
 ```
 
+```
+## Warning: Removed 3 rows containing missing values (geom_path).
+```
+
+![plot of chunk add_opencl](figure/add_opencl-10.png) 
+
 Looking at what's in quarterly databank
-```{r look_q}
+
+```r
 # which segments or markets are in the data frame, just for observation
 # not used anywhere
 a <- grep(pattern="_demt", colnames(ushist_q), value=TRUE)
 a
+```
+
+```
+##  [1] "anaheim_demt"      "atlanta_demt"      "boston_demt"      
+##  [4] "chicago_demt"      "dallas_demt"       "denver_demt"      
+##  [7] "detroit_demt"      "ecous_demt"        "houston_demt"     
+## [10] "indus_demt"        "lalongbeach_demt"  "luxus_demt"       
+## [13] "miami_demt"        "midus_demt"        "minneapolis_demt" 
+## [16] "nashville_demt"    "neworleans_demt"   "newyork_demt"     
+## [19] "norfolk_demt"      "oahu_demt"         "orlando_demt"     
+## [22] "philadelphia_demt" "phoenix_demt"      "sandiego_demt"    
+## [25] "sanfrancisco_demt" "seattle_demt"      "stlouis_demt"     
+## [28] "tampa_demt"        "totus_demt"        "upmus_demt"       
+## [31] "upsus_demt"        "upuus_demt"        "washingtondc_demt"
+## [34] "upmmex_demt"       "upmmexusd_demt"    "totcan_demt"
+```
+
+```r
 a <- gsub(pattern="_demt",replacement="",a)
 a
+```
 
+```
+##  [1] "anaheim"      "atlanta"      "boston"       "chicago"     
+##  [5] "dallas"       "denver"       "detroit"      "ecous"       
+##  [9] "houston"      "indus"        "lalongbeach"  "luxus"       
+## [13] "miami"        "midus"        "minneapolis"  "nashville"   
+## [17] "neworleans"   "newyork"      "norfolk"      "oahu"        
+## [21] "orlando"      "philadelphia" "phoenix"      "sandiego"    
+## [25] "sanfrancisco" "seattle"      "stlouis"      "tampa"       
+## [29] "totus"        "upmus"        "upsus"        "upuus"       
+## [33] "washingtondc" "upmmex"       "upmmexusd"    "totcan"
+```
+
+```r
 b <- grep(pattern="totus_", colnames(ushist_q), value=TRUE)
 b
 ```
 
+```
+##  [1] "totus_adr"         "totus_adr_sa"      "totus_adr_sf"     
+##  [4] "totus_days"        "totus_demar_sa"    "totus_demd"       
+##  [7] "totus_demd_sa"     "totus_demd_sf"     "totus_demt"       
+## [10] "totus_occ"         "totus_occ_sa"      "totus_occ_sf"     
+## [13] "totus_revpar"      "totus_revpar_sa"   "totus_revpar_sf"  
+## [16] "totus_rmrevt"      "totus_supd"        "totus_supd_sa"    
+## [19] "totus_supd_sf"     "totus_supt"        "totus_strdays"    
+## [22] "totus_oprms_sa"    "totus_oprms_sf"    "totus_oprms"      
+## [25] "totus_clrms"       "totus_sups"        "totus_supe"       
+## [28] "totus_schange"     "totus_schanger"    "totus_schanger_sa"
+## [31] "totus_schanger_sf"
+```
+
 
 Create a sum of top 25 metros
-```{r top25}
 
+```r
 top25list <- c("anaheim", "atlanta", "boston", "chicago", 
                "dallas", "denver", "detroit", "houston", 
                "lalongbeach",  "miami", "minneapolis",  "nashville",
@@ -372,7 +742,8 @@ ushist_q <- merge(ushist_q, top25sum)
 
 
 Create annual databank
-```{r create_a}
+
+```r
 # start with those that should be summed
 
 # select series that should be converted to annual by summing
@@ -410,28 +781,52 @@ tb2 <- data.frame(date=time(suma), suma)%>%
 # takes it from a tidy format and melts it, and then creates the unique
 # variable names and then reads into a zoo object spliting on the 
 # second column
-#a <- reshape2::melt(tb2, id=c("date","seg"), na.rm=FALSE)
-a <- tb2 %>%
-  gather(variable, value, -date, -seg)
+a <- melt(tb2, id=c("date","seg"), na.rm=FALSE)
 a$variable <- paste(a$seg, "_", a$var, sep='')
 a$seg <- NULL
 ushist_a <- xts(read.zoo(a, split = 2))
 
 # looking at a few graphs
-autoplot.zoo(ushist_a$totus_schange)
-autoplot.zoo(ushist_a$luxus_revpar)
-autoplot.zoo(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2015-10-01")))
+autoplot(ushist_a$totus_schange)
 ```
 
+```
+## Warning: Removed 22 rows containing missing values (geom_path).
+```
+
+![plot of chunk create_a](figure/create_a-1.png) 
+
+```r
+autoplot(ushist_a$luxus_revpar)
+```
+
+```
+## Warning: Removed 22 rows containing missing values (geom_path).
+```
+
+![plot of chunk create_a](figure/create_a-2.png) 
+
+```r
+autoplot(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2015-10-01")))
+```
+
+```
+## Warning: Removed 1 rows containing missing values (geom_path).
+```
+
+![plot of chunk create_a](figure/create_a-3.png) 
+
 Creating monthly historical databank
-```{r create_m}
+
+```r
 # not that much that needs to be done
 ushist_m <- out_str_us_m
 ushist_m <- merge(ushist_m, out_str_ihg_mex_m, out_str_ihg_can_m)
 ```
 
 Create monthly, annual and quarterly databank with just US, mexico and canada
-```{r create_usmexcan}
+
+```r
 # this is to a historical databank with just US data, so the markets aren't in it
 
 usihg_list <-   c("us_", "ecous", "indus", "luxus", "midus", "upmus", "upsus", "upuus", "totus", "upmmex", "totcan", "mex_", "can_")
@@ -449,34 +844,7 @@ usihghist_m <- data.frame(ushist_m) %>%
 usihghist_a <- data.frame(ushist_a) %>%
   select(matches(paste(usihg_list,collapse="|"))) %>%
   as.xts()
-
 ```
 
 ### Writing outputs
-```{r write_output, echo=FALSE}
-# quarterly
-  # writes csv versions of the output files
-  write.zoo(ushist_q, file=paste(fpath, "output_data/ushist_q.csv", sep=""), sep=",")
-  write.zoo(usihghist_q, file=paste(fpath, "output_data/usihghist_q.csv", sep=""), sep=",")
-  #write.zoo(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.csv", sep=""), sep=",")
-  
-  # saves Rdata versions of the output files
-  save(ushist_q, file=paste(fpath, "output_data/ushist_q.Rdata", sep=""))
-  #save(ushist_ind_q, file=paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
 
-# monthly
-  # writes csv versions of the output files
-  write.zoo(ushist_m, file=paste(fpath,"output_data/ushist_m.csv",sep=""), sep=",")
-  write.zoo(usihghist_m, file=paste(fpath,"output_data/usihghist_m.csv",sep=""), sep=",")
-  
-  # saves Rdata versions of the output files
-  save(ushist_m, file=paste(fpath,"output_data/ushist_m.Rdata", sep=""))
-
-# annual
-  # writes csv versions of the output files
-  write.zoo(ushist_a, file=paste(fpath,"output_data/ushist_a.csv",sep=""), sep=",")
-  write.zoo(usihghist_a, file=paste(fpath,"output_data/usihghist_a.csv",sep=""), sep=",")
-  
-  # saves Rdata versions of the output files
-  save(ushist_a, file=paste(fpath,"output_data/ushist_a.Rdata", sep=""))
-```

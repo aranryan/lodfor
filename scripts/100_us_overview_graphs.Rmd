@@ -46,6 +46,7 @@ knitr::opts_chunk$set(error = TRUE)
 library(arlodr, warn.conflicts=FALSE)
 library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
 library(ggplot2, warn.conflicts=FALSE)
 library(scales, warn.conflicts=FALSE)
 library(lubridate, warn.conflicts=FALSE)
@@ -1758,7 +1759,7 @@ plot_title_3(plot=p3, grtitle=grtitle, footnote=footnote, filename = c("temp.png
 
 ## ADR, real short-term
 ```{r upm_adr_real_st}
-todo <- c("upmus_adr_sarpc")
+NNtodo <- c("upmus_adr_sarpc")
 grtitle <- c("Real ADR, Upper midscale")
 footnote <- c("Note: Seasonally adjusted.\nSource: STR; Bureau of Economic Analysis; Tourism Economics")
 starta <- as.Date("1995-01-01")

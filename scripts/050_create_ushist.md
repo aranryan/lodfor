@@ -6,73 +6,19 @@ Setup
 
 ```r
 #read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-source('~/Project/R projects/lodfor/scripts/functions_combined.R')
-```
-
-```
-## Loading required package: plm
-## Loading required package: Formula
-## 
-## Attaching package: 'plm'
-## 
-## The following object is masked from 'package:dplyr':
-## 
-##     between
-## 
-## Loading required package: dynlm
-## Loading required package: knitr
-## Loading required package: xlsx
-## Loading required package: rJava
-## Loading required package: xlsxjars
-## Loading required package: tframe
-## Loading required package: tframePlus
-## Loading required package: lubridate
-## 
-## Attaching package: 'lubridate'
-## 
-## The following object is masked from 'package:arlodr':
-## 
-##     days_in_month
-## 
-## Loading required package: stringr
-## Loading required package: scales
-## 
-## Attaching package: 'scales'
-## 
-## The following objects are masked from 'package:readr':
-## 
-##     col_factor, col_numeric
-## 
-## Loading required package: seasonal
-## No path to the binary executable of X-13 specified.
-##   
-## For installation details, consider Section 2 of the package vignette:
-##   http://cran.r-project.org/web/packages/seasonal/vignettes/seas.pdf
-## 
-## Loading required package: forecast
-## Loading required package: timeDate
-## This is forecast 6.2 
-## 
-## Loading required package: car
-## Loading required package: reshape2
-## Loading required package: ggplot2
-## Loading required package: lazyeval
-## Loading required package: broom
-## Loading required package: assertthat
+#source('~/Project/R projects/lodfor/scripts/functions_combined.R')
+library(arlodr, warn.conflicts=FALSE)
+library(zoo, warn.conflicts=FALSE)
+library(xts, warn.conflicts=FALSE)
+Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
+library(seasonal, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
 ```
 
 Creates a us historical databank. Combines the STR data with selected macro data and calculates a few series
 
 ```r
-# require("tidyr")
-# require("zoo")
-# require("xts")
-# require("ggplot2")
-# require("tframePlus")
-# require("seasonal")
-# Sys.setenv(X13_PATH = "C:/Aran Installed/x13as")
-# checkX13()
-
 fpath <- c("~/Project/R projects/lodfor/") 
 #macro data
   load(paste(fpath,"output_data/oe_usmac_q.Rdata", sep=""))
@@ -175,7 +121,7 @@ ushist_q <- merge(temp, out_str_us_q, all=TRUE)
 us_pc_index <- index_q(ushist_q$us_pc, index_year=2014)
 names(us_pc_index) <- "us_pc_index"
 ushist_q <- merge(ushist_q, us_pc_index)
-autoplot(ushist_q$us_pc_index)
+autoplot.zoo(ushist_q$us_pc_index)
 ```
 
 ![](050_create_ushist_files/figure-html/create_q-1.png) 
@@ -275,7 +221,7 @@ tempnames
 names(real) <- tempnames
 rm(tempnames)
 
-autoplot(window(real$luxus_adr_sarpc, start="2000-01-01", end="2015-10-01"))
+autoplot.zoo(window(real$luxus_adr_sarpc, start="2000-01-01", end="2015-10-01"))
 ```
 
 ```
@@ -285,7 +231,7 @@ autoplot(window(real$luxus_adr_sarpc, start="2000-01-01", end="2015-10-01"))
 ![](050_create_ushist_files/figure-html/create_q-2.png) 
 
 ```r
-autoplot(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2015-10-01"))
+autoplot.zoo(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
 ```
@@ -297,7 +243,7 @@ autoplot(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2015-10-01"))
 ```r
 # merges onto ushist_q
 ushist_q <- merge(ushist_q, real)
-autoplot(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2015-10-01"))
+autoplot.zoo(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2015-10-01"))
 ```
 
 ```
@@ -311,7 +257,7 @@ autoplot(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2015-10-01"))
 ```r
 # merges onto ushist_q
 ushist_q <- merge(ushist_q, out_str_ihg_mex_q,out_str_ihg_can_q)
-autoplot(window(ushist_q$totcan_adr_sa, start="2000-01-01", end="2015-10-01"))
+autoplot.zoo(window(ushist_q$totcan_adr_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
 ```
@@ -321,7 +267,7 @@ autoplot(window(ushist_q$totcan_adr_sa, start="2000-01-01", end="2015-10-01"))
 ![](050_create_ushist_files/figure-html/add_ihg_mex_can-1.png) 
 
 ```r
-autoplot(window(ushist_q$totcan_demd_sa, start="2000-01-01", end="2015-10-01"))
+autoplot.zoo(window(ushist_q$totcan_demd_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
 ```
@@ -450,7 +396,7 @@ ushist_q <- data.frame(date=time(ushist_q), ushist_q) %>%
   as.xts
 
 # looking at data
-autoplot(window(ushist_q$totus_oprms, start="1995-01-01", end="2015-10-01"))
+autoplot.zoo(window(ushist_q$totus_oprms, start="1995-01-01", end="2015-10-01"))
 ```
 
 ```
@@ -460,7 +406,7 @@ autoplot(window(ushist_q$totus_oprms, start="1995-01-01", end="2015-10-01"))
 ![](050_create_ushist_files/figure-html/add_opencl-1.png) 
 
 ```r
-autoplot(window(ushist_q$totus_clrms, start="1995-01-01", end="2015-10-01"))
+autoplot.zoo(window(ushist_q$totus_clrms, start="1995-01-01", end="2015-10-01"))
 ```
 
 ```
@@ -470,7 +416,7 @@ autoplot(window(ushist_q$totus_clrms, start="1995-01-01", end="2015-10-01"))
 ![](050_create_ushist_files/figure-html/add_opencl-2.png) 
 
 ```r
-autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
+autoplot.zoo(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
 ```
 
 ```
@@ -480,7 +426,7 @@ autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
 ![](050_create_ushist_files/figure-html/add_opencl-3.png) 
 
 ```r
-autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
+autoplot.zoo(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
 ```
 
 ```
@@ -623,7 +569,7 @@ mp <- seas(y,
 ```
 
 ```r
-autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
+autoplot.zoo(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
 ```
 
 ```
@@ -633,7 +579,7 @@ autoplot(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
 ![](050_create_ushist_files/figure-html/add_opencl-8.png) 
 
 ```r
-autoplot(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2015-10-01"))
+autoplot.zoo(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2015-10-01"))
 ```
 
 ```
@@ -646,7 +592,7 @@ autoplot(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2015-1
 # merge onto ushist_q
 ushist_q <- merge(ushist_q, temp_schanger)
 
-autoplot(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
+autoplot.zoo(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
 ```
 
 ```
@@ -820,13 +766,15 @@ tb2 <- data.frame(date=time(suma), suma)%>%
 # takes it from a tidy format and melts it, and then creates the unique
 # variable names and then reads into a zoo object spliting on the 
 # second column
-a <- melt(tb2, id=c("date","seg"), na.rm=FALSE)
+#a <- reshape2::melt(tb2, id=c("date","seg"), na.rm=FALSE)
+a <- tb2 %>%
+  gather(variable, value, -date, -seg)
 a$variable <- paste(a$seg, "_", a$var, sep='')
 a$seg <- NULL
 ushist_a <- xts(read.zoo(a, split = 2))
 
 # looking at a few graphs
-autoplot(ushist_a$totus_schange)
+autoplot.zoo(ushist_a$totus_schange)
 ```
 
 ```
@@ -836,7 +784,7 @@ autoplot(ushist_a$totus_schange)
 ![](050_create_ushist_files/figure-html/create_a-1.png) 
 
 ```r
-autoplot(ushist_a$luxus_revpar)
+autoplot.zoo(ushist_a$luxus_revpar)
 ```
 
 ```
@@ -846,7 +794,7 @@ autoplot(ushist_a$luxus_revpar)
 ![](050_create_ushist_files/figure-html/create_a-2.png) 
 
 ```r
-autoplot(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2015-10-01")))
+autoplot.zoo(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2015-10-01")))
 ```
 
 ```
