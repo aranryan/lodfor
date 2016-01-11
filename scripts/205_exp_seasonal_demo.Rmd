@@ -1,7 +1,7 @@
 ---
-title: "Untitled"
+title: "Seasonal adjustment demo"
 author: "Tourism Economics"
-date: "November 13, 2015"
+date: "January 9, 2016"
 output: 
   html_document: 
     keep_md: yes
@@ -24,6 +24,7 @@ require(xtable)
 require(ggplot2)
 require(knitr)
 require(RColorBrewer)
+require(scales)
 
 # If I put autodep=TRUE as an argument in the following then I get
 # some issues with the graphs, such as grey backgrounds and changes
@@ -32,13 +33,6 @@ require(RColorBrewer)
 knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_exp_seasonal_short/fig-',  fig.show='asis', fig.keep='high')
 # tells it to keep going even if there is an error
 knitr::opts_chunk$set(error = TRUE)
-
-```
-
-
-```{r readchunk, echo=FALSE, message=FALSE, warning=FALSE}
-#read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-#source('~/Project/R projects/lodfor/scripts/functions.R')
 
 ```
 
@@ -81,32 +75,38 @@ theme_ts1 <- function(base_size = 12, base_family = "") {
     #theme(plot.title = element_text(lineheight=.8, face="bold"))
     )
 }
-
-```
-
-```{r set_theme, echo=FALSE, message=FALSE, warning=FALSE}
 theme_set(theme_ts1())
-#this is also a useful theme to keep in mind
-#theme_classic()
-# this function gets the settings used by the current theme
-#theme_get()
 ```
 
+```{r}
+
+segrun <- c("totus_demd")
+
+```
+
+
+### Set up data to run using: `r segrun`
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 # shorten dates
 ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
 
 # sets up a single series to use for a few examples
-temp_df <- ushist_m_1 %>%
+demo_df <- ushist_m_1 %>%
   data.frame(date=time(.), .) %>%
-  select(date, totus_demd)
+  select_("date", segrun)
 
-x <- temp_df %>%
+```
+  
+## Run seasonal adjustment
+### Summary results  
+Uses default settings. For example, includes a term for Easter.
+```{r}
+x <- demo_df %>%
   read.zoo(regular=TRUE, drop=FALSE) %>%
   xts() %>%
   convertIndex("yearmon")
-head(x)
+
 temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
 
 # uses default settings
@@ -115,61 +115,10 @@ m1 <- seas(temp_ser_ts,
            seats.appendfcst="yes") 
 summary(m1)
 
-
-m2 <- seas(x = temp_ser_ts,
-     regression.variables = c("td", "easter[1]", "ls2001.Sep"), 
-     arima.model = "(1 1 0)(1 1 1)", 
-     regression.aictest = NULL, 
-    outlier = NULL, 
-    transform.function = "log")
-# the result is the same as the default call
-summary(m2)
-
 ```
 
-
-## Fundamental identities of seasonal adjustment
-### Y = T \* I \* (S \* TD)
-
-For example
-series(m, "seats.trend") \* series(m, "seats.irregular") \* series(m, "seats.adjustfac")
-
-
-Name   |   Small   | Description of table  
--------|----------|------------------------------
-trend  |   s12    | final SEATS trend component  
-seasonal |  s10    | final SEATS seasonal component  
-irregular | s13   |  final SEATS irregular component  
-seasonaladj | s11 | final SEATS seasonal adjustment component   
-transitory | s14 | final SEATS transitory component   
-adjustfac | s16 | final SEATS combined adjustment factors  
-adjustmentratio | s18 | final SEATS adjustment ratio  
-trendfcstdecomp | tfd | forecast of the trend component  
-seasonalfcstdecomp |  sfd | forecast of the seasonal component  
-seriesfcstdecomp | ofd | forecast of the series component  
-seasonaladjfcstdecomp | afd | forecast of the final SEATS seasonal adjustment  
-transitoryfcstdecomp | yfd | forecast of the transitory component  
-seasadjconst |  sec | final SEATS seasonal adjustment with constant term included  
-trendconst | stc | final SEATS trend component with constant term included  
-totaladjustment | sta |total adjustment factors for SEATS seasonal adjustment  
-
 ```{r}
-
-# temp_ser_fullout <- data_frame(
-#    date = as.Date(time(temp_ser_ts)),
-#    #original = temp_ser_ts,
-#    oa1 = original(m1),
-#    sa1 = final(m1),
-#    sa1_trend = series(m1, "s12"),
-#    sa1_seasonal = series(m1, "s10"),
-#    sa1_irregular = series(m1, "s13"),
-#    sa1_sf = series(m1, "s16")
-#    )
-
-# when I append the forecast, I think I end up with series of 
-# different lengths so rather than use the approach above, 
-# I had to switch to the approach below
-
+# create example dataframe with various series
   tempdata_y <- as.xts(temp_ser_ts, start = start(x), end = end(x))
   tempdata_oa1 <- as.xts(original(m1))
   tempdata_sa1 <- as.xts(final(m1)) # seasonally adjusted series
@@ -189,124 +138,93 @@ totaladjustment | sta |total adjustment factors for SEATS seasonal adjustment
   
   # merges the adjusted series onto the existing xts object with the unadjusted
   # series
-  temp_ser_fullout <- merge(tempdata_y, tempdata_oa1, tempdata_sa1, 
+  temp_ser_fullout_a <- merge(tempdata_y, tempdata_oa1, tempdata_sa1, 
                             tempdata_sa1_trend, tempdata_sa1_seasonal,   
                             tempdata_sa1_irregular, tempdata_sa1_sf) %>%
       data.frame(date=as.Date(time(.)), ., row.names=NULL)
 
-temp_ser_fullout <- temp_ser_fullout %>%
+temp_ser_fullout <- temp_ser_fullout_a %>%
   mutate(oa1_a = sa1_trend * sa1_irregular *sa1_sf) %>%
   mutate(oa1_b = sa1 * sa1_sf) 
-
 ```
 
-## Simple series codes for use in examples
+
+## Series codes for use in examples
 
 code | description
 -----|----------------------
 oa1 | original series  
 sa1 | seasonally adjusted series  
-sa1_trend | trend component (s12)
-sa1_seasonal | seasonal component (s10)  
-sa1_irregular | irregular component (s13)  
 sa1_sf | final combined (seasonal/trading day/holiday) factors (s16)  
-oa1_a | original = trend \* irregular \* combined (seasonal/trading day/holiday) adjustment factors
 oa1_b | original = seasonally adjusted series \* combined (seasonal/trading day/holiday) adjustment factors
 
 ### Example calculations
-In this table we have two ways to get back to the original series.   
-- oa1_a = trend \* irregular \* combined (seasonal/trading day/holiday) adjustment factors or   
+In this table we can get back to the original series as follows:  
+
+- oa1_b = sa1 \* sa1_sf  
+  
+which is equivalent to:  
+  
 - oa1_b = seasonally adjusted series \* combined (seasonal/trading day/holiday) adjustment factors
   
-
+  
 ```{r}
 
-a <- temp_ser_fullout %>%
-  filter(date > as.Date("1987-01-01") & date < as.Date("2015-09-01")) 
+# full table
+# a <- temp_ser_fullout %>%
+#   filter(date > as.Date("1987-01-01") & date < as.Date("2015-09-01"))
 
+# simple table  
+a <- temp_ser_fullout %>%
+  filter(date > as.Date("1987-01-01") & date < as.Date("2015-09-01")) %>%
+  select(-y, -sa1_trend, -sa1_seasonal, -sa1_irregular, -oa1_a)
+  
 kable(tail(a, n=12), digits = 4, row.names = FALSE)
 
-
-
-```
-
-## So which are the seasonal factors?
-
-It's sometimes hard to get a clear understanding from the documentation.  
-I've seen reference to the "combined" factors in the D16 (and presumably also s16) table as being the __combined__ (seasonal/trading day/holiday) factors. 
-
-There is also reference to a "total adjustment factors for SEATS seasonal adjustment".
-
-```{r}
-
-temp_ser_fullout <- merge(
-   # creates and merges invididual zoo series
-   original = as.zoo(temp_ser_ts),
-   oa1 = as.zoo(original(m1)),
-   sa1 = as.zoo(final(m1)),
-   sa1_trend = as.zoo(series(m1, "s12")),
-   sa1_seasonal = as.zoo(series(m1, "s10")),
-   sa1_irregular = as.zoo(series(m1, "s13")),
-   sa1_sf = as.zoo(series(m1, "s16")),
-   sa1_total = as.zoo(series(m1, "sta"))) %>%
-   # converts to xts
-   as.xts(order.by = as.yearmon(index(.)))
-
-# this is strange, but I can't do it all in a dplyr chain
-# maybe something to do with NAs?
-# need to dump it out first, then call kable
-a <- temp_ser_fullout %>%
-  data.frame(date=time(.), .) %>%
-  filter(date < "2015-09-01")
-kable(tail(a, n=12), digits = 4, row.names=FALSE)
-
-
-
 ```
 
 
 
+
+### Seasonal factors for September
+Take the estimate of the annualized level, and multiply by the seasonal factor, to get the actual level
 ```{r}
 
-# comparing two seasonal models
-
-temp_sersa <- merge(
-   # creates and merges invididual zoo series
-   oa1 = as.zoo(original(m1)),
-   sa1 = as.zoo(final(m1)),
-   oa2 = as.zoo(original(m2)),
-   sa2 = as.zoo(final(m2))) %>%
-   # converts to xts
-   as.xts(order.by = as.yearmon(index(.)))
+# simple table, show september
+temp <- temp_ser_fullout %>%
+  filter(date >= as.Date("1987-01-01") & date <= as.Date("2015-09-01")) %>%
+  mutate(month = lubridate::month(date, label = TRUE, abbr = TRUE)) %>%
+  filter(month == "Sep") %>%
+  select(-y, -sa1_trend, -sa1_seasonal, -sa1_irregular, -oa1_a)
+  
+kable(tail(temp, n=12), digits = 4, row.names = FALSE)
 
 ```
 
 
-### graph title
-
+### Seasonal factors by month (1987 to 2015)
 ```{r}
 
-
-temp <- temp_sersa %>%
-  data.frame(date=as.Date(time(.)), .) %>%
-  gather("variable", "value", -date) %>% 
-  mutate(variable = gsub("SA", "Seasonally adjusted by SEATS", variable)) %>%
-  filter(date > "2012-01-01" & date < "2015-09-01") %>%
-  filter(variable %in% c("oa1", "sa1")) 
+temp <- temp_ser_fullout %>%
+  filter(date >= as.Date("1987-01-01") & date <= as.Date("2015-09-01")) %>%
+  select(date, sa1_sf) %>%
+    gather("variable", "value", -date) %>%
+    mutate(month = lubridate::month(date, label = TRUE, abbr = TRUE))
 
 p1 <- temp %>%
    ggplot()
-p1 <- p1 + geom_line(data = temp, aes(x = date, y = value, color=variable), size = .7) 
+#p1 <- p1 + geom_line(data = temp, aes(x = date, y = value), size = .7) 
+p1 <- p1 + geom_point(data = temp, aes(x = date, y=value, shape=variable), size=1)
+p1 <- p1 + facet_wrap(~month, nrow = 1)
 p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey40"))
 p1 <- p1 + labs(colour = "", x = "")
-p1 <- p1 + scale_y_continuous("axis title")
-p1 <- p1 + ggtitle("Title")
+p1 <- p1 + ggtitle("Seasonal factors")
 p1 <- p1 + theme(legend.position = "bottom")
+p1 <- p1 + scale_x_date(date_breaks = "10 year", labels = date_format("%y"))
 p1
-
-
 ```
 
+# How does it help us?  
 
 ## Converting quarterly to monthly using seasonal factors
 
@@ -322,7 +240,7 @@ ushist_q_1 <- ushist_q["1987-01-01/2015-09-01"]
 # sets up a single series to use for a few examples
 x <- ushist_m_1 %>%
   data.frame(date=time(.), .) %>%
-  select(date, totus_demd) %>%
+  select_("date", segrun) %>%
   read.zoo(regular=TRUE, drop=FALSE) %>%
   xts() %>%
   convertIndex("yearmon")
@@ -330,7 +248,7 @@ tempm_ts <- as.ts(x, start = start(x), end = end(x))
 
 x <- ushist_q_1 %>%
   data.frame(date=time(.), .) %>%
-  select(date, totus_demd) %>%
+  select_("date", segrun) %>%
   read.zoo(regular=TRUE, drop=FALSE) %>%
   xts() %>%
   convertIndex("yearmon")
@@ -374,7 +292,7 @@ tempq <- merge(
 
 ```
 
-### Monthly series and seasonal factors
+### Monthly series and seasonal factors: Table  
 
 ```{r}
 # look at monthly
@@ -383,6 +301,10 @@ a <- tempm %>%
   filter(date <= "2015-09-01")
 kable(tail(a, n=12), digits = 4, row.names=FALSE)
 
+```
+
+### Monthly series and seasonal factors: Graph  
+```{r}
 # graph monthly
 tempm_graph <- tempm %>%
   data.frame(date=as.Date(time(.)), .) %>%
@@ -399,11 +321,11 @@ p1 <- p1 + scale_y_continuous("axis title")
 p1 <- p1 + ggtitle("Title")
 p1 <- p1 + theme(legend.position = "bottom")
 p1
-
 ```
 
-### Quarterly series and seasonal factors
 
+### Quarterly series and seasonal factors: Table  
+  
 ```{r}
 # look at quarterly
 a <- tempq %>%
@@ -411,6 +333,11 @@ a <- tempq %>%
   filter(date < "2015-09-01")
 kable(tail(a, n=12), digits = 4, row.names=FALSE)
 
+```
+
+### Quarterly series and seasonal factors: Graph 
+  
+```{r}
 # graph quarterly
 tempq_graph <- tempq %>%
   data.frame(date=as.Date(time(.)), .) %>%
@@ -428,13 +355,17 @@ p1 <- p1 + ggtitle("Title")
 p1 <- p1 + theme(legend.position = "bottom")
 p1
 
-
 ```
+
 
 ### Use quarterly to estimate monthly
 
-Use the seasonally adjusted quarterly data, and the monthly seasonal factors, to estimate monthly un-adjusted series.
-
+Use the seasonally adjusted quarterly data, and the monthly seasonal factors, to estimate monthly un-adjusted series.  
+"oa1q" to indicate non-seasonally adjusted data ("oa1") coming from quarterly data ("q").  
+  
+- oa1q = sa1q * sa1_sf
+  
+We observe that oa1q is quite similar to oa1, which is the original monthly data. This implies that if we have a reasonable estimate of quarterly data, then we can use monthly seasonal factors to get to accurate monthly estimates.
 ```{r}
 
 # use quarterly data to estimate monthly
@@ -469,7 +400,10 @@ a <- tempm1 %>%
   filter(date < "2015-09-01") %>%
   mutate_each(funs(sprintf("%1.2f%%",100*.)), contains("_pchya"))
 kable(tail(a, n=12), digits = 3, row.names=FALSE, align = c("l", rep("r", 7)))
+```
 
+### Monthly data, comparison between original and oa1q
+```{r}
 # graph data
 temp_graph <- tempm1 %>%
   data.frame(date=as.Date(time(.)), .) %>%
@@ -487,6 +421,13 @@ p1 <- p1 + ggtitle("Title")
 p1 <- p1 + theme(legend.position = "bottom")
 p1
 
+
+
+```
+
+### Monthly data, comparison between original and oa1q
+Percentage change from prior year  
+```{r}
 # look at it on a percentage change from prior year basis
 temp_graph <- tempm1 %>%
   data.frame(date=as.Date(time(.)), .) %>%
@@ -503,13 +444,14 @@ p1 <- p1 + labs(colour = "", x = "")
 p1 <- p1 + scale_y_continuous("axis title")
 p1 <- p1 + ggtitle("Title")
 p1 <- p1 + theme(legend.position = "bottom")
+p1 <- p1 +  scale_y_continuous(labels=percent)
 p1
 
 write.zoo(tempm1, file="output_data/tempm1.csv", sep=",")
-
 ```
 
-
+### Regression, monthly levels  
+oa1q explains almost all variation in oa1
 ```{r }
 
 lmmod_1 <- lm(oa1 ~ oa1q, data = tempm1)
@@ -518,15 +460,18 @@ summary(lmmod_1)
 #tab <- xtable(summary(lmmod_1)$coef, digits=c(0, 2, 2, 1, 2))
 #print(tab, type="html")
 
+
+```
+
+
+### Regression, monthly percentage change from prior year  
+oa1q explains a large proportion of the variation in oa1
+```{r}
 lmmod_2 <- lm(oa1_pchya ~ oa1q_pchya, data = tempm1)
 summary(lmmod_2)
 #plot(lmmod_2)
 #tab <- xtable(summary(lmmod_2)$coef, digits=c(0, 2, 2, 1, 2))
 #print(tab, type="html")
-
-
-
-
 
 ```
 

@@ -33,9 +33,9 @@ require(knitr)
 fpath <- c("~/Project/R projects/lodfor/")
 
 load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
-load(paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
+# load(paste(fpath, "output_data/ushist_ind_q.Rdata", sep=""))
 load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
-load(paste(fpath, "output_data/outf_str_m_us.Rdata", sep=""))
+# load(paste(fpath, "output_data/outf_str_m_us.Rdata", sep=""))
 ```
 
 ```{r readchunk, echo=FALSE, message=FALSE, warning=FALSE}
@@ -49,12 +49,12 @@ source('~/Project/R projects/lodfor/scripts/functions.R')
 ```
 
 ```{r create_dataframes, echo=FALSE, message=FALSE, warning=FALSE}
-# puts the monthly simple forecast data into a melted data frame
-xts1 <- outf_str_m_us
-#xts1 <- window(xts1, end = as.Date("2014-09-01"))
-df1 <- data.frame(time=time(xts1), xts1)
-outf_str_m_us <- df1
-outf_str_m_us_m <- melt(outf_str_m_us, id.vars = c("time"))
+# # puts the monthly simple forecast data into a melted data frame
+# xts1 <- outf_str_m_us
+# #xts1 <- window(xts1, end = as.Date("2014-09-01"))
+# df1 <- data.frame(time=time(xts1), xts1)
+# outf_str_m_us <- df1
+# outf_str_m_us_m <- melt(outf_str_m_us, id.vars = c("time"))
 
 # puts the monthly str data into a melted data frame
 xts1 <- ushist_m

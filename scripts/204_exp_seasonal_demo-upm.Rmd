@@ -1,0 +1,399 @@
+---
+title: "Seasonal adjustment demo"
+author: "Tourism Economics"
+date: "January 9, 2016"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# require(directlabels)
+# require(rmarkdown)
+# require(gridExtra)
+# require(gtable)
+# require(Cairo)
+
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
+library(seasonal, warn.conflicts=FALSE)
+require(xtable)
+require(ggplot2)
+require(knitr)
+require(RColorBrewer)
+require(scales)
+
+# If I put autodep=TRUE as an argument in the following then I get
+# some issues with the graphs, such as grey backgrounds and changes
+# in labeling. Maybe it somehow impacts the theme?
+#knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_exp_seasonal_short/fig-',  fig.show='asis', fig.keep='high')
+# tells it to keep going even if there is an error
+knitr::opts_chunk$set(error = TRUE)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+load("~/Project/R projects/lodfor/output_data/ushist_m.Rdata")
+load("~/Project/R projects/lodfor/output_data/ushist_q.Rdata")
+
+```
+
+```{r define_theme, echo=FALSE, message=FALSE, warning=FALSE}
+#Displays palette and sets the ts1 theme
+
+#display.brewer.pal(10, "RdBu")
+mypallete <- brewer.pal( 10 , "RdBu" )
+colors_ts1 <- scale_colour_manual(values = mypallete[c(10, 1, 5, 4)])
+# I don't use the following, was an example I saw somewhere maybe as a way to 
+# interpolate additional palette colors
+#mypal <- colorRampPalette( brewer.pal( 10 , "RdBu" ) )
+theme_ts1 <- function(base_size = 12, base_family = "") {
+  theme_classic(base_size = base_size) %+replace%
+    theme(                                 
+      panel.grid.major.x=element_blank(),
+      panel.grid.minor.x=element_blank(),
+      panel.grid.minor.y=element_blank(),
+      axis.ticks.y=element_line(size=.2),
+      axis.ticks.x=element_line(size=.2),
+      panel.background=element_blank(),
+      legend.title=element_blank(),
+      legend.key=element_rect(fill="white", colour = "white"),
+      legend.key.size=unit(1, "cm"),
+      legend.text=element_text(size=rel(1)),
+      #legend.position = c(1, .1),
+      legend.justification = "right",
+      axis.line=element_line(size=.2),
+      axis.title.y=element_blank(),
+      axis.title.x=element_blank(),
+      axis.text=element_text(color="black",size=rel(.7)),
+      # following seems to adjust y-axis title
+      plot.title=element_text(size=base_size * .8, face="plain",hjust=0,vjust=1)
+    #theme(plot.title = element_text(lineheight=.8, face="bold"))
+    )
+}
+theme_set(theme_ts1())
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# shorten dates
+ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
+
+# sets up a single series to use for a few examples
+demo_df <- ushist_m_1 %>%
+  data.frame(date=time(.), .) %>%
+  select(date, upmus_demd)
+
+```
+
+
+### Average daily demand, monthly observations (2000 to 2015)
+```{r}
+temp <- demo_df %>%
+ # data.frame(date=as.Date(time(.)), .) %>%
+  gather("variable", "value", -date) %>%
+  filter(date >= "2000-01-01" & date <= "2015-09-01") %>%
+  mutate(month = lubridate::month(date, label = TRUE)) 
+  
+p1 <- temp %>%
+   ggplot()
+p1 <- p1 + geom_point(data = temp, aes(x = date, y=value, shape=variable), size=1.5)
+p1 <- p1 + geom_line(data = temp, aes(x = date, y = value), size = .7) 
+p1 <- p1 + theme(legend.position = "bottom")
+p1 <- p1 + ggtitle("Demand, average daily")
+p1
+```
+
+### Average daily demand, monthly observations (2012 to 2015)
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+temp <- demo_df %>%
+ # data.frame(date=as.Date(time(.)), .) %>%
+  gather("variable", "value", -date) %>%
+  filter(date >= "2012-01-01" & date <= "2015-09-01") %>%
+  mutate(month = lubridate::month(date, label = TRUE)) 
+  
+p1 <- temp %>%
+   ggplot()
+p1 <- p1 + geom_point(data = temp, aes(x = date, y=value, shape=variable), size=1.5)
+p1 <- p1 + geom_line(data = temp, aes(x = date, y = value), size = .7) 
+p1 <- p1 + theme(legend.position = "bottom")
+p1 <- p1 + ggtitle("Demand, average daily")
+p1
+
+```
+
+
+### Percentage change from prior year, daily demand by month (2012 to 2015)
+Last observation is September. 
+The timing of Labor Day negatively impacted September 2014 and then positively impacted September 2015 (Labor Day was Sep. 7, 2015, compared to Sep. 1, 2014).
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+temp <- demo_df %>%
+ # data.frame(date=as.Date(time(.)), .) %>%
+  gather("variable", "value", -date) %>%
+  filter(date >= "2011-01-01" & date <= "2015-09-01") %>%
+  mutate(pchya = value/lag(value,n=12) - 1) %>%
+  filter(date >= "2012-01-01" & date <= "2015-09-01")
+  
+p1 <- temp %>%
+   ggplot()
+p1 <- p1 + geom_point(data = temp, aes(x = date, y=pchya, shape=variable), size=1.5)
+p1 <- p1 + geom_line(data = temp, aes(x = date, y = pchya), size = .7) 
+p1 <- p1 + theme(legend.position = "bottom")
+p1 <- p1 + ggtitle("Demand, average daily, percentage change from prior year")
+p1 <- p1 + scale_y_continuous(labels=percent)
+p1 <- p1 + scale_x_date(date_breaks = "3 month", date_minor_breaks = "1 month", date_labels = "%b %y")
+p1
+
+```
+
+
+### Average daily demand by month (2012 to 2015)
+```{r}
+temp <- demo_df %>%
+ # data.frame(date=as.Date(time(.)), .) %>%
+  gather("variable", "value", -date) %>%
+  filter(date >= "2012-01-01" & date <= "2015-09-01") %>%
+  mutate(month = lubridate::month(date, label = TRUE)) 
+
+p1 <- temp %>%
+   ggplot()
+p1 <- p1 + geom_line(data = temp, aes(x = date, y = value), size = .7) 
+p1 <- p1 + geom_point(data = temp, aes(x = date, y=value, shape=variable), size=1.5)
+p1 <- p1 + facet_wrap(~month, nrow = 1)
+p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey40"))
+p1 <- p1 + labs(colour = "", x = "")
+p1 <- p1 + ggtitle("Demand, average daily")
+p1 <- p1 + theme(legend.position = "bottom")
+p1 <- p1 + scale_x_date(date_breaks = "2 year", labels = date_format("%y"))
+p1
+```
+
+
+### Average daily demand by month (2000 to 2015)
+```{r}
+temp_ts <- demo_df %>%
+  filter(date >= "2000-01-01" & date <= "2015-09-01") %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon") %>%
+  as.ts(., start = start(.))
+
+monthplot(temp_ts, main="Demand by month", ylab="Demand, average daily")
+
+# works but not needed
+# temp_a <- temp %>%
+#   group_by(month) %>%
+#  summarise(mean=mean(value))
+# p1 <- temp_a %>%
+#    ggplot()
+# p1 <- p1 + geom_point(data = temp_a, aes(x = month, y = mean), size = 4) 
+# p1
+```
+
+
+## Prepare a seasonally adjusted series  
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+temp_ser_ts <- demo_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon") %>%
+  as.ts(., start = start(.), end = end(.))
+
+# uses default settings
+m1 <- seas(temp_ser_ts)
+#summary(m1)
+#plot(m1)
+#plot(final(m1))
+
+####
+# create dataframe of original and sa series
+temp_ser <- temp_ser_ts %>%
+  as.xts() %>%
+  data.frame(date=time(.), .) %>%
+  mutate(date = as.Date(date))
+colnames(temp_ser) <- c("date", "original")
+temp_final <- (final(m1)) %>%
+  as.xts() %>%
+  data.frame(date=time(.), .) %>%
+  mutate(date = as.Date(date))
+colnames(temp_final) <- c("date", "sa")
+temp_sersa <- full_join(temp_ser, temp_final, by="date")
+
+# # this works, but ends up with ts objects in dataframe
+# temp_sersa <- data_frame(
+#    date = as.Date(time(temp_ser_ts)),
+#    Original = temp_ser_ts,
+#    SA = final(m1)) 
+
+```
+
+### Original and seasonally adjusted series (1987 to 2015)
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+temp <- temp_sersa %>%
+   gather("variable", "value", -date) %>% 
+   mutate(variable = gsub("SA", "Seasonally adjusted", variable)) 
+
+p1 <- temp %>%
+   ggplot() 
+p1 <- p1 + geom_line(data = temp, aes(x = date, y = value, color=variable), size = .7) 
+p1 <- p1 + labs(colour = "", x = "")
+p1 <- p1 + ggtitle("Title")
+p1 <- p1 + theme(legend.position = "bottom")
+p1 <- p1 + scale_color_manual(values = c("grey60", mypallete[10:10])) 
+p1
+
+```
+
+### Original and seasonally adjusted series (2012 to 2015)
+```{r}
+temp <- temp_sersa %>%
+  gather("variable", "value", -date) %>% 
+  mutate(variable = gsub("sa", "Seasonally adjusted", variable)) %>%
+  mutate(variable = gsub("original", "Original", variable)) %>%
+  filter(date >= as.Date("2012-01-01"))
+
+p1 <- temp %>%
+   ggplot() 
+p1 <- p1 + geom_line(data = temp, aes(x = date, y = value, color=variable), size = .7) 
+p1 <- p1 + labs(colour = "", x = "")
+p1 <- p1 + ggtitle("Title")
+p1 <- p1 + theme(legend.position = "bottom")
+p1 <- p1 + scale_color_manual(values = c("grey60", mypallete[10:10])) 
+p1
+
+```
+
+### Seasonally adjusted series (2012 to 2015)
+```{r}
+
+temp <- temp_sersa %>%
+   gather("variable", "value", -date) %>% 
+    filter(variable == "sa") %>%
+   mutate(variable = gsub("sa", "Seasonally adjusted", variable)) %>%
+  filter(date >= as.Date("2012-01-01")) 
+
+p1 <- temp %>%
+   ggplot() 
+p1 <- p1 + geom_line(data = temp, aes(x = date, y = value, color=variable), size = 1) 
+p1 <- p1 + geom_point(data = temp, aes(x = date, y=value, shape=variable), size=1.5, show.legend=FALSE)
+p1 <- p1 + labs(colour = "", x = "")
+p1 <- p1 + ggtitle("Demand, average daily")
+p1 <- p1 + theme(legend.position = "bottom")
+p1 <- p1 + scale_color_manual(values = c("grey60", mypallete[10:10])) 
+p1
+
+
+```
+
+
+```{r}
+#works but not needed
+
+# temp <- temp_sersa %>%
+#   mutate(OA_pchya = original/lag(original,n=12) - 1) %>%
+#   gather("variable", "value", -date) %>% 
+#   mutate(variable = gsub("sa", "Seasonally adjusted", variable)) %>%
+#   filter(date >= as.Date("2012-01-01")) %>%
+#   mutate(variable = gsub("OA_pchya", "Original, yoy percentage change", variable)) %>%
+#   filter(variable != "original")
+# 
+# p1 <- temp %>%
+#    ggplot() 
+# p1 <- p1 + geom_line(data = temp, aes(x = date, y = value, color=variable), size = 1) 
+# p1 <- p1 + facet_wrap( ~ variable, ncol=1,scales="free_y")
+# p1 <- p1 + geom_point(data = temp, aes(x = date, y=value, shape=variable), size=1.5, show.legend=FALSE)
+# p1 <- p1 + labs(colour = "", x = "")
+# p1 <- p1 + ggtitle("Demand, average daily")
+# p1 <- p1 + theme(legend.position = "bottom")
+# p1 <- p1 + scale_color_manual(values = c("grey60", mypallete[10:10]))
+# p1
+
+```
+
+### Percentage change from prior year (2007 to 2015)
+```{r}
+temp <- temp_sersa %>%
+  mutate(OA_pchya = original/lag(original,n=12) - 1) %>%
+  gather("variable", "value", -date) %>% 
+  mutate(variable = gsub("sa", "Seasonally adjusted", variable)) %>%
+  filter(date >= as.Date("2007-01-01")) %>%
+  mutate(variable = gsub("OA_pchya", "Original, yoy percentage change", variable)) %>%
+  filter(variable != "original") %>%
+  filter(variable == "Original, yoy percentage change")
+
+p1 <- temp %>%
+   ggplot() 
+p1 <- p1 + geom_point(data = temp, aes(x = date, y=value, shape=variable), size=1.5, show.legend=FALSE)
+p1 <- p1 + geom_line(data = temp, aes(x = date, y = value, color=variable), size = .7) 
+p1 <- p1 + labs(colour = "", x = "")
+p1 <- p1 + ggtitle("Demand, average daily")
+p1 <- p1 + theme(legend.position = "bottom")
+p1 <- p1 +  scale_y_continuous(labels=percent)
+p1 <- p1 + scale_color_manual(values = c(mypallete[10:10]))
+p1 <- p1 + scale_x_date(date_breaks = "1 year", date_labels = "%Y")
+p1
+
+```
+
+### Seasonally adjusted
+```{r}
+temp <- temp_sersa %>%
+  mutate(OA_pchya = original/lag(original,n=12) - 1) %>%
+  gather("variable", "value", -date) %>% 
+  mutate(variable = gsub("sa", "Seasonally adjusted", variable)) %>%
+  filter(date >= as.Date("2007-01-01")) %>%
+  mutate(variable = gsub("OA_pchya", "Original, yoy percentage change", variable)) %>%
+  filter(variable != "original") %>%
+  filter(variable == "Seasonally adjusted")
+
+p1 <- temp %>%
+   ggplot() 
+p1 <- p1 + geom_line(data = temp, aes(x = date, y = value, color=variable), size = 1) 
+p1 <- p1 + labs(colour = "", x = "")
+p1 <- p1 + ggtitle("Demand, average daily")
+p1 <- p1 + theme(legend.position = "bottom")
+p1 <- p1 + scale_color_manual(values = c(mypallete[10:10]))
+p1 <- p1 + scale_x_date(date_breaks = "1 year", date_labels = "%Y")
+p1
+```
+
+### Seasonally adjusted, with smoothed series
+```{r}
+temp <- temp_sersa %>%
+  mutate(OA_pchya = original/lag(original,n=12) - 1) %>%
+  gather("variable", "value", -date) %>% 
+  mutate(variable = gsub("sa", "Seasonally adjusted", variable)) %>%
+  filter(date >= as.Date("2005-01-01")) %>%
+  mutate(variable = gsub("OA_pchya", "Original, yoy percentage change", variable)) %>%
+  filter(variable != "original") %>%
+  filter(variable == "Seasonally adjusted")
+
+start_xaxis <- as.Date("2007-01-01") # for x-axis
+end_xaxis <- as.Date("2015-09-01") # for x-axis
+
+p1 <- temp %>%
+   ggplot() 
+p1 <- p1 + geom_line(data = temp, aes(x = date, y = value, color=variable), size = 1)
+p1 <- p1 + labs(colour = "", x = "")
+p1 <- p1 + ggtitle("Demand, average daily")
+p1 <- p1 + theme(legend.position = "bottom")
+p1 <- p1 + scale_color_manual(values = c("grey60"))
+p1 <- p1 + scale_x_date(date_breaks = "1 year", date_labels = "%Y")
+p1 <- p1 + stat_smooth(data = temp, aes(x = date, y = value, color=variable), 
+               color=mypallete[10:10], span=.2, se = FALSE)
+p1 <- p1 + coord_cartesian(xlim = c(start_xaxis, end_xaxis), ylim = NULL)
+p1
+
+```
+

@@ -16,29 +16,6 @@ Insert date
 
 
 
-```
-## Error in function_list[[k]](value): could not find function "gather"
-```
-
-```
-## Error in function_list[[k]](value): could not find function "gather"
-```
-
-```
-## Error in function_list[[k]](value): could not find function "gather"
-```
-
-```
-## Error in function_list[[i]](value): could not find function "gather"
-```
-
-```
-## Error in function_list[[i]](value): could not find function "gather"
-```
-
-```
-## Error in function_list[[i]](value): could not find function "gather"
-```
 
 
 ```
@@ -52,10 +29,6 @@ Insert date
 ##  NULL
 ```
 
-```
-## Error in function_list[[k]](value): could not find function "gather"
-```
-
 
 
 
@@ -63,248 +36,68 @@ Insert date
 
 
 ## Demand, monthly + GDP 
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_m_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in fortify(data): object 'temp2' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'p1' not found
-```
-
-```
-## Error in arrangeGrob(plot, ncol = 1, nrow = 1, top = textGrob(grtitle, : object 'p1' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-demand_monthly_gdp-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-demand_monthly_gdp-2.png" title="" alt="" width="9in" height="5.7in" />
 
 ## Demand and GDP with forecast 
-
-```
-## Error in eval(expr, envir, enclos): object 'usfor_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'usfor_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'usfor_q_m' not found
-```
-
-```
-## Error in rbind(temp, temp3): object 'temp3' not found
-```
-
-```
-## Error in fortify(data): object 'temp4' not found
-```
-
-```
-## Error in arrangeGrob(plot, ncol = 1, nrow = 1, top = textGrob(grtitle, : object 'p1' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-demand_gdp_forecast-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Demand, ratio to population 
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Demand, ratio to population forecast
 
 ```
-## Error in eval(expr, envir, enclos): object 'usfor_q_m' not found
+##  (Intercept)         date 
+## 3.427487e+00 8.276677e-05
 ```
 
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
-
-```
-## Error in predict(fm, temp_a): object 'fm' not found
-```
-
-```
-## Error in cbind(temp_a, b): object 'b' not found
-```
-
-```
-## Error in coefficients(fm): object 'fm' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_fcst-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Demand, ratio to population log forecast
 
 ```
-## Error in eval(expr, envir, enclos): object 'usfor_q_m' not found
+##  (Intercept)         date 
+## 1.249397e+00 1.974632e-05
 ```
 
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
-
-```
-## Error in predict(fm, temp_a): object 'fm' not found
-```
-
-```
-## Error in cbind(temp_a, b): object 'b' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
-
-```
-## Error in coefficients(fm): object 'fm' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
-
-<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-1.png" title="" alt="" width="9in" height="5.7in" />
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-2.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Demand, ratio to employment 
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_emp-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## Occupancy labled
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in levels(temp$measure)[levels(temp$measure) == "value"] <- "Occupancy": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$measure)[levels(temp$measure) == "value_mean"] <- "Average": attempt to set an attribute on NULL
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'measure' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-occupancy_labled-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## Occupancy with forecast
-
-```
-## Error in eval(expr, envir, enclos): object 'usfor_q_m' not found
-```
-
-```
-## Error in mean(holdmean$value, na.rm = TRUE): object 'holdmean' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'usfor_q_m' not found
-```
-
-```
-## Error: ggplot2 doesn't know how to deal with data of class Date
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'measure' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-occupancy_forecast-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ##Following graphs are based on code from around the STR presentation in November
 
 ## ADR, real long-term
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-adr_real_lt-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## ADR, real medium-term
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-adr_real_mt-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## ADR, real short-term
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-adr_real_st-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## ADR, short-term
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-adr_st-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## ADR, short-term, monthly
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_m_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-adr_st_monthly-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## ADR, short-term with forecast
-
-```
-## Error in eval(expr, envir, enclos): object 'usfor_q_m' not found
-```
-
-```
-## Error: ggplot2 doesn't know how to deal with data of class Date
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-adr_st_forecast-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## ADR, growth, short-term 
@@ -317,496 +110,67 @@ Insert date
 ## <environment: namespace:dplyr>
 ```
 
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in layout_base(data, vars, drop = drop): At least one layer must contain all variables used for facetting
-```
+<img src="../output_data/figure_us_overview_graphs/fig-adr_gr_st-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## ADR, growth cagr, short-term 
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-adr_gr_cagr_st-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## RevPAR, real long-term
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-revpar_real_lt-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## RevPAR, real long-term, with forecast
-
-```
-## Error in eval(expr, envir, enclos): object 'usfor_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'variable' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'holdhigh' not found
-```
-
-```
-## Error: ggplot2 doesn't know how to deal with data of class Date
-```
-
-```
-## Error in vapply(x, is.null, logical(1)): object 'holdhigh' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-revpar_real_lt_fcst-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 
 ## RevPAR, real long-term - by scale
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in levels(temp$seg)[levels(temp$seg) == todo[1]] <- todo[2]: attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$seg)[levels(temp$seg) == todo2[1]] <- todo2[2]: attempt to set an attribute on NULL
-```
-
-```
-## Error in `colnames<-`(`*tmp*`, value = c("date", "seg", "value")): 'names' attribute [3] must be the same length as the vector [1]
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-revpar_real_lt_Scale-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Unemployment
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error: ggplot2 doesn't know how to deal with data of class Date
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-unemployment-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## Household net wealth
-
-```
-## Error in eval(expr, envir, enclos): object 'usfor_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'variable' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'holdmax' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): binding not found: 'holdmax'
-```
-
-```
-## Error: ggplot2 doesn't know how to deal with data of class Date
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-net_wealth_real-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Top 25 demand
-
-```
-## Error in function_list[[k]](value): could not find function "gather"
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'variable' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in rbind(temp, temp2): object 'temp2' not found
-```
-
-```
-## Error in levels(temp$variable)[levels(temp$variable) == "top25us_demd_sa"] <- "Top 25 markets": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$variable)[levels(temp$variable) == "topcoastwonydc_demd_sa"] <- "Selected coastal markets w/o NY and DC": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$variable)[levels(temp$variable) == "newyork_demd_sa"] <- "New York": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$variable)[levels(temp$variable) == "washingtondc_demd_sa"] <- "Washington DC": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$variable)[levels(temp$variable) == "totus_demd_sa"] <- "Total US": attempt to set an attribute on NULL
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-top25_demand-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## Top 25 supply
-
-```
-## Error in function_list[[k]](value): could not find function "gather"
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'variable' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in rbind(temp, temp2): object 'temp2' not found
-```
-
-```
-## Error in levels(temp$variable)[levels(temp$variable) == "top25us_supd_sa"] <- "Top 25 markets": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$variable)[levels(temp$variable) == "topcoastwonydc_supd_sa"] <- "Selected coastal markets w/o NY and DC": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$variable)[levels(temp$variable) == "newyork_supd_sa"] <- "New York": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$variable)[levels(temp$variable) == "washingtondc_supd_sa"] <- "Washington DC": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$variable)[levels(temp$variable) == "totus_supd_sa"] <- "Total US": attempt to set an attribute on NULL
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-top25_supply-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## San Francisco demand
-
-```
-## Error in eval(expr, envir, enclos): object 'top25compile_td' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_td' not found
-```
-
-```
-## Error in rbind(temp1, temp2): object 'temp1' not found
-```
-
-```
-## Error in levels(temp$seg)[levels(temp$seg) == "topcoastwonydc"] <- "Selected coastal\nmarkets w/o NY\nand DC": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$seg)[levels(temp$seg) == "sanfrancisco"] <- "San Francisco": attempt to set an attribute on NULL
-```
-
-```
-## Error in `colnames<-`(`*tmp*`, value = c("date", "seg", "value")): 'names' attribute [3] must be the same length as the vector [1]
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_demand-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## San Francisco supply
-
-```
-## Error in eval(expr, envir, enclos): object 'top25compile_td' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_td' not found
-```
-
-```
-## Error in rbind(temp1, temp2): object 'temp1' not found
-```
-
-```
-## Error in levels(temp$seg)[levels(temp$seg) == "topcoastwonydc"] <- "Selected coastal\nmarkets w/o NY\nand DC": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$seg)[levels(temp$seg) == "sanfrancisco"] <- "San Francisco": attempt to set an attribute on NULL
-```
-
-```
-## Error in `colnames<-`(`*tmp*`, value = c("date", "seg", "value")): 'names' attribute [3] must be the same length as the vector [1]
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_supply-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## San Francisco occupancy
-
-```
-## Error in eval(expr, envir, enclos): object 'top25compile_td' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_td' not found
-```
-
-```
-## Error in rbind(temp1, temp2): object 'temp1' not found
-```
-
-```
-## Error in levels(temp$seg)[levels(temp$seg) == "topcoastwonydc"] <- "Selected coastal\nmarkets w/o NY\nand DC": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$seg)[levels(temp$seg) == "sanfrancisco"] <- "San Francisco": attempt to set an attribute on NULL
-```
-
-```
-## Error in `colnames<-`(`*tmp*`, value = c("date", "seg", "value")): 'names' attribute [3] must be the same length as the vector [1]
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_occ-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## San Francisco and NY occupancy
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_td' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'temp1' not found
-```
-
-```
-## Error in levels(temp$seg)[levels(temp$seg) == "sanfrancisco"] <- "San Francisco": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$seg)[levels(temp$seg) == "newyork"] <- "New York": attempt to set an attribute on NULL
-```
-
-```
-## Error in `colnames<-`(`*tmp*`, value = c("date", "seg", "value")): 'names' attribute [3] must be the same length as the vector [1]
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_ny_occ-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## San Francisco adr
-
-```
-## Error in eval(expr, envir, enclos): object 'top25compile_td' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_td' not found
-```
-
-```
-## Error in rbind(temp1, temp2): object 'temp1' not found
-```
-
-```
-## Error in levels(temp$seg)[levels(temp$seg) == "topcoastwonydc"] <- "Selected coastal\nmarkets w/o NY\nand DC": attempt to set an attribute on NULL
-```
-
-```
-## Error in levels(temp$seg)[levels(temp$seg) == "sanfrancisco"] <- "San Francisco": attempt to set an attribute on NULL
-```
-
-```
-## Error in `colnames<-`(`*tmp*`, value = c("date", "seg", "value")): 'names' attribute [3] must be the same length as the vector [1]
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_adr-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## ADR, real short-term
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in holdmean$value: $ operator is invalid for atomic vectors
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'holdhigh' not found
-```
-
-```
-## Error in vapply(x, is.null, logical(1)): object 'holdhigh' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_adr_real_st-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_adr_real_st-2.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## ADR, real short-term
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in holdmean$value: $ operator is invalid for atomic vectors
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'holdhigh' not found
-```
-
-```
-## Error in vapply(x, is.null, logical(1)): object 'holdhigh' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-upu_adr_real_st-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-upu_adr_real_st-2.png" title="" alt="" width="9in" height="5.7in" />
 
 ## ADR, real short-term
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in holdmean$value: $ operator is invalid for atomic vectors
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'holdhigh' not found
-```
-
-```
-## Error in vapply(x, is.null, logical(1)): object 'holdhigh' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-us_adr_real_st-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-us_adr_real_st-2.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## ADR, real short-term
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in holdmean$value: $ operator is invalid for atomic vectors
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'ushist_q_m' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'holdhigh' not found
-```
-
-```
-## Error in vapply(x, is.null, logical(1)): object 'holdhigh' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'value' not found
-```
+<img src="../output_data/figure_us_overview_graphs/fig-upm_adr_real_st-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-upm_adr_real_st-2.png" title="" alt="" width="9in" height="5.7in" />
