@@ -215,25 +215,50 @@ m1 <- seas(temp_ser_ts)
 #plot(m1)
 #plot(final(m1))
 
-####
-# create dataframe of original and sa series
-temp_ser <- temp_ser_ts %>%
-  as.xts() %>%
-  data.frame(date=time(.), .) %>%
-  mutate(date = as.Date(date))
-colnames(temp_ser) <- c("date", "original")
-temp_final <- (final(m1)) %>%
-  as.xts() %>%
-  data.frame(date=time(.), .) %>%
-  mutate(date = as.Date(date))
-colnames(temp_final) <- c("date", "sa")
-temp_sersa <- full_join(temp_ser, temp_final, by="date")
-
-# # this works, but ends up with ts objects in dataframe
+## this works, but ends up with ts objects in dataframe
 # temp_sersa <- data_frame(
 #    date = as.Date(time(temp_ser_ts)),
 #    Original = temp_ser_ts,
 #    SA = final(m1)) 
+
+##
+# this also works, but is a bit complicated, 
+# create dataframe of original and sa series
+# temp_ser <- temp_ser_ts %>%
+#   as.xts() %>%
+#   data.frame(date=time(.), .) %>%
+#   mutate(date = as.Date(date))
+# colnames(temp_ser) <- c("date", "original")
+# temp_final <- (final(m1)) %>%
+#   as.xts() %>%
+#   data.frame(date=time(.), .) %>%
+#   mutate(date = as.Date(date))
+# colnames(temp_final) <- c("date", "sa")
+# temp_sersa <- full_join(temp_ser, temp_final, by="date")
+
+##
+# this works, and is a bit more clear
+  # tempdata_oa <- temp_ser_ts %>% as.xts(., start = start(.), end = end(.))
+  # tempdata_sa <- as.xts(final(m1)) # seasonally adjusted series
+  # # names the objects
+  # names(tempdata_oa) <- "original"
+  # names(tempdata_sa) <- "sa"
+  # 
+  # # merges the adjusted series onto the existing xts object with the unadjusted
+  # # series
+  # temp_sersa <- merge(tempdata_oa, tempdata_sa) %>%
+  #     data.frame(date=as.Date(time(.)), ., row.names=NULL)
+  
+##
+# this works, and is the most clear
+temp_sersa <- merge(
+   # creates and merges invididual zoo series
+   original = as.zoo(original(m1)),
+   sa = as.zoo(final(m1)),
+   sa_sf = as.zoo(series(m1, "s16"))) %>%
+   # converts to xts
+   as.xts(order.by = as.yearmon(index(.))) %>%
+   data.frame(date=as.Date(time(.)), ., row.names=NULL)
 
 ```
 
@@ -242,7 +267,8 @@ temp_sersa <- full_join(temp_ser, temp_final, by="date")
 
 temp <- temp_sersa %>%
    gather("variable", "value", -date) %>% 
-   mutate(variable = gsub("SA", "Seasonally adjusted", variable)) 
+   filter(variable != "sa_sf") %>%
+   mutate(variable = gsub("sa", "Seasonally adjusted", variable)) 
 
 p1 <- temp %>%
    ggplot() 
@@ -259,6 +285,7 @@ p1
 ```{r}
 temp <- temp_sersa %>%
   gather("variable", "value", -date) %>% 
+  filter(variable != "sa_sf") %>%
   mutate(variable = gsub("sa", "Seasonally adjusted", variable)) %>%
   mutate(variable = gsub("original", "Original", variable)) %>%
   filter(date >= as.Date("2012-01-01"))
@@ -278,9 +305,10 @@ p1
 ```{r}
 
 temp <- temp_sersa %>%
-   gather("variable", "value", -date) %>% 
-    filter(variable == "sa") %>%
-   mutate(variable = gsub("sa", "Seasonally adjusted", variable)) %>%
+  gather("variable", "value", -date) %>% 
+  filter(variable != "sa_sf") %>% 
+  filter(variable == "sa") %>%
+  mutate(variable = gsub("sa", "Seasonally adjusted", variable)) %>%
   filter(date >= as.Date("2012-01-01")) 
 
 p1 <- temp %>%
@@ -326,6 +354,7 @@ p1
 temp <- temp_sersa %>%
   mutate(OA_pchya = original/lag(original,n=12) - 1) %>%
   gather("variable", "value", -date) %>% 
+  filter(variable != "sa_sf") %>%
   mutate(variable = gsub("sa", "Seasonally adjusted", variable)) %>%
   filter(date >= as.Date("2007-01-01")) %>%
   mutate(variable = gsub("OA_pchya", "Original, yoy percentage change", variable)) %>%
@@ -339,7 +368,7 @@ p1 <- p1 + geom_line(data = temp, aes(x = date, y = value, color=variable), size
 p1 <- p1 + labs(colour = "", x = "")
 p1 <- p1 + ggtitle("Demand, average daily")
 p1 <- p1 + theme(legend.position = "bottom")
-p1 <- p1 +  scale_y_continuous(labels=percent)
+p1 <- p1 + scale_y_continuous(labels=percent)
 p1 <- p1 + scale_color_manual(values = c(mypallete[10:10]))
 p1 <- p1 + scale_x_date(date_breaks = "1 year", date_labels = "%Y")
 p1
@@ -351,6 +380,7 @@ p1
 temp <- temp_sersa %>%
   mutate(OA_pchya = original/lag(original,n=12) - 1) %>%
   gather("variable", "value", -date) %>% 
+  filter(variable != "sa_sf") %>%
   mutate(variable = gsub("sa", "Seasonally adjusted", variable)) %>%
   filter(date >= as.Date("2007-01-01")) %>%
   mutate(variable = gsub("OA_pchya", "Original, yoy percentage change", variable)) %>%
@@ -370,9 +400,10 @@ p1
 
 ### Seasonally adjusted, with smoothed series
 ```{r}
-temp <- temp_sersa %>%
+Ntemp <- temp_sersa %>%
   mutate(OA_pchya = original/lag(original,n=12) - 1) %>%
   gather("variable", "value", -date) %>% 
+  filter(variable != "sa_sf") %>%
   mutate(variable = gsub("sa", "Seasonally adjusted", variable)) %>%
   filter(date >= as.Date("2005-01-01")) %>%
   mutate(variable = gsub("OA_pchya", "Original, yoy percentage change", variable)) %>%

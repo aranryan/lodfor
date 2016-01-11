@@ -1,0 +1,464 @@
+---
+title: "Seasonal adjustment comparison"
+author: "Tourism Economics"
+date: "January 9, 2016"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# require(directlabels)
+# require(rmarkdown)
+# require(gridExtra)
+# require(gtable)
+# require(Cairo)
+
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
+library(seasonal, warn.conflicts=FALSE)
+require(xtable)
+require(ggplot2)
+require(knitr)
+require(RColorBrewer)
+require(scales)
+
+# If I put autodep=TRUE as an argument in the following then I get
+# some issues with the graphs, such as grey backgrounds and changes
+# in labeling. Maybe it somehow impacts the theme?
+#knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_exp_seasonal_short/fig-',  fig.show='asis', fig.keep='high')
+# tells it to keep going even if there is an error
+knitr::opts_chunk$set(error = TRUE)
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+load("~/Project/R projects/lodfor/output_data/ushist_m.Rdata")
+load("~/Project/R projects/lodfor/output_data/ushist_q.Rdata")
+
+```
+
+```{r define_theme, echo=FALSE, message=FALSE, warning=FALSE}
+#Displays palette and sets the ts1 theme
+
+#display.brewer.pal(10, "RdBu")
+mypallete <- brewer.pal( 10 , "RdBu" )
+colors_ts1 <- scale_colour_manual(values = mypallete[c(10, 1, 5, 4)])
+# I don't use the following, was an example I saw somewhere maybe as a way to 
+# interpolate additional palette colors
+#mypal <- colorRampPalette( brewer.pal( 10 , "RdBu" ) )
+theme_ts1 <- function(base_size = 12, base_family = "") {
+  theme_classic(base_size = base_size) %+replace%
+    theme(                                 
+      panel.grid.major.x=element_blank(),
+      panel.grid.minor.x=element_blank(),
+      panel.grid.minor.y=element_blank(),
+      axis.ticks.y=element_line(size=.2),
+      axis.ticks.x=element_line(size=.2),
+      panel.background=element_blank(),
+      legend.title=element_blank(),
+      legend.key=element_rect(fill="white", colour = "white"),
+      legend.key.size=unit(1, "cm"),
+      legend.text=element_text(size=rel(1)),
+      #legend.position = c(1, .1),
+      legend.justification = "right",
+      axis.line=element_line(size=.2),
+      axis.title.y=element_blank(),
+      axis.title.x=element_blank(),
+      axis.text=element_text(color="black",size=rel(.7)),
+      # following seems to adjust y-axis title
+      plot.title=element_text(size=base_size * .8, face="plain",hjust=0,vjust=1)
+    #theme(plot.title = element_text(lineheight=.8, face="bold"))
+    )
+}
+theme_set(theme_ts1())
+```
+
+```{r}
+
+segrun <- c("totus_demd")
+
+```
+
+
+### Set up data to run using: `r segrun`
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# shorten dates
+#ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
+
+# sets up a single series to use for a few examples
+demo_df <- ushist_m %>%
+  data.frame(date=time(.), .) %>%
+  select_("date", segrun)
+
+```
+  
+
+```{r}
+
+# Uses default settings. For example, includes a term for Easter.
+x <- demo_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
+
+# uses default settings
+m1 <- seas(temp_ser_ts, 
+           forecast.maxlead = 30,# extends 30 quarters ahead
+           seats.appendfcst="yes") 
+#summary(m1)
+
+# extract series
+temp_sersa1 <- merge(
+   # creates and merges invididual zoo series
+   oa1 = as.zoo(original(m1)),
+   sa1 = as.zoo(final(m1)),
+   sa1_sf = as.zoo(series(m1, "s16"))) %>%
+   # converts to xts
+   as.xts(order.by = as.yearmon(index(.))) %>%
+   data.frame(date=as.Date(time(.)), ., row.names=NULL)
+```
+
+```{r}
+x <- demo_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
+
+# uses default settings
+m2 <- seas(temp_ser_ts,
+           regression.variables = c("tdnolpyear", "easter[1]", "labor[3]", "ls2001.Sep"),
+           forecast.maxlead = 30,# extends 30 quarters ahead
+           seats.appendfcst="yes")
+# Had been throwing an NaN argument error. I dropped the regression.usertype =
+# c("holiday") part because I wasn't using it (wasn't supplying a user
+# regressor). Once I dropped it, it works fine.
+#summary(m2)
+
+# extract series
+temp_sersa2 <- merge(
+   # creates and merges invididual zoo series
+   oa2 = as.zoo(original(m2)),
+   sa2 = as.zoo(final(m2)),
+   sa2_sf = as.zoo(series(m2, "s16"))) %>%
+   # converts to xts
+   as.xts(order.by = as.yearmon(index(.))) %>%
+   data.frame(date=as.Date(time(.)), ., row.names=NULL)
+
+```
+
+
+```{r}
+# try setting up several user regression variables as part of a holiday group
+
+x <- demo_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
+
+# days
+date <- seq(as.Date("1980-01-01"), as.Date("2030-01-01"), by = 1)
+df <- data.frame(date)
+library(lubridate)
+df1 <- df %>%
+  # uses wday from lubridate
+  mutate(wday = wday(date, label=TRUE)) %>%
+  # grepl returns a logical vector, here it's converted to numeric
+  mutate(satsun = as.numeric(grepl("Sat|Sun", wday))) %>%
+  # add columns of month day
+  mutate(month = months(date)) %>%
+  mutate(day = day(date)) %>%
+  # identify veterens day
+  mutate(vet = ifelse(month == "November" & day == 11, 1, 0)) %>%
+  #change values based on a elseif
+  mutate(vet_wkend = ifelse(vet == 1 & satsun == 1, 1, 0)) %>%
+  #summarise(sum(vet), sum(vet_wkend)) 
+  mutate(chr = ifelse(month == "December" & day == 25, 1, 0)) %>%
+  #change values based on a elseif
+  mutate(chr_wkend = ifelse(chr == 1 & satsun == 1, 1, 0)) %>%
+  # July 4
+  mutate(jlf = ifelse(month == "July" & day == 4, 1, 0)) %>%
+  #change values based on a elseif
+  mutate(jlf_wkend = ifelse(jlf == 1 & satsun == 1, 1, 0)) %>%
+  # Halloween
+  mutate(hlw = ifelse(month == "October" & day == 31, 1, 0)) %>%
+  #change values based on a elseif
+  mutate(hlw_wkend = ifelse(hlw == 1 & satsun == 1, 1, 0))
+
+# there are a few potential ways to proceed
+# create a vector of dates on which veterans day is on a weekend
+vet_wkend <- df1 %>%
+  filter(vet_wkend == 1)
+# use that vector to generate monthly holiday vector for seas
+# is a one in November when veterans day is on a weekend
+vet_wkend <- vet_wkend$date
+vet1 <- genhol(vet_wkend, start = 0, end = 0, frequency = 12)
+vet1 <- window(vet1, start=c(1987, 1), end=c(2018, 9)) 
+
+chr_wkend <- df1 %>%
+  filter(chr_wkend == 1)
+chr_wkend <- chr_wkend$date
+chr1 <- genhol(chr_wkend, start = 0, end = 0, frequency = 12)
+chr1 <- window(chr1, start=c(1987, 1), end=c(2018, 9)) 
+
+jlf_wkend <- df1 %>%
+  filter(jlf_wkend == 1)
+jlf_wkend <- jlf_wkend$date
+jlf1 <- genhol(jlf_wkend, start = 0, end = 0, frequency = 12)
+jlf1 <- window(jlf1, start=c(1987, 1), end=c(2018, 9)) 
+
+hlw_wkend <- df1 %>%
+  filter(hlw_wkend == 1)
+hlw_wkend <- hlw_wkend$date
+hlw1 <- genhol(hlw_wkend, start = 0, end = 0, frequency = 12)
+hlw1 <- window(hlw1, start=c(1987, 1), end=c(2018, 9)) 
+
+data(holiday)
+ea1 <- genhol(easter, start = -2, end = 0, frequency = 12)
+ea1 <- window(ea1, start=c(1987, 1), end=c(2018, 9)) 
+
+
+# with more regressors
+m3 <- seas(x = temp_ser_ts,
+           regression.variables = c("tdnolpyear", "labor[3]", "easter[1]", "ls2001.Sep", "thank[3]"),
+           forecast.maxlead = 30,# extends 30 quarters ahead
+           seats.appendfcst="yes",
+           xreg = cbind(vet1, chr1, jlf1), 
+           regression.usertype = c("holiday", "holiday2", "holiday3"),
+           regression.aictest = NULL)
+#summary(m3)
+
+
+# The basic model used by X-13ARIMA-SEATS for Easter and Labor Day effects assumes that the level of activity changes on the w−th day before the holiday for a specified w, and remains at the new level until the day before the holiday
+
+# plot(m3)
+# plot(final(m3))
+
+# extract series
+temp_sersa3 <- merge(
+   # creates and merges invididual zoo series
+   oa3 = as.zoo(original(m3)),
+   sa3 = as.zoo(final(m3)),
+   sa3_sf = as.zoo(series(m3, "s16"))) %>%
+   # converts to xts
+   as.xts(order.by = as.yearmon(index(.))) %>%
+   data.frame(date=as.Date(time(.)), ., row.names=NULL)
+
+```
+
+
+```{r}
+
+## Set up Easter
+#ea1 is "1" in the month containing the Easter effect, which is set to start two days before Easter
+
+# ea1_df <- ea1 %>% 
+#   as.xts(., start = start(.), end = end(.)) %>%
+#   data.frame(date=as.Date(time(.)), ., row.names=NULL)
+# names(ea1_df) <- c("date", "ea1")
+# 
+# a <- ea1_df  %>%
+#   filter(ea1 == 1) 
+# kable(tail(a, n=12), digits = 4, row.names=FALSE)
+```
+
+## Set up Veteran's Day weekend
+vet_wkend is "1" if Veteran's Day falls on a weekend
+```{r}
+
+a <- df1 %>%
+  filter(vet == 1) %>%
+  select(date:day, vet, vet_wkend)
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+```
+
+## Set up Christmas weekend
+chr_wkend is "1" if Christmas Day falls on a weekend
+```{r}
+
+a <- df1 %>%
+  filter(chr == 1) %>%
+  select(date:day, chr, chr_wkend)
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+```
+
+## Set up July 4th weekend
+jlf_wkend is "1" if Independence Day falls on a weekend
+```{r}
+
+a <- df1 %>%
+  filter(jlf == 1) %>%
+  select(date:day, jlf, jlf_wkend)
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+```
+
+
+
+## Set up three models
+m1: defaults  
+  
+m2: built-in regressors:  
+  - "tdnolpyear" (trading days without assuming leap year)   
+  - "easter[1]" (Easter, start the effect one day before)  
+  - "labor[3]" (Labor Day, start the effect three days before)  
+  
+m3: same built-in regressors, plus: 
+- thank[3]: built-in regressor, number of days in period starting three days before Thanksgiving  
+- ls2001.Sep: Assume Sep 11, 2001 is an outlier  
+- xreg1: (vet1) Veteran's Day on a weekend  
+- xreg2: (chr1) Christmas Day on a weekend  
+- xreg3: (jlf1) Independence Day on a weekend  
+  
+
+### Original and adjusted series from the models
+```{r}
+
+combined <- right_join(temp_sersa1, 
+                  temp_sersa2, by = "date")
+combined <- right_join(combined, temp_sersa3, by="date")
+
+a <- combined %>%
+  filter(date <= "2015-09-01") %>%
+  select(date, oa1, oa2, oa3, sa1_sf, sa2_sf, sa3_sf, sa1, sa2, sa3)
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+```
+
+### m1
+Default
+```{r}
+summary(m1)
+```
+
+### m2
+Built-in regressors
+```{r}
+summary(m2)
+```
+
+### m3
+Same built-in regressors as m2, plus additional terms
+```{r}
+summary(m3)
+```
+
+### Compare seasonally adjusted series from m1 and m2
+Note estimate for Sep. 2015. m1 model tends to indicate Sep. was a "strong" month.  
+While m2 model indicates some of that strength was holiday timing. After adjusting, underlying performance was not as strong. Said differently, we would have a high seasonal factor for Sep. 2015. We would divide the unadjusted data by that seasonal factor to get the seasonally adjusted data, which wouldn't be as strong.  
+```{r}
+temp <- combined %>%
+   gather("variable", "value", -date) %>% 
+   filter(date >= as.Date("2012-01-01"), date <= as.Date("2015-09-01")) %>%
+  filter(variable %in% c("sa1", "sa2"))
+
+p1 <- temp %>%
+   ggplot() +
+   geom_line(data = temp, aes(x = date, y = value, color=variable), size = .9) +
+   scale_color_manual(values = c(mypallete[3:3], "grey40")) +
+   labs(colour = "", x = "") +
+   scale_y_continuous("axis title") +
+   ggtitle("Title") +
+   theme(legend.position = "bottom")
+p1
+
+```
+
+### Compare seasonally adjusted series from m1 and m3
+Again, similar to m2, m3 indicates Sep. 2015 was not as strong as m1 results would indicate.
+```{r}
+temp <- combined %>%
+   gather("variable", "value", -date) %>% 
+   filter(date >= as.Date("2012-01-01"), date <= as.Date("2015-09-01")) %>%
+  filter(variable %in% c("sa1", "sa3"))
+
+p1 <- temp %>%
+   ggplot() +
+   geom_line(data = temp, aes(x = date, y = value, color=variable), size = .9) +
+   scale_color_manual(values = c(mypallete[3:3], "grey40")) +
+   labs(colour = "", x = "") +
+   scale_y_continuous("axis title") +
+   ggtitle("Title") +
+   theme(legend.position = "bottom")
+p1
+
+```
+
+### Compare seasonally adjusted series from m2 and m3
+Both m2 and m3 are similar for Sep. 2015. Interestingly, m3 generally points to performance during the summer as being somewhat weaker than m2. 
+```{r}
+temp <- combined %>%
+   gather("variable", "value", -date) %>% 
+   filter(date >= as.Date("2012-01-01"), date <= as.Date("2015-09-01")) %>%
+  filter(variable %in% c("sa2", "sa3"))
+
+p1 <- temp %>%
+   ggplot() +
+   geom_line(data = temp, aes(x = date, y = value, color=variable), size = .9) +
+   scale_color_manual(values = c(mypallete[3:3], "grey40")) +
+   labs(colour = "", x = "") +
+   scale_y_continuous("axis title") +
+   ggtitle("Title") +
+   theme(legend.position = "bottom")
+p1
+
+```
+
+
+### Seasonal factors for a particular month: Sep. Labor Day timing
+
+Year   |   Labor Day date    
+-------|----------
+2011 | 5  
+2012 | 3  
+2013 |  2  
+2014 |  1  
+2015 | 7  
+2016 |5  
+
+### Seasonal factors for September  
+  
+```{r}
+
+a <- combined %>%
+  filter(date <= "2016-09-01") %>%
+  mutate(month = lubridate::month(date, label=TRUE)) %>%
+  filter(month == "Sep") %>%
+  select(date, sa1_sf, sa2_sf, sa3_sf)
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+```
+
+### Seasonal factors for September (1987 to 2016)
+Last point is Sep 2016. So both Sep. 2015 and Sep. 2016 have large seasonal factors. 
+```{r}
+temp <- combined %>%
+  filter(date <= as.Date("2016-09-01")) %>%
+  mutate(month = lubridate::month(date, label=TRUE)) %>%
+  filter(month == "Sep") %>%
+  select(date, sa3_sf) %>%
+  gather("variable", "value", -date) 
+
+p1 <- temp %>%
+   ggplot() +
+   geom_line(data = temp, aes(x = date, y = value, color=variable), size = .9) +
+   scale_color_manual(values = c(mypallete[3:3], "grey40")) +
+   labs(colour = "", x = "") +
+   scale_y_continuous("axis title") +
+   ggtitle("Seasonal factor") +
+   theme(legend.position = "bottom")
+p1 <- p1 + scale_x_date(date_breaks = "1 year", date_labels = "%y")
+p1
+
+```
+
