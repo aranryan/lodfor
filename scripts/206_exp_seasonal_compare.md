@@ -225,7 +225,8 @@ Again, similar to m2, m3 indicates Sep. 2015 was not as strong as m1 results wou
 ![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-17-1.png) 
 
 ### Compare seasonally adjusted series from m2 and m3
-Both m2 and m3 are similar for Sep. 2015. Interestingly, m3 generally points to performance during the summer as being somewhat weaker than m2. 
+Both m2 and m3 are similar for Sep. 2015. Interestingly, m3 generally points to performance during the summer as being somewhat weaker than m2.  
+
 ![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-18-1.png) 
 
 

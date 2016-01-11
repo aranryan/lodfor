@@ -441,7 +441,6 @@ p1 <- temp_graph %>%
 p1 <- p1 + geom_line(data = temp_graph, aes(x = date, y = value, color=variable), size = .7) 
 p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey40", mypallete[7:7]))
 p1 <- p1 + labs(colour = "", x = "")
-p1 <- p1 + scale_y_continuous("axis title")
 p1 <- p1 + ggtitle("Title")
 p1 <- p1 + theme(legend.position = "bottom")
 p1 <- p1 +  scale_y_continuous(labels=percent)

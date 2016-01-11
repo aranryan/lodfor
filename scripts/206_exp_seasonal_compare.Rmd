@@ -368,7 +368,7 @@ p1 <- temp %>%
    scale_color_manual(values = c(mypallete[3:3], "grey40")) +
    labs(colour = "", x = "") +
    scale_y_continuous("axis title") +
-   ggtitle("Title") +
+   ggtitle("Demand, average daily") +
    theme(legend.position = "bottom")
 p1
 
@@ -388,14 +388,15 @@ p1 <- temp %>%
    scale_color_manual(values = c(mypallete[3:3], "grey40")) +
    labs(colour = "", x = "") +
    scale_y_continuous("axis title") +
-   ggtitle("Title") +
+   ggtitle("Demand, average daily") +
    theme(legend.position = "bottom")
 p1
 
 ```
 
 ### Compare seasonally adjusted series from m2 and m3
-Both m2 and m3 are similar for Sep. 2015. Interestingly, m3 generally points to performance during the summer as being somewhat weaker than m2. 
+Both m2 and m3 are similar for Sep. 2015. Interestingly, m3 generally points to performance during the summer as being somewhat weaker than m2.  
+
 ```{r}
 temp <- combined %>%
    gather("variable", "value", -date) %>% 
@@ -408,7 +409,7 @@ p1 <- temp %>%
    scale_color_manual(values = c(mypallete[3:3], "grey40")) +
    labs(colour = "", x = "") +
    scale_y_continuous("axis title") +
-   ggtitle("Title") +
+   ggtitle("Demand, average daily") +
    theme(legend.position = "bottom")
 p1
 
