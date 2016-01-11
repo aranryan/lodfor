@@ -1,5 +1,5 @@
 ---
-title: "Seasonal adjustment demo"
+title: "Seasonal adjustment Intro: UPM"
 author: "Tourism Economics"
 date: "January 9, 2016"
 output: 
