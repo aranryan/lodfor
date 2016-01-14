@@ -7,6 +7,9 @@ Setup
 ```r
 #read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
 #source('~/Project/R projects/lodfor/scripts/functions_combined.R')
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
 ```
 
 

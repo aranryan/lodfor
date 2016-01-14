@@ -11,19 +11,6 @@ Setup
 #setwd("./output_data/")
 library(arlodr, warn.conflicts=FALSE)
 library(xts, warn.conflicts=FALSE)
-```
-
-```
-## Loading required package: zoo
-## 
-## Attaching package: 'zoo'
-## 
-## The following objects are masked from 'package:base':
-## 
-##     as.Date, as.Date.numeric
-```
-
-```r
 library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
 ```
@@ -50,22 +37,14 @@ if (!require(quantmod)) {
   install.packages("quantmod")
   require(quantmod)
 }
-```
 
-```
-## Loading required package: quantmod
-## Loading required package: TTR
-## Version 0.4-0 included new data defaults. See ?getSymbols.
-```
-
-```r
 fpath <- c("~/Project/R projects/lodfor/")
 
 # when kniting from the button, I either needed the full path or to add "../" 
 # in front of each
 #load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
 
-fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
+fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2016_01_14.csv")
 #fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
 # the check.names piece fixes the issueof the column names coming in with
 # quotes and spaces due to the Oxford file format that is visible when 
@@ -197,8 +176,8 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ##  $ us_gf     : num  157 161 158 159 162 ...
 ##  $ wd_wpo_wti: num  35.8 39.5 37.8 36.3 38 ...
 ##  $ jp_rxd    : num  244 232 220 211 206 ...
-##  $ wd_gdp    : num  6993790 6963350 7005310 7071400 7124310 ...
-##  $ wd_gdpppp : num  7461810 7426450 7459970 7512850 7584190 ...
+##  $ wd_gdp    : num  6993780 6963350 7005310 7071400 7124310 ...
+##  $ wd_gdpppp : num  7461790 7426430 7459940 7512830 7584170 ...
 ##  $ wd_gdpnusd: num  2763640 2777270 2791130 2805220 2828700 ...
 ```
 
@@ -216,8 +195,8 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ## 2014-10-01 4037.85  0.020720671
 ## 2015-01-01 4044.32  0.006424773
 ## 2015-04-01 4083.40  0.039215590
-## 2015-07-01 4104.45  0.020780065
-## 2015-10-01 4119.60  0.014846410
+## 2015-07-01 4103.50  0.019835330
+## 2015-10-01 4110.66  0.006997696
 ```
 
 ###Load FRED data
@@ -236,7 +215,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 
 ```
 ## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
-## extra): downloaded length 12602 != reported length 200
+## extra): downloaded length 12619 != reported length 200
 ```
 
 ```
