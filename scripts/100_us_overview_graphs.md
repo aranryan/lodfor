@@ -43,7 +43,7 @@ Insert date
 
 
 ## Demand, ratio to population 
-
+<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Demand, ratio to population forecast
@@ -53,6 +53,8 @@ Insert date
 ## 3.4256790421 0.0000829148
 ```
 
+<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_fcst-1.png" title="" alt="" width="9in" height="5.7in" />
+
 
 ## Demand, ratio to population log forecast
 
@@ -61,11 +63,11 @@ Insert date
 ## 1.248945e+00 1.978351e-05
 ```
 
-<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-1.png" title="" alt="" width="9in" height="5.7in" />
+<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-2.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Demand, ratio to employment 
-
+<img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_emp-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## Occupancy labled
 <img src="../output_data/figure_us_overview_graphs/fig-occupancy_labled-1.png" title="" alt="" width="9in" height="5.7in" />
@@ -77,17 +79,17 @@ Insert date
 ##Following graphs are based on code from around the STR presentation in November
 
 ## ADR, real long-term
-
+<img src="../output_data/figure_us_overview_graphs/fig-adr_real_lt-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## ADR, real medium-term
-
+<img src="../output_data/figure_us_overview_graphs/fig-adr_real_mt-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## ADR, real short-term
-
+<img src="../output_data/figure_us_overview_graphs/fig-adr_real_st-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## ADR, short-term
-
+<img src="../output_data/figure_us_overview_graphs/fig-adr_st-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## ADR, short-term, monthly
@@ -95,7 +97,7 @@ Insert date
 
 
 ## ADR, short-term with forecast
-
+<img src="../output_data/figure_us_overview_graphs/fig-adr_st_forecast-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## ADR, growth, short-term 
@@ -108,12 +110,14 @@ Insert date
 ## <environment: namespace:dplyr>
 ```
 
+<img src="../output_data/figure_us_overview_graphs/fig-adr_gr_st-1.png" title="" alt="" width="9in" height="5.7in" />
+
 
 ## ADR, growth cagr, short-term 
-
+<img src="../output_data/figure_us_overview_graphs/fig-adr_gr_cagr_st-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## RevPAR, real long-term
-
+<img src="../output_data/figure_us_overview_graphs/fig-revpar_real_lt-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## RevPAR, real long-term, with forecast
@@ -122,40 +126,40 @@ Insert date
 
 
 ## RevPAR, real long-term - by scale
-
+<img src="../output_data/figure_us_overview_graphs/fig-revpar_real_lt_Scale-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Unemployment
-
+<img src="../output_data/figure_us_overview_graphs/fig-unemployment-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## Household net wealth
 <img src="../output_data/figure_us_overview_graphs/fig-net_wealth_real-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## Top 25 demand
-
+<img src="../output_data/figure_us_overview_graphs/fig-top25_demand-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## Top 25 supply
-
+<img src="../output_data/figure_us_overview_graphs/fig-top25_supply-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## San Francisco demand
-
+<img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_demand-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## San Francisco supply
-
+<img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_supply-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## San Francisco occupancy
-
+<img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_occ-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## San Francisco and NY occupancy
-
+<img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_ny_occ-1.png" title="" alt="" width="9in" height="5.7in" />
 
 
 ## San Francisco adr
-
+<img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_adr-1.png" title="" alt="" width="9in" height="5.7in" />
 
 ## ADR, real short-term
 <img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_adr_real_st-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-sanfrancisco_adr_real_st-2.png" title="" alt="" width="9in" height="5.7in" />

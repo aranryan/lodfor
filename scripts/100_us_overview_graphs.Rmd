@@ -288,7 +288,7 @@ theme_set(theme_ts1())
 todo <- c("totus_demd_sa")
 grtitle <- c("US room demand and GDP")
 
-footnote <- c("Note: Seasonally adjusted. GDP quarterly. Room demand monthly through September 2015.\nSource: STR, Tourism Economics")
+footnote <- c("Note: Seasonally adjusted. GDP quarterly. Room demand monthly through November 2015.\nSource: STR, Tourism Economics")
 starta <- as.Date("2004-01-01")
 enda <- as.Date("2015-12-01")
 index_year <- as.numeric(2005)
