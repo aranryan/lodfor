@@ -5,7 +5,7 @@ library(xts, warn.conflicts=FALSE)
 library(readxl, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
 
-forwb <- c(paste("~/Project/lodging forecast/STR - Aug 2015/working/", "output_q_STR_2015Augv12", ".xlsx", sep=""))
+forwb <- c(paste("~/Project/lodging forecast/STR - Jan 2016/working/", "output_q_STR_2016Jan6", ".xlsx", sep=""))
 
 tempb <- read_excel(forwb, sheet=1, col_names=TRUE, skip=0)
 names(tempb)[1] <- "date"

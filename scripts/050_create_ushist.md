@@ -224,18 +224,10 @@ rm(tempnames)
 autoplot.zoo(window(real$luxus_adr_sarpc, start="2000-01-01", end="2015-10-01"))
 ```
 
-```
-## Warning: Removed 1 rows containing missing values (geom_path).
-```
-
 ![](050_create_ushist_files/figure-html/create_q-2.png) 
 
 ```r
 autoplot.zoo(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2015-10-01"))
-```
-
-```
-## Warning: Removed 1 rows containing missing values (geom_path).
 ```
 
 ![](050_create_ushist_files/figure-html/create_q-3.png) 
@@ -244,10 +236,6 @@ autoplot.zoo(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2015-10-01")
 # merges onto ushist_q
 ushist_q <- merge(ushist_q, real)
 autoplot.zoo(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2015-10-01"))
-```
-
-```
-## Warning: Removed 1 rows containing missing values (geom_path).
 ```
 
 ![](050_create_ushist_files/figure-html/create_q-4.png) 
@@ -308,12 +296,12 @@ head(temp_opcl)
 
 ```
 ##            totus_oprms_sa totus_oprms_sf totus_oprms totus_clrms
-## 1987-01-01       45354.66      0.8052976       36524         458
-## 1987-04-01       39321.98      1.5363927       60414         141
-## 1987-07-01       36751.54      0.8723444       32060           0
-## 1987-10-01       32585.04      0.8028224       26160         350
-## 1988-01-01       31419.62      0.8482597       26652         165
-## 1988-04-01       35655.19      1.4717353       52475         991
+## 1987-01-01       45462.56      0.8033864       36524         458
+## 1987-04-01       39103.39      1.5456203       60439         141
+## 1987-07-01       36628.93      0.8752645       32060           0
+## 1987-10-01       32918.96      0.7946788       26160         350
+## 1988-01-01       31285.64      0.8518925       26652         165
+## 1988-04-01       35664.99      1.4713308       52475         991
 ```
 
 ```r
@@ -345,12 +333,12 @@ head(out_str_us_m$totus_supd) #monthly
 
 ```
 ##            totus_supd
-## 1987-01-01   2.864836
-## 1987-02-01   2.874836
-## 1987-03-01   2.894028
-## 1987-04-01   2.922186
-## 1987-05-01   2.968864
-## 1987-06-01   3.012065
+## 1987-01-01   2.864804
+## 1987-02-01   2.874804
+## 1987-03-01   2.893961
+## 1987-04-01   2.922119
+## 1987-05-01   2.968767
+## 1987-06-01   3.011993
 ```
 
 ```r
@@ -359,12 +347,12 @@ head(sup_qtr$totus_sups) # based on start of quarter
 
 ```
 ##            totus_sups
-## 1987-01-01   2.864836
-## 1987-04-01   2.922186
-## 1987-07-01   3.024524
-## 1987-10-01   3.038238
-## 1988-01-01   3.015586
-## 1988-04-01   3.065561
+## 1987-01-01   2.864804
+## 1987-04-01   2.922119
+## 1987-07-01   3.024452
+## 1987-10-01   3.038166
+## 1988-01-01   3.015579
+## 1988-04-01   3.065519
 ```
 
 ```r
@@ -373,12 +361,12 @@ head(sup_qtr$totus_supe) # based on start of quarter
 
 ```
 ##            totus_supe
-## 1987-01-01   2.922186
-## 1987-04-01   3.024524
-## 1987-07-01   3.038238
-## 1987-10-01   3.015586
-## 1988-01-01   3.065561
-## 1988-04-01   3.158876
+## 1987-01-01   2.922119
+## 1987-04-01   3.024452
+## 1987-07-01   3.038166
+## 1987-10-01   3.015579
+## 1988-01-01   3.065519
+## 1988-04-01   3.158804
 ```
 
 ```r
@@ -399,18 +387,10 @@ ushist_q <- data.frame(date=time(ushist_q), ushist_q) %>%
 autoplot.zoo(window(ushist_q$totus_oprms, start="1995-01-01", end="2015-10-01"))
 ```
 
-```
-## Warning: Removed 1 rows containing missing values (geom_path).
-```
-
 ![](050_create_ushist_files/figure-html/add_opencl-1.png) 
 
 ```r
 autoplot.zoo(window(ushist_q$totus_clrms, start="1995-01-01", end="2015-10-01"))
-```
-
-```
-## Warning: Removed 1 rows containing missing values (geom_path).
 ```
 
 ![](050_create_ushist_files/figure-html/add_opencl-2.png) 
@@ -449,7 +429,7 @@ head(tempa_ts)
 ```
 
 ```
-## [1]  21284  42065 -18346 -48462  23488  41831
+## [1]  21249  42035 -18346 -48397  23453  41801
 ```
 
 ```r
@@ -467,8 +447,8 @@ head(tempa_ts)
 ```
 
 ```
-## [1]  0.007429396  0.014395045 -0.006065748 -0.015950692  0.007788868
-## [6]  0.013645463
+## [1]  0.007417261  0.014385109 -0.006065892 -0.015929676  0.007777279
+## [6]  0.013635864
 ```
 
 ```r
@@ -560,12 +540,12 @@ mp <- seas(y,
 
 ```
 ##            totus_schanger_sa totus_schanger_sf
-## 1987-01-01     -0.0008239071       0.008253303
-## 1987-04-01      0.0012185446       0.013176501
-## 1987-07-01     -0.0010452880      -0.005020460
-## 1987-10-01      0.0004991924      -0.016449885
-## 1988-01-01     -0.0005221129       0.008310980
-## 1988-04-01      0.0005260710       0.013119392
+## 1987-01-01     -0.0008495773       0.008266839
+## 1987-04-01      0.0012857295       0.013099379
+## 1987-07-01     -0.0010857927      -0.004980100
+## 1987-10-01      0.0004955691      -0.016425245
+## 1988-01-01     -0.0005443859       0.008321665
+## 1988-04-01      0.0005875784       0.013048286
 ```
 
 ```r
@@ -788,17 +768,13 @@ autoplot.zoo(ushist_a$luxus_revpar)
 ```
 
 ```
-## Warning: Removed 23 rows containing missing values (geom_path).
+## Warning: Removed 22 rows containing missing values (geom_path).
 ```
 
 ![](050_create_ushist_files/figure-html/create_a-2.png) 
 
 ```r
 autoplot.zoo(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2015-10-01")))
-```
-
-```
-## Warning: Removed 1 rows containing missing values (geom_path).
 ```
 
 ![](050_create_ushist_files/figure-html/create_a-3.png) 

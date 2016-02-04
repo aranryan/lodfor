@@ -7,7 +7,7 @@ library(tidyr, warn.conflicts=FALSE)
 #
 # name of file to read
 
-fname <- c("input_data/str_us_top25-2015-12-17.csv")
+fname <- c("input_data/str_us_top25-2016-01-19.csv")
 
 ########
 #

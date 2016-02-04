@@ -37,7 +37,15 @@ if (!require(quantmod)) {
   install.packages("quantmod")
   require(quantmod)
 }
+```
 
+```
+## Loading required package: quantmod
+## Loading required package: TTR
+## Version 0.4-0 included new data defaults. See ?getSymbols.
+```
+
+```r
 fpath <- c("~/Project/R projects/lodfor/")
 
 # when kniting from the button, I either needed the full path or to add "../" 

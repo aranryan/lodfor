@@ -16,7 +16,10 @@ library(lubridate, warn.conflicts=FALSE)
 
 # all history, since 1998 is coming from this input file
 
-fname1 <- c("input_data/from IHG - TE Total Country-2015-07-21.xls")
+# used to come with all countries
+#fname1 <- c("input_data/from IHG - TE Total Country-2015-07-21.xls")
+# sometimes comes with just Canada
+fname1 <- c("input_data/from IHG - Canada data-2016-01-22.xls")
 
 ########
 #
