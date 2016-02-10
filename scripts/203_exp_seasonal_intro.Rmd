@@ -18,7 +18,7 @@ library(arlodr)
 library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
-Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
+#Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
 library(seasonal, warn.conflicts=FALSE)
 require(xtable)
 require(ggplot2)
@@ -400,7 +400,7 @@ p1
 
 ### Seasonally adjusted, with smoothed series
 ```{r}
-Ntemp <- temp_sersa %>%
+NNtemp <- temp_sersa %>%
   mutate(OA_pchya = original/lag(original,n=12) - 1) %>%
   gather("variable", "value", -date) %>% 
   filter(variable != "sa_sf") %>%

@@ -136,6 +136,8 @@ autoplot.zoo(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2015-10-0
 ushist_q <- merge(ushist_q, out_str_ihg_mex_q,out_str_ihg_can_q)
 autoplot.zoo(window(ushist_q$totcan_adr_sa, start="2000-01-01", end="2015-10-01"))
 autoplot.zoo(window(ushist_q$totcan_demd_sa, start="2000-01-01", end="2015-10-01"))
+autoplot.zoo(window(ushist_q$upmmex_revpar_sa, start="2000-01-01", end="2015-10-01"))
+
 ```
 
 Adds open close data
@@ -449,6 +451,10 @@ usihghist_m <- data.frame(ushist_m) %>%
 usihghist_a <- data.frame(ushist_a) %>%
   select(matches(paste(usihg_list,collapse="|"))) %>%
   as.xts()
+
+# a <- usihghist_q %>%
+#   data.frame(date=time(.), .) %>%
+#   select(date, starts_with("upmmex"))
 
 ```
 
