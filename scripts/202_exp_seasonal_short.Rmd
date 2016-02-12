@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Seasonal Adjustment: Short examples"
 author: "Tourism Economics"
 date: "November 13, 2015"
 output: 

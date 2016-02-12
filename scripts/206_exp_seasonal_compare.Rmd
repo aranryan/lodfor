@@ -18,13 +18,13 @@ library(arlodr)
 library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
-#Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
 library(seasonal, warn.conflicts=FALSE)
 require(xtable)
 require(ggplot2)
 require(knitr)
 require(RColorBrewer)
 require(scales)
+library(lubridate)
 
 # If I put autodep=TRUE as an argument in the following then I get
 # some issues with the graphs, such as grey backgrounds and changes
@@ -98,7 +98,7 @@ demo_df <- ushist_m %>%
 
 ```
   
-
+use default setting
 ```{r}
 
 # Uses default settings. For example, includes a term for Easter.
@@ -126,6 +126,8 @@ temp_sersa1 <- merge(
    data.frame(date=as.Date(time(.)), ., row.names=NULL)
 ```
 
+
+use default settings m2
 ```{r}
 x <- demo_df %>%
   read.zoo(regular=TRUE, drop=FALSE) %>%
@@ -170,7 +172,9 @@ temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
 # days
 date <- seq(as.Date("1980-01-01"), as.Date("2030-01-01"), by = 1)
 df <- data.frame(date)
-library(lubridate)
+
+# uses lubridate
+
 df1 <- df %>%
   # uses wday from lubridate
   mutate(wday = wday(date, label=TRUE)) %>%
@@ -204,29 +208,29 @@ vet_wkend <- df1 %>%
 # is a one in November when veterans day is on a weekend
 vet_wkend <- vet_wkend$date
 vet1 <- genhol(vet_wkend, start = 0, end = 0, frequency = 12)
-vet1 <- window(vet1, start=c(1987, 1), end=c(2018, 9)) 
+#vet1 <- window(vet1, start=c(1987, 1), end=c(2030, 12))
 
 chr_wkend <- df1 %>%
   filter(chr_wkend == 1)
 chr_wkend <- chr_wkend$date
 chr1 <- genhol(chr_wkend, start = 0, end = 0, frequency = 12)
-chr1 <- window(chr1, start=c(1987, 1), end=c(2018, 9)) 
+#chr1 <- window(chr1, start=c(1987, 1), end=c(2030, 12)) 
 
 jlf_wkend <- df1 %>%
   filter(jlf_wkend == 1)
 jlf_wkend <- jlf_wkend$date
 jlf1 <- genhol(jlf_wkend, start = 0, end = 0, frequency = 12)
-jlf1 <- window(jlf1, start=c(1987, 1), end=c(2018, 9)) 
+#jlf1 <- window(jlf1, start=c(1987, 1), end=c(2030, 12)) 
 
 hlw_wkend <- df1 %>%
   filter(hlw_wkend == 1)
 hlw_wkend <- hlw_wkend$date
 hlw1 <- genhol(hlw_wkend, start = 0, end = 0, frequency = 12)
-hlw1 <- window(hlw1, start=c(1987, 1), end=c(2018, 9)) 
+#hlw1 <- window(hlw1, start=c(1987, 1), end=c(2030, 12)) 
 
 data(holiday)
 ea1 <- genhol(easter, start = -2, end = 0, frequency = 12)
-ea1 <- window(ea1, start=c(1987, 1), end=c(2018, 9)) 
+#ea1 <- window(ea1, start=c(1987, 1), end=c(2030, 12)) 
 
 
 # with more regressors
@@ -283,6 +287,7 @@ a <- df1 %>%
 kable(tail(a, n=12), digits = 4, row.names=FALSE)
 ```
 
+
 ## Set up Christmas weekend
 chr_wkend is "1" if Christmas Day falls on a weekend
 ```{r}
@@ -292,6 +297,7 @@ a <- df1 %>%
   select(date:day, chr, chr_wkend)
 kable(tail(a, n=12), digits = 4, row.names=FALSE)
 ```
+
 
 ## Set up July 4th weekend
 jlf_wkend is "1" if Independence Day falls on a weekend
@@ -335,11 +341,13 @@ kable(tail(a, n=12), digits = 4, row.names=FALSE)
 
 ```
 
+
 ### m1
 Default
 ```{r}
 summary(m1)
 ```
+
 
 ### m2
 Built-in regressors
@@ -347,11 +355,13 @@ Built-in regressors
 summary(m2)
 ```
 
+
 ### m3
 Same built-in regressors as m2, plus additional terms
 ```{r}
 summary(m3)
 ```
+
 
 ### Compare seasonally adjusted series from m1 and m2
 Note estimate for Sep. 2015. m1 model tends to indicate Sep. was a "strong" month.  
@@ -374,6 +384,7 @@ p1
 
 ```
 
+
 ### Compare seasonally adjusted series from m1 and m3
 Again, similar to m2, m3 indicates Sep. 2015 was not as strong as m1 results would indicate.
 ```{r}
@@ -393,6 +404,7 @@ p1 <- temp %>%
 p1
 
 ```
+
 
 ### Compare seasonally adjusted series from m2 and m3
 Both m2 and m3 are similar for Sep. 2015. Interestingly, m3 generally points to performance during the summer as being somewhat weaker than m2.  
@@ -427,6 +439,7 @@ Year   |   Labor Day date
 2015 | 7  
 2016 |5  
 
+
 ### Seasonal factors for September  
   
 ```{r}
@@ -439,6 +452,7 @@ a <- combined %>%
 kable(tail(a, n=12), digits = 4, row.names=FALSE)
 
 ```
+
 
 ### Seasonal factors for September (1987 to 2016)
 Last point is Sep 2016. So both Sep. 2015 and Sep. 2016 have large seasonal factors. 

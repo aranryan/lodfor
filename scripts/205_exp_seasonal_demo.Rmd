@@ -224,6 +224,7 @@ p1 <- p1 + scale_x_date(date_breaks = "10 year", labels = date_format("%y"))
 p1
 ```
 
+
 # How does it help us?  
 
 ## Converting quarterly to monthly using seasonal factors
@@ -303,7 +304,7 @@ kable(tail(a, n=12), digits = 4, row.names=FALSE)
 
 ```
 
-### Monthly series and seasonal factors: Graph  
+### Monthly series and seasonally adjusted series: Graph  
 ```{r}
 # graph monthly
 tempm_graph <- tempm %>%
@@ -335,7 +336,7 @@ kable(tail(a, n=12), digits = 4, row.names=FALSE)
 
 ```
 
-### Quarterly series and seasonal factors: Graph 
+### Quarterly series and seasonally adjusted series: Graph 
   
 ```{r}
 # graph quarterly
@@ -402,6 +403,7 @@ a <- tempm1 %>%
 kable(tail(a, n=12), digits = 3, row.names=FALSE, align = c("l", rep("r", 7)))
 ```
 
+
 ### Monthly data, comparison between original and oa1q
 ```{r}
 # graph data
@@ -424,6 +426,7 @@ p1
 
 
 ```
+
 
 ### Monthly data, comparison between original and oa1q
 Percentage change from prior year  
@@ -448,6 +451,7 @@ p1
 
 write.zoo(tempm1, file="output_data/tempm1.csv", sep=",")
 ```
+
 
 ### Regression, monthly levels  
 oa1q explains almost all variation in oa1

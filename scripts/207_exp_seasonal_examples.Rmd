@@ -1,0 +1,101 @@
+---
+title: "Examples of certain seasonal adjustment features"
+author: "Tourism Economics"
+date: "February 11, 2016"
+output: html_document
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+library(seasonal, warn.conflicts=FALSE)
+require(xtable)
+require(ggplot2)
+require(knitr)
+require(RColorBrewer)
+require(scales)
+library(lubridate)
+
+# If I put autodep=TRUE as an argument in the following then I get
+# some issues with the graphs, such as grey backgrounds and changes
+# in labeling. Maybe it somehow impacts the theme?
+#knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_exp_seasonal_short/fig-',  fig.show='asis', fig.keep='high')
+# tells it to keep going even if there is an error
+knitr::opts_chunk$set(error = TRUE)
+
+```
+
+The goal of this script is to record some simple examples related to seasonal adjustment.
+
+## Basic genhol example
+genhol is a function that can be used to create a ts object that can be used as a regressor in the seas function. 
+
+In this example, we start with a vector of dates for the Chinese New Years. 
+
+```{r, echo=TRUE}
+data(seasonal) 
+data(holiday)  # dates of Chinese New Year, Indian Diwali and Easter
+head(cny)
+```
+
+Then we run that vector through genhol to create two potential regressor series. For each of them, we start the holiday on the date in the vector, but we shift the end to be six days later. 
+
+```{r, echo=TRUE}
+cny.ts <- genhol(cny, start = 0, end = 6, center = "calendar")
+cny2.ts <- genhol(cny, start = 0, end = 6)
+
+
+cny_x <- cny.ts %>%
+  xts(order.by=as.yearmon(index(.)), drop=FALSE)
+colnames(cny_x) <- "centered"
+
+cny2_x <- cny2.ts %>%
+  xts(order.by=as.yearmon(index(.)))
+colnames(cny2_x) <- "not_centered"
+
+```
+
+
+In the not_centered series, for February 1931 the value is one, because the full holiday is in February. But in Feb 1933, the holiday starts on January 26 and ends on February 1. So the Feb 1933 value is 1/7 = .1429, and the rest is in January. This corresponds to the documentation of genhol in x13:
+"Before centering, each regressor is a proportionality regressor whose value in any month is the proportion of the days of the specified interval that belong to the month."
+
+In the centered series, my simple way of thinking about it is to say that the not_centered approach is letting you adjust away the holiday, in a sense taking it away from the month it occurs in. But if you center, then you're taking away from the month it occurs in, but adding back to the month it might otherwise occur in. So it's balanced. This goes along with the brief Census Bureau write up that I'll link to below, which references keeping the total similar to the unadjusted total.
+
+In the table below, I was thinking about it as:
+In 1931, it's pretty typical, positive effect of 0.2443 to Feb, negative to Jan.
+In 1936, it is January, so it's a full positive effect to January, and then full negative to Feb.
+In 1933, it's split, with a bunch positive to Jan, but then some negative to Feb, but not the full negative to Feb.
+
+```{r}
+a <- merge(cny_x, cny2_x) %>%
+    data.frame(date=time(.), .) %>%
+  mutate(month = month(date)) %>%
+  filter(month %in% c(1,2,3))
+kable(head(a, n=24), digits = c(4, 4, 4), row.names=FALSE)
+
+```
+
+
+### Census Bureau write up on centering holidays from:
+http://www.census.gov/srd/www/genhol/genhol_center.html
+
+**Notes on centering holiday regressors**
+
+For simplicity, only regressors for monthly data are discussed. The quarterly and bimonthly cases are analogous.
+
+Before centering, each regressor is a proportionality regressor whose value in any month is the proportion of the days of the specified interval that belong to the month. For example, if the interval is 10 days long and, in a certain year, the first two days of the interval fall in January, then the value of the uncentered regressor is 2/10 in January and 8/10 in February that year. Its value in March-December is 0.
+
+Centering of the regressors is done to keep the yearly totals of the series obtained by removing the estimated holiday effects approximately equal to the yearly totals of the unadjusted data. If centering is not done, these two totals will differ by approximately the same amount each year, and user will conclude that combined seasonal and holiday adjustment is producing a biased estimate of the level of the observed series. (The bias is a crude estimate of what the data would be like if there were no holiday.) The type of holiday effect determines the type of centering.
+
+Centering by removing the calendar-month means is appropriate for holidays like Easter or the Chinese New Year whose regressors are always zero in some calendar months because the holiday can occur only in a few calendar months. The calendar-month-centered regressors will be zero in exactly the same months as the regressor, and no adjustment will be done to data from these months. Also, holiday adjustment does remove fixed seasonal, with the result that all such effects are included in the seasonal factors produced by the seasonal adjustment procedure.
+
+Centering by removing the overall mean is attractive for holiday periods like Ramadan that move through all of the calender months over time. With mean centering, the centered regressor's adjustment for every month outside the specified interval in a given year always has the same value and adjustment for the holiday effect has a usually negligible effect on the general level of the series.
+
+### What I learned
+
+I think the centering makes sense to try. Sounds like centering on calendar-month means makes the most sense for regressors that are always zero in some months. While centering by removing an overall mean would work for something like Ramadan that moves through all calendar months over time.
+
+When I think about a holiday like Yom Kippur, I had been thinking that I would calculate how many weekdays are covered by the holiday. Because it's not just what month it happens in, but whether it is partly on a weekend. It gets a bit more tricky to think about centering in that case. I'll just put that thought aside. 

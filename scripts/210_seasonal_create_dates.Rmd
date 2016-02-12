@@ -1,0 +1,320 @@
+---
+title: "Create seasonal dummy and dates"
+author: "Tourism Economics"
+date: "January 9, 2016"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(readr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+library(seasonal, warn.conflicts=FALSE)
+require(xtable)
+require(ggplot2)
+require(knitr)
+require(RColorBrewer)
+require(scales)
+library(lubridate)
+
+# If I put autodep=TRUE as an argument in the following then I get
+# some issues with the graphs, such as grey backgrounds and changes
+# in labeling. Maybe it somehow impacts the theme?
+#knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_exp_seasonal_short/fig-',  fig.show='asis', fig.keep='high')
+# tells it to keep going even if there is an error
+knitr::opts_chunk$set(error = TRUE)
+
+```
+
+
+The goal of this script is to create a dataframe with a useful set of holiday regressors. 
+
+I originally approached it by creating a date vector for each holiday. But moving those around in lists got difficult. And I switched to creating a single daily data frame as the export
+
+As a first step, I'll handle some easy holidays that are on the same date each year.
+
+```{r}
+
+# days
+date <- seq(as.Date("1980-01-01"), as.Date("2030-01-01"), by = 1)
+df <- data.frame(date)
+
+same_date <- df %>%
+  # add columns of month day
+  mutate(month = months(date)) %>%
+  mutate(day = day(date)) %>%
+  # Valentine's day
+  mutate(val = ifelse(month == "February" & day == 14, 1, 0)) %>%
+  # July 4
+  mutate(jlf = ifelse(month == "July" & day == 4, 1, 0)) %>%
+  # veterens day
+  mutate(vet = ifelse(month == "November" & day == 11, 1, 0)) %>%
+   # Halloween
+  mutate(hlw = ifelse(month == "October" & day == 31, 1, 0)) %>%
+  # christmas
+  mutate(chr = ifelse(month == "December" & day == 25, 1, 0)) %>%
+  # new years
+  mutate(nyd = ifelse(month == "January" & day == 1, 1, 0))
+
+# 
+# # creates a vector of each
+# val <- same_date %>%
+#   filter(val == 1) %>%
+#   # creates vector of the date column
+#   .[,'date']
+# 
+# jlf <- same_date %>%
+#   filter(jlf == 1) %>%
+#   # creates vector of the date column
+#   .[,'date']
+# 
+# vet <- same_date %>%
+#   filter(vet == 1) %>%
+#   # creates vector of the date column
+#   .[,'date']
+# 
+# hlw <- same_date %>%
+#   filter(hlw == 1) %>%
+#   # creates vector of the date column
+#   .[,'date']
+# 
+# chr <- same_date %>%
+#   filter(chr == 1) %>%
+#   # creates vector of the date column
+#   .[,'date']
+# 
+# nyd <- same_date %>%
+#   filter(chr == 1) %>%
+#   # creates vector of the date column
+#   .[,'date']
+
+```
+
+
+Import some csv files that I manually created based on the timeanddate website. Pretty easy.
+
+```{r}
+
+# days
+date <- seq(as.Date("1980-01-01"), as.Date("2030-01-01"), by = 1)
+df <- data.frame(date)
+
+fpath <- c("~/Project/R projects/lodfor")
+
+hold_df <- df
+
+# memorial day
+fname <- paste0(fpath, "/input_data/timeanddate_mem_us.csv")
+in_1 <- read_csv(fname, col_names=TRUE) 
+colnames(in_1) <- colnames(in_1) %>%
+  tolower() %>%
+  gsub("[[:punct:]]", "_", .) %>%
+  gsub(" ", "_", .)
+in_2 <- in_1 %>%
+  mutate(date = paste(date, year, sep="-")) %>%
+  mutate(date = as.Date(date, "%d-%b-%Y")) %>%
+  select(date) %>%
+  # name the holiday
+  mutate(mem = 1) %>%
+  left_join(df, ., by="date") %>%
+  replace(is.na(.), 0) 
+hold_df <- merge(hold_df, in_2, by="date")
+
+
+# easter
+fname <- paste0(fpath, "/input_data/timeanddate_easter_us.csv")
+in_1 <- read_csv(fname, col_names=TRUE) 
+colnames(in_1) <- colnames(in_1) %>%
+  tolower() %>%
+  gsub("[[:punct:]]", "_", .) %>%
+  gsub(" ", "_", .)
+in_2 <- in_1 %>%
+  mutate(date = paste(date, year, sep="-")) %>%
+  mutate(date = as.Date(date, "%d-%b-%Y")) %>%
+  select(date) %>%
+  # name the holiday
+  mutate(eas = 1) %>%
+  left_join(df, ., by="date") %>%
+  replace(is.na(.), 0) 
+hold_df <- merge(hold_df, in_2, by="date")
+
+# Presidential election days
+fname <- paste0(fpath, "/input_data/timeanddate_electionday_us.csv")
+in_1 <- read_csv(fname, col_names=TRUE) 
+colnames(in_1) <- colnames(in_1) %>%
+  tolower() %>%
+  gsub("[[:punct:]]", "_", .) %>%
+  gsub(" ", "_", .)
+in_2 <- in_1 %>%
+  mutate(date = paste(date, year, sep="-")) %>%
+  mutate(date = as.Date(date, "%d-%b-%Y")) %>%
+  select(date) %>%
+  # name the holiday
+  mutate(ele = 1) %>%
+  left_join(df, ., by="date") %>%
+  replace(is.na(.), 0) 
+hold_df <- merge(hold_df, in_2, by="date")
+
+# Thanksgiving
+fname <- paste0(fpath, "/input_data/timeanddate_thanksgiving_us.csv")
+in_1 <- read_csv(fname, col_names=TRUE) 
+colnames(in_1) <- colnames(in_1) %>%
+  tolower() %>%
+  gsub("[[:punct:]]", "_", .) %>%
+  gsub(" ", "_", .)
+in_2 <- in_1 %>%
+  mutate(date = paste(date, year, sep="-")) %>%
+  mutate(date = as.Date(date, "%d-%b-%Y")) %>%
+  select(date) %>%
+  # name the holiday
+  mutate(thk = 1) %>%
+  left_join(df, ., by="date") %>%
+  replace(is.na(.), 0) 
+hold_df <- merge(hold_df, in_2, by="date")
+
+# Hanukkah
+fname <- paste0(fpath, "/input_data/timeanddate_hanukkahfirstd_us.csv")
+in_1 <- read_csv(fname, col_names=TRUE) 
+colnames(in_1) <- colnames(in_1) %>%
+  tolower() %>%
+  gsub("[[:punct:]]", "_", .) %>%
+  gsub(" ", "_", .)
+in_2 <- in_1 %>%
+  mutate(date = paste(date, year, sep="-")) %>%
+  mutate(date = as.Date(date, "%d-%b-%Y")) %>%
+  select(date) %>%
+  # name the holiday
+  mutate(han = 1) %>%
+  left_join(df, ., by="date") %>%
+  replace(is.na(.), 0) 
+hold_df <- merge(hold_df, in_2, by="date")
+
+
+
+```
+
+
+```{r}
+
+# so what if I then want to put these into a dataframe together
+
+hol_df1 <- merge(same_date, hold_df, by="date")
+
+# # days
+# date <- seq(as.Date("1980-01-01"), as.Date("2030-01-01"), by = 1)
+# df <- data.frame(date)
+# 
+# # create a dataframe of each one
+# val_df <- val %>%
+#   data.frame(date = .) %>%
+#   mutate(val = 1) %>%
+#   left_join(df, ., by="date") %>%
+#   replace(is.na(.), 0)
+# 
+# eas_df <- eas %>%
+#   data.frame(date = .) %>%
+#   mutate(eas = 1) %>%
+#   left_join(df, ., by="date") %>%
+#   replace(is.na(.), 0)
+# 
+# mem_df <- mem %>%
+#   data.frame(date = .) %>%
+#   mutate(mem = 1) %>%
+#   left_join(df, ., by="date") %>%
+#   replace(is.na(.), 0)
+# 
+# jlf_df <- jlf %>%
+#   data.frame(date = .) %>%
+#   mutate(jlf = 1) %>%
+#   left_join(df, ., by="date") %>%
+#   replace(is.na(.), 0)
+# 
+# hlw_df <- hlw %>%
+#   data.frame(date = .) %>%
+#   mutate(hlw = 1) %>%
+#   left_join(df, ., by="date") %>%
+#   replace(is.na(.), 0)
+# 
+# ele_df <- ele %>%
+#   data.frame(date = .) %>%
+#   mutate(ele = 1) %>%
+#   left_join(df, ., by="date") %>%
+#   replace(is.na(.), 0)
+# 
+# vet_df <- vet %>%
+#   data.frame(date = .) %>%
+#   mutate(vet = 1) %>%
+#   left_join(df, ., by="date") %>%
+#   replace(is.na(.), 0)
+# 
+# thk_df <- thk %>%
+#   data.frame(date = .) %>%
+#   mutate(thk = 1) %>%
+#   left_join(df, ., by="date") %>%
+#   replace(is.na(.), 0)
+# 
+# han_df <- han %>%
+#   data.frame(date = .) %>%
+#   mutate(han = 1) %>%
+#   left_join(df, ., by="date") %>%
+#   replace(is.na(.), 0)
+# 
+# chr_df <- chr %>%
+#   data.frame(date = .) %>%
+#   mutate(chr = 1) %>%
+#   left_join(df, ., by="date") %>%
+#   replace(is.na(.), 0)
+# 
+# nyd_df <- nyd %>%
+#   data.frame(date = .) %>%
+#   mutate(nyd = 1) %>%
+#   left_join(df, ., by="date") %>%
+#   replace(is.na(.), 0)
+
+# # combine by creating a list and merging that list
+# hol_df1 <- Reduce(function(x, y) merge(x, y, all=TRUE), 
+#                   list(val_df, eas_df, mem_df, jlf_df, hlw_df,
+#                        ele_df, vet_df, thk_df, han_df, chr_df,
+#                        nyd_df))
+
+# create a dataframe with various weekday and weekend flags
+date <- seq(as.Date("1980-01-01"), as.Date("2030-01-01"), by = 1)
+df <- data.frame(date)
+
+flag_df <- df %>%
+  # add columns of month day
+  mutate(month = months(date)) %>%
+  mutate(day = day(date)) %>%
+  # uses wday from lubridate
+  mutate(wday = wday(date, label=TRUE)) %>%
+  # grepl returns a logical vector, here it's converted to numeric
+  mutate(satsun = as.numeric(grepl("Sat|Sun", wday))) %>%
+  mutate(frisat = as.numeric(grepl("Fri|Sat", wday))) %>%
+  mutate(fssm = as.numeric(grepl("Fri|Sat|Sun|Mon", wday)))
+
+# combine
+hol_df2 <- merge(flag_df, hol_df1)
+
+```
+
+
+## What to save
+Set up to save a daily data frame with the holidays as dummy variables. Also save the date vectors.
+```{r}
+
+holiday_daily <- hol_df2
+# saves Rdata version of the data
+save(holiday_daily, file="output_data/holiday_daily.Rdata")
+
+# holiday_dates <- list("val"=val, "eas"=eas, "mem"=mem, "jlf"=jlf, "hlw"=hlw,
+#                       "ele"=ele, "vet"=vet, "thk"=thk, "han"=han, "chr"=chr, "nyd"=nyd)
+# # saves Rdata version of the data
+# save(holiday_dates, file="output_data/holiday_dates.Rdata")
+
+```
+

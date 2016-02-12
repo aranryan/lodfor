@@ -61,3 +61,12 @@ source("scripts/101_graph_resolution_test.R")
 # creates an eviews output for host analysis
 source("scripts/110_out_to_eviews.R")
 source("scripts/120_build_lodhstbk.R")
+
+
+# seasonal adjustment discussion files
+rmarkdown::render("scripts/202_exp_seasonal_short.Rmd") 
+rmarkdown::render("scripts/203_exp_seasonal_intro.Rmd")
+rmarkdown::render("scripts/204_exp_seasonal_intro-upm.Rmd")
+rmarkdown::render("scripts/205_exp_seasonal_demo.Rmd")
+rmarkdown::render("scripts/206_exp_seasonal_compare.Rmd")
+

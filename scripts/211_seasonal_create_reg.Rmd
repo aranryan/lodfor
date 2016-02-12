@@ -1,0 +1,198 @@
+---
+title: "Create seasonal regressors"
+author: "Tourism Economics"
+date: "February 12, 2016"
+output: html_document
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(readr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+library(seasonal, warn.conflicts=FALSE)
+require(xtable)
+require(ggplot2)
+require(knitr)
+require(RColorBrewer)
+require(scales)
+library(lubridate)
+
+# If I put autodep=TRUE as an argument in the following then I get
+# some issues with the graphs, such as grey backgrounds and changes
+# in labeling. Maybe it somehow impacts the theme?
+#knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_exp_seasonal_short/fig-',  fig.show='asis', fig.keep='high')
+# tells it to keep going even if there is an error
+knitr::opts_chunk$set(error = TRUE)
+
+```
+
+Load the files containing the dates of the holidays. 
+Loads a daily data frame with the holidays as dummy variables. 
+
+```{r}
+load(file="output_data/holiday_daily.Rdata")
+
+# originally I had a list of vectors of holiday dates that I was opening. I
+# used this to turn a list in which each is a character vector, and turned it into 
+# a dataframe
+# dl <- data.frame(h_code = rep(names(holiday_dates), sapply(holiday_dates, length)),
+#                  date = unlist(holiday_dates)) %>%
+#   mutate(date = as.Date(date))
+```
+
+```{r}
+
+# If I want to create vectors of dates, I could do the following
+
+# gather the data frame so that the holiday codes are in a single column
+# and the dates are in a column
+hold_vec <- holiday_daily %>%
+  select(date, val:han) %>%
+  gather(h_code, value, -date) %>%
+  filter(value == 1)
+
+# this link was helpful as I wrote the following
+#https://codedocean.wordpress.com/2014/01/14/r-working-with-named-objects-in-a-loop/
+varNames <- as.character(unique(hold_vec$h_code))
+for (i in seq_along(varNames)) {
+ hold_a <- filter(hold_vec, h_code == varNames[i]) %>%
+ # creates a vector
+  .[,'date']
+ # names the vector, this uses the first object as a name for the second object
+ assign(varNames[i], hold_a)
+}
+
+# then I can use the resulting vectors of dates in genhol
+thk_ts_m <- genhol(thk, start = 0, end = 6, frequency=12)
+thk_ts_m
+
+# I can then save multiple objects into a single file
+save(thk_ts_m, val, file="output_data/holiday_regress.Rdata")
+
+```
+
+
+
+```{r}
+
+# some of the regressors are created by constructing certain situations
+
+
+df1 <- holiday_daily %>%
+  mutate(vet_wkend = ifelse(vet == 1 & satsun == 1, 1, 0)) %>%
+  mutate(chr_wkend = ifelse(chr == 1 & satsun == 1, 1, 0)) %>%
+  mutate(jlf_wkend = ifelse(jlf == 1 & satsun == 1, 1, 0)) %>%
+  mutate(hlw_wkend = ifelse(hlw == 1 & satsun == 1, 1, 0))
+
+vet_wkend <- df1 %>%
+  filter(vet_wkend == 1)
+
+
+# use that vector to generate monthly holiday vector for seas
+# is a one in November when veterans day is on a weekend
+vet_wkend <- vet_wkend$date
+vet1 <- genhol(vet_wkend, start = 0, end = 0, frequency = 12)
+
+```
+
+```{r}
+
+# Presumably there could be another approach that doesn't use genhol. The end goal is to get to a time series object that can be used as a regressor.  
+
+```
+
+
+## Holiday backgrounds and thoughts
+
+### Valentine's Day
+When: February 14
+Discussion comments: When it falls on a Saturday it is huge. Falling on Friday was good, but wasn’t great. How does it intereact with Presidents' day (e.g. if it is on the Sunday before President’s day)?
+
+### Easter
+When: Many Christians celebrate Jesus Christ's resurrection on Easter Sunday. The Easter date depends on the ecclesiastical approximation of the March equinox. Palm Sunday is the Sunday before Easter Sunday. Easter can happen as early as March 22, but that is very rare. Looking at the 1950 to 2050 period, Easter happened once as early as March 23, but generally happens between March 25 and April 22. In this period, Easter happened as late as April 25.
+Discussion comments: Easter has a prolonged impact. Starts the Monday before, goes to the Monday after. 
+Approach: The effect could start as early as the Sunday before Easter. That Sunday might not experience much of an effect. The Easter effect might also extend a day after easter. So I would tend to look at the.
+
+### Memorial Day 
+When: Last Monday of May
+Discussion comments: Sometimes it is the very last bit of May. If you have a full week after Memorial Day that is in May, then it’s a slow week. So if Memorial Day is the last day of may, then you’ve pushed that slowness into June. 
+
+### Fourth of July
+When: July 4
+Discussion comments: Can have a bit of an impact on June. If it is on a Friday for example, then it’s a slower week that last week of June. Whereas, if it’s on Monday or Tuesday, then the June week is still strong. And it’s the week in July that will be week. 
+
+### Labor Day - Start of September
+When: First Monday of September
+Discussion comments: Septembers that start on a Saturday, vs. Septembers that start on a Wednesday. Could potentially have an impact on August. So if August ends on Saturday, that’s going to make a strong last day of August. Also when August ends on Sunday, it’s pretty strong. 
+
+### Halloween
+When: October 31
+Discussion comments: Maybe it’s three groups: Sunday-midweek, Friday, Saturday. 
+
+### Presidential election days
+When: Election Day in the United States of America is the Tuesday following the first Monday in November. It can fall on or between November 2 and November 8. 
+
+### Veteran’s day
+When: November 11
+Discussion comments: Minimal impact
+
+### Thanksgiving
+When: Fourth Thursday of November
+Discussion comments: Does Thanksgiving week end the month, or is there another week after it. How many days are there between Thanksgiving and christmats. If you have an extra week before thanksgiving and December, then you might get a good week that first week of December because you have more time. 
+
+### Hanukkah
+When: Hanukkah is an eight-day Jewish observance.The first night of Hanukkah is the night before the first day of Hanukkah. From 1950 to 2050, the earliest is Nov. 28 and the latest is Dec. 27. About a tenth of the time it starts in those last few days of November. About a third of the time it starts on or before Dec. 7. About a fifth of the time it starts on or after Dec. 22. 
+Discussion comments: Hanukah doesn’t have a huge impact. Mainly groups and there isn’t that much business in December. 
+Sometimes Hanuakah and Christmas intersect
+
+### Christmas
+Discussion comments: Christmas on the weekend vs. the middle of the week. 
+
+### New Year's Day
+
+### Leap year
+Discussion comments: STR reallocates the day, so take total, divide by 29, then multiply by 28. 
+
+```{r}
+
+
+
+# there are a few potential ways to proceed
+# create a vector of dates on which veterans day is on a weekend
+vet_wkend <- df1 %>%
+  filter(vet_wkend == 1)
+# use that vector to generate monthly holiday vector for seas
+# is a one in November when veterans day is on a weekend
+vet_wkend <- vet_wkend$date
+vet1 <- genhol(vet_wkend, start = 0, end = 0, frequency = 12)
+#vet1 <- window(vet1, start=c(1987, 1), end=c(2030, 12))
+
+chr_wkend <- df1 %>%
+  filter(chr_wkend == 1)
+chr_wkend <- chr_wkend$date
+chr1 <- genhol(chr_wkend, start = 0, end = 0, frequency = 12)
+#chr1 <- window(chr1, start=c(1987, 1), end=c(2030, 12)) 
+
+jlf_wkend <- df1 %>%
+  filter(jlf_wkend == 1)
+jlf_wkend <- jlf_wkend$date
+jlf1 <- genhol(jlf_wkend, start = 0, end = 0, frequency = 12)
+#jlf1 <- window(jlf1, start=c(1987, 1), end=c(2030, 12)) 
+
+hlw_wkend <- df1 %>%
+  filter(hlw_wkend == 1)
+hlw_wkend <- hlw_wkend$date
+hlw1 <- genhol(hlw_wkend, start = 0, end = 0, frequency = 12)
+#hlw1 <- window(hlw1, start=c(1987, 1), end=c(2030, 12)) 
+
+data(holiday)
+ea1 <- genhol(easter, start = -2, end = 0, frequency = 12)
+#ea1 <- window(ea1, start=c(1987, 1), end=c(2030, 12)) 
+
+
+
+```
+

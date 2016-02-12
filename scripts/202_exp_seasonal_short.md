@@ -1,4 +1,4 @@
-# Untitled
+# Seasonal Adjustment: Short examples
 Tourism Economics  
 November 13, 2015  
 

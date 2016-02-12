@@ -14,9 +14,11 @@ January 9, 2016
 ### Set up data to run using: totus_demd
 
   
+use default setting
 
 
 
+use default settings m2
 
 
 
@@ -43,6 +45,7 @@ date         wday     satsun  month       day   vet   vet_wkend
 2028-11-11   Sat           1  November     11     1           1
 2029-11-11   Sun           1  November     11     1           1
 
+
 ## Set up Christmas weekend
 chr_wkend is "1" if Christmas Day falls on a weekend
 
@@ -60,6 +63,7 @@ date         wday     satsun  month       day   chr   chr_wkend
 2027-12-25   Sat           1  December     25     1           1
 2028-12-25   Mon           0  December     25     1           0
 2029-12-25   Tues          0  December     25     1           0
+
 
 ## Set up July 4th weekend
 jlf_wkend is "1" if Independence Day falls on a weekend
@@ -101,18 +105,19 @@ m3: same built-in regressors, plus:
 
 date             oa1      oa2      oa3   sa1_sf   sa2_sf   sa3_sf      sa1      sa2      sa3
 -----------  -------  -------  -------  -------  -------  -------  -------  -------  -------
-2014-10-01    3.3616   3.3616   3.3616   1.0498   1.0482   1.0462   3.2023   3.2071   3.2131
-2014-11-01    2.8817   2.8817   2.8817   0.8986   0.8990   0.8987   3.2070   3.2054   3.2066
-2014-12-01    2.5759   2.5759   2.5759   0.7951   0.7969   0.7967   3.2399   3.2322   3.2332
-2015-01-01    2.6576   2.6576   2.6576   0.8211   0.8220   0.8215   3.2365   3.2331   3.2351
-2015-02-01    3.0474   3.0474   3.0474   0.9404   0.9425   0.9410   3.2406   3.2334   3.2386
-2015-03-01    3.2823   3.2823   3.2823   1.0138   1.0144   1.0148   3.2377   3.2358   3.2344
-2015-04-01    3.3039   3.3039   3.3039   1.0179   1.0185   1.0192   3.2458   3.2438   3.2417
-2015-05-01    3.3637   3.3637   3.3637   1.0362   1.0364   1.0381   3.2463   3.2456   3.2402
-2015-06-01    3.6511   3.6511   3.6511   1.1230   1.1245   1.1274   3.2511   3.2469   3.2385
-2015-07-01    3.7683   3.7683   3.7683   1.1558   1.1553   1.1601   3.2603   3.2616   3.2482
-2015-08-01    3.5391   3.5391   3.5391   1.0906   1.0867   1.0884   3.2450   3.2567   3.2516
-2015-09-01    3.4047   3.4047   3.4047   1.0362   1.0415   1.0424   3.2858   3.2691   3.2662
+2014-10-01    3.3600   3.3600   3.3600   1.0496   1.0484   1.0469   3.2013   3.2048   3.2096
+2014-11-01    2.8822   2.8822   2.8822   0.8990   0.8999   0.8998   3.2060   3.2030   3.2032
+2014-12-01    2.5750   2.5750   2.5750   0.7958   0.7976   0.7973   3.2358   3.2282   3.2298
+2015-01-01    2.6575   2.6575   2.6575   0.8215   0.8225   0.8219   3.2349   3.2312   3.2332
+2015-02-01    3.0471   3.0471   3.0471   0.9406   0.9427   0.9412   3.2395   3.2322   3.2374
+2015-03-01    3.2816   3.2816   3.2816   1.0138   1.0144   1.0148   3.2368   3.2351   3.2337
+2015-04-01    3.3033   3.3033   3.3033   1.0178   1.0183   1.0190   3.2455   3.2440   3.2416
+2015-05-01    3.3634   3.3634   3.3634   1.0359   1.0359   1.0378   3.2468   3.2469   3.2410
+2015-06-01    3.6505   3.6505   3.6505   1.1224   1.1234   1.1267   3.2524   3.2495   3.2399
+2015-07-01    3.7678   3.7678   3.7678   1.1548   1.1537   1.1591   3.2629   3.2660   3.2505
+2015-08-01    3.5386   3.5386   3.5386   1.0894   1.0848   1.0873   3.2482   3.2619   3.2543
+2015-09-01    3.4035   3.4035   3.4035   1.0346   1.0392   1.0410   3.2895   3.2752   3.2695
+
 
 ### m1
 Default
@@ -124,24 +129,25 @@ Default
 ## 
 ## Coefficients:
 ##                     Estimate Std. Error z value Pr(>|z|)    
-## Mon               -3.929e-03  1.369e-03  -2.870 0.004108 ** 
-## Tue                2.241e-03  1.379e-03   1.625 0.104266    
-## Wed               -7.335e-05  1.370e-03  -0.054 0.957309    
-## Thu               -7.482e-04  1.365e-03  -0.548 0.583536    
-## Fri                4.930e-03  1.366e-03   3.610 0.000306 ***
-## Sat                3.533e-03  1.373e-03   2.574 0.010051 *  
-## Easter[1]         -8.534e-03  2.824e-03  -3.022 0.002513 ** 
-## LS2001.Sep        -9.349e-02  1.238e-02  -7.554 4.22e-14 ***
-## AR-Nonseasonal-01 -4.168e-01  4.939e-02  -8.439  < 2e-16 ***
-## AR-Seasonal-12     2.160e-01  7.732e-02   2.794 0.005202 ** 
-## MA-Seasonal-12     7.568e-01  5.202e-02  14.549  < 2e-16 ***
+## Mon               -0.0039758  0.0013471  -2.951 0.003164 ** 
+## Tue                0.0022892  0.0013615   1.681 0.092682 .  
+## Wed               -0.0001088  0.0013524  -0.080 0.935903    
+## Thu               -0.0007087  0.0013501  -0.525 0.599649    
+## Fri                0.0049018  0.0013542   3.620 0.000295 ***
+## Sat                0.0035500  0.0013552   2.619 0.008806 ** 
+## Easter[1]         -0.0085262  0.0028046  -3.040 0.002365 ** 
+## LS2001.Sep        -0.0935208  0.0123045  -7.601 2.95e-14 ***
+## AR-Nonseasonal-01 -0.4158917  0.0489506  -8.496  < 2e-16 ***
+## AR-Seasonal-12     0.2172446  0.0772313   2.813 0.004910 ** 
+## MA-Seasonal-12     0.7553832  0.0519255  14.547  < 2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## SEATS adj.  ARIMA: (1 1 0)(1 1 1)  Obs.: 345  Transform: log
-## AICc: -1204, BIC: -1160  QS (no seasonality in final):    0  
-## Box-Ljung (no autocorr.): 31.49   Shapiro (normality): 0.9894 *
+## SEATS adj.  ARIMA: (1 1 0)(1 1 1)  Obs.: 348  Transform: log
+## AICc: -1218, BIC: -1173  QS (no seasonality in final):    0  
+## Box-Ljung (no autocorr.):  31.7   Shapiro (normality): 0.9886 **
 ```
+
 
 ### m2
 Built-in regressors
@@ -155,27 +161,28 @@ Built-in regressors
 ## 
 ## Coefficients:
 ##                     Estimate Std. Error z value Pr(>|z|)    
-## Labor[3]           0.0183694  0.0028866   6.364 1.97e-10 ***
-## LS2001.Sep        -0.0940476  0.0096871  -9.709  < 2e-16 ***
-## Mon               -0.0018562  0.0010188  -1.822 0.068468 .  
-## Tue                0.0013889  0.0009989   1.391 0.164376    
-## Wed                0.0003909  0.0009977   0.392 0.695191    
-## Thu               -0.0005050  0.0009875  -0.511 0.609050    
-## Fri                0.0040099  0.0009965   4.024 5.72e-05 ***
-## Sat                0.0032067  0.0009914   3.235 0.001218 ** 
-## Easter[1]         -0.0084798  0.0020342  -4.169 3.06e-05 ***
-## AO1999.Dec        -0.0338847  0.0082368  -4.114 3.89e-05 ***
-## LS2001.Nov         0.0424068  0.0096799   4.381 1.18e-05 ***
-## AR-Nonseasonal-01 -0.3305550  0.0514049  -6.430 1.27e-10 ***
-## AR-Seasonal-12     0.3168761  0.0861212   3.679 0.000234 ***
-## MA-Seasonal-12     0.7356117  0.0618218  11.899  < 2e-16 ***
+## Labor[3]           0.0182356  0.0028649   6.365 1.95e-10 ***
+## LS2001.Sep        -0.0940843  0.0096369  -9.763  < 2e-16 ***
+## Mon               -0.0018783  0.0010036  -1.872 0.061258 .  
+## Tue                0.0014194  0.0009877   1.437 0.150719    
+## Wed                0.0003434  0.0009857   0.348 0.727533    
+## Thu               -0.0004674  0.0009787  -0.478 0.632953    
+## Fri                0.0039990  0.0009890   4.044 5.26e-05 ***
+## Sat                0.0032201  0.0009784   3.291 0.000998 ***
+## Easter[1]         -0.0084722  0.0020219  -4.190 2.79e-05 ***
+## AO1999.Dec        -0.0338318  0.0081909  -4.130 3.62e-05 ***
+## LS2001.Nov         0.0423201  0.0096305   4.394 1.11e-05 ***
+## AR-Nonseasonal-01 -0.3298038  0.0511819  -6.444 1.17e-10 ***
+## AR-Seasonal-12     0.3178849  0.0859456   3.699 0.000217 ***
+## MA-Seasonal-12     0.7346445  0.0615628  11.933  < 2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## SEATS adj.  ARIMA: (1 1 0)(1 1 1)  Obs.: 345  Transform: log
-## AICc: -1353, BIC: -1298  QS (no seasonality in final):    0  
-## Box-Ljung (no autocorr.): 24.19   Shapiro (normality): 0.9938
+## SEATS adj.  ARIMA: (1 1 0)(1 1 1)  Obs.: 348  Transform: log
+## AICc: -1368, BIC: -1312  QS (no seasonality in final):    0  
+## Box-Ljung (no autocorr.): 24.34   Shapiro (normality): 0.9933
 ```
+
 
 ### m3
 Same built-in regressors as m2, plus additional terms
@@ -190,44 +197,47 @@ Same built-in regressors as m2, plus additional terms
 ## 
 ## Coefficients:
 ##                     Estimate Std. Error z value Pr(>|z|)    
-## Mon               -0.0020169  0.0010327  -1.953 0.050805 .  
-## Tue                0.0011790  0.0010763   1.095 0.273323    
-## Wed                0.0004063  0.0010099   0.402 0.687470    
-## Thu               -0.0008460  0.0010581  -0.800 0.423972    
-## Fri                0.0032642  0.0010322   3.162 0.001565 ** 
-## Sat                0.0051020  0.0010531   4.845 1.27e-06 ***
-## Labor[3]           0.0187693  0.0026680   7.035 1.99e-12 ***
-## Easter[1]         -0.0087214  0.0020526  -4.249 2.15e-05 ***
-## LS2001.Sep        -0.0974056  0.0095123 -10.240  < 2e-16 ***
-## Thanksgiving[3]    0.0817751  0.0298696   2.738 0.006186 ** 
-## xreg1             -0.0001387  0.0046754  -0.030 0.976338    
-## xreg2             -0.0127492  0.0035209  -3.621 0.000293 ***
-## xreg3              0.0079217  0.0033678   2.352 0.018664 *  
-## LS2001.Nov         0.0401516  0.0096231   4.172 3.01e-05 ***
-## LS2008.Nov        -0.0389439  0.0095466  -4.079 4.52e-05 ***
-## AR-Nonseasonal-01 -0.3374935  0.0513801  -6.569 5.08e-11 ***
-## MA-Seasonal-12     0.4981432  0.0479774  10.383  < 2e-16 ***
+## Mon               -0.0019975  0.0010177  -1.963 0.049679 *  
+## Tue                0.0011735  0.0010623   1.105 0.269335    
+## Wed                0.0003536  0.0009984   0.354 0.723232    
+## Thu               -0.0007981  0.0010489  -0.761 0.446739    
+## Fri                0.0032636  0.0010255   3.183 0.001460 ** 
+## Sat                0.0051055  0.0010410   4.905 9.37e-07 ***
+## Labor[3]           0.0186515  0.0026480   7.044 1.87e-12 ***
+## Easter[1]         -0.0087283  0.0020407  -4.277 1.89e-05 ***
+## LS2001.Sep        -0.0974228  0.0094692 -10.288  < 2e-16 ***
+## Thanksgiving[3]    0.0823068  0.0295935   2.781 0.005415 ** 
+## xreg1             -0.0003169  0.0046306  -0.068 0.945438    
+## xreg2             -0.0127670  0.0034988  -3.649 0.000263 ***
+## xreg3              0.0078810  0.0033498   2.353 0.018638 *  
+## LS2001.Nov         0.0401081  0.0095796   4.187 2.83e-05 ***
+## LS2008.Nov        -0.0389314  0.0095044  -4.096 4.20e-05 ***
+## AR-Nonseasonal-01 -0.3362206  0.0511695  -6.571 5.01e-11 ***
+## MA-Seasonal-12     0.4973157  0.0476940  10.427  < 2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## SEATS adj.  ARIMA: (1 1 0)(0 1 1)  Obs.: 345  Transform: log
-## AICc: -1367, BIC: -1301  QS (no seasonality in final):    0  
-## Box-Ljung (no autocorr.): 16.03   Shapiro (normality): 0.9936
+## SEATS adj.  ARIMA: (1 1 0)(0 1 1)  Obs.: 348  Transform: log
+## AICc: -1382, BIC: -1315  QS (no seasonality in final):    0  
+## Box-Ljung (no autocorr.): 16.04   Shapiro (normality): 0.993
 ```
+
 
 ### Compare seasonally adjusted series from m1 and m2
 Note estimate for Sep. 2015. m1 model tends to indicate Sep. was a "strong" month.  
 While m2 model indicates some of that strength was holiday timing. After adjusting, underlying performance was not as strong. Said differently, we would have a high seasonal factor for Sep. 2015. We would divide the unadjusted data by that seasonal factor to get the seasonally adjusted data, which wouldn't be as strong.  
-![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-16-1.png) 
+![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-16-1.png)\
+
 
 ### Compare seasonally adjusted series from m1 and m3
 Again, similar to m2, m3 indicates Sep. 2015 was not as strong as m1 results would indicate.
-![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-17-1.png) 
+![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-17-1.png)\
+
 
 ### Compare seasonally adjusted series from m2 and m3
 Both m2 and m3 are similar for Sep. 2015. Interestingly, m3 generally points to performance during the summer as being somewhat weaker than m2.  
 
-![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-18-1.png) 
+![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-18-1.png)\
 
 
 ### Seasonal factors for a particular month: Sep. Labor Day timing
@@ -241,6 +251,7 @@ Year   |   Labor Day date
 2015 | 7  
 2016 |5  
 
+
 ### Seasonal factors for September  
   
 
@@ -249,17 +260,18 @@ date          sa1_sf   sa2_sf   sa3_sf
 2005-09-01    1.0404   1.0413   1.0369
 2006-09-01    1.0390   1.0404   1.0436
 2007-09-01    1.0315   1.0313   1.0290
-2008-09-01    1.0354   1.0300   1.0189
+2008-09-01    1.0355   1.0301   1.0190
 2009-09-01    1.0364   1.0405   1.0405
 2010-09-01    1.0377   1.0403   1.0400
-2011-09-01    1.0484   1.0500   1.0450
-2012-09-01    1.0341   1.0337   1.0337
-2013-09-01    1.0189   1.0183   1.0192
-2014-09-01    1.0249   1.0200   1.0208
-2015-09-01    1.0362   1.0415   1.0424
-2016-09-01    1.0388   1.0441   1.0434
+2011-09-01    1.0484   1.0500   1.0449
+2012-09-01    1.0341   1.0336   1.0335
+2013-09-01    1.0187   1.0181   1.0188
+2014-09-01    1.0248   1.0198   1.0202
+2015-09-01    1.0346   1.0392   1.0410
+2016-09-01    1.0375   1.0418   1.0418
+
 
 ### Seasonal factors for September (1987 to 2016)
 Last point is Sep 2016. So both Sep. 2015 and Sep. 2016 have large seasonal factors. 
-![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-20-1.png) 
+![](../output_data/figure_exp_seasonal_short/fig-unnamed-chunk-20-1.png)\
 
