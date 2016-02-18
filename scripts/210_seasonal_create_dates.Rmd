@@ -41,7 +41,7 @@ As a first step, I'll handle some easy holidays that are on the same date each y
 ```{r}
 
 # days
-date <- seq(as.Date("1980-01-01"), as.Date("2030-01-01"), by = 1)
+date <- seq(as.Date("1970-01-01"), as.Date("2030-01-01"), by = 1)
 df <- data.frame(date)
 
 same_date <- df %>%
@@ -101,20 +101,41 @@ Import some csv files that I manually created based on the timeanddate website. 
 ```{r}
 
 # days
-date <- seq(as.Date("1980-01-01"), as.Date("2030-01-01"), by = 1)
+date <- seq(as.Date("1970-01-01"), as.Date("2030-01-01"), by = 1)
 df <- data.frame(date)
 
 fpath <- c("~/Project/R projects/lodfor")
 
 hold_df <- df
 
-# memorial day
+# president's day
+fname <- paste0(fpath, "/input_data/timeanddate_pres_us.csv")
+in_1 <- read_csv(fname, col_names=TRUE) 
+colnames(in_1) <- colnames(in_1) %>%
+  tolower() %>%
+  gsub("[[:punct:]]", "_", .) %>%
+  gsub(" ", "_", .)
+in_2 <- in_1 %>%
+  mutate(date = paste(date, year, sep="-")) %>%
+  mutate(date = as.Date(date, "%d-%b-%Y")) %>%
+  select(date) %>%
+  # name the holiday
+  mutate(prs = 1) %>%
+  left_join(df, ., by="date") %>%
+  replace(is.na(.), 0) 
+hold_df <- merge(hold_df, in_2, by="date")
+
+# memorial day, started as Federal holiday on final monday in 1971
+# so I trimmed it
 fname <- paste0(fpath, "/input_data/timeanddate_mem_us.csv")
 in_1 <- read_csv(fname, col_names=TRUE) 
 colnames(in_1) <- colnames(in_1) %>%
   tolower() %>%
   gsub("[[:punct:]]", "_", .) %>%
   gsub(" ", "_", .)
+# added to handle memorial day
+in_1 <- in_1 %>%
+  filter(holiday_type == "Federal Holiday")
 in_2 <- in_1 %>%
   mutate(date = paste(date, year, sep="-")) %>%
   mutate(date = as.Date(date, "%d-%b-%Y")) %>%
@@ -283,7 +304,7 @@ hol_df1 <- merge(same_date, hold_df, by="date")
 #                        nyd_df))
 
 # create a dataframe with various weekday and weekend flags
-date <- seq(as.Date("1980-01-01"), as.Date("2030-01-01"), by = 1)
+date <- seq(as.Date("1970-01-01"), as.Date("2030-01-01"), by = 1)
 df <- data.frame(date)
 
 flag_df <- df %>%
@@ -295,6 +316,7 @@ flag_df <- df %>%
   # grepl returns a logical vector, here it's converted to numeric
   mutate(satsun = as.numeric(grepl("Sat|Sun", wday))) %>%
   mutate(frisat = as.numeric(grepl("Fri|Sat", wday))) %>%
+  mutate(fss = as.numeric(grepl("Fri|Sat|Sun", wday))) %>%
   mutate(fssm = as.numeric(grepl("Fri|Sat|Sun|Mon", wday)))
 
 # combine

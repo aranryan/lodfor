@@ -32,8 +32,109 @@ knitr::opts_chunk$set(error = TRUE)
 
 
 ```{r}
+load(file="output_data/holiday_regress.Rdata")
+```
+
+```{r}
+# unpack lists
+
+a <- c(val_list, mem_list, eas_list, augend_list, sepstr_list)
+
+varNames <- names(a)
+for (i in seq_along(varNames)) {
+print(varNames[i])
+ hold_a <- a[[i]]
+ # names the vector, this uses the first object as a name for the second object
+ assign(paste(varNames[i], sep=""), hold_a)
+}
 
 ```
 
 
-# load(file="output_data/temp.Rdata")
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+load("~/Project/R projects/lodfor/output_data/ushist_m.Rdata")
+load("~/Project/R projects/lodfor/output_data/ushist_q.Rdata")
+
+```
+
+```{r define_theme, echo=FALSE, message=FALSE, warning=FALSE}
+#Displays palette and sets the ts1 theme
+
+#display.brewer.pal(10, "RdBu")
+mypallete <- brewer.pal( 10 , "RdBu" )
+colors_ts1 <- scale_colour_manual(values = mypallete[c(10, 1, 5, 4)])
+# I don't use the following, was an example I saw somewhere maybe as a way to 
+# interpolate additional palette colors
+#mypal <- colorRampPalette( brewer.pal( 10 , "RdBu" ) )
+theme_ts1 <- function(base_size = 12, base_family = "") {
+  theme_classic(base_size = base_size) %+replace%
+    theme(                                 
+      panel.grid.major.x=element_blank(),
+      panel.grid.minor.x=element_blank(),
+      panel.grid.minor.y=element_blank(),
+      axis.ticks.y=element_line(size=.2),
+      axis.ticks.x=element_line(size=.2),
+      panel.background=element_blank(),
+      legend.title=element_blank(),
+      legend.key=element_rect(fill="white", colour = "white"),
+      legend.key.size=unit(1, "cm"),
+      legend.text=element_text(size=rel(1)),
+      #legend.position = c(1, .1),
+      legend.justification = "right",
+      axis.line=element_line(size=.2),
+      axis.title.y=element_blank(),
+      axis.title.x=element_blank(),
+      axis.text=element_text(color="black",size=rel(.7)),
+      # following seems to adjust y-axis title
+      plot.title=element_text(size=base_size * .8, face="plain",hjust=0,vjust=1)
+    #theme(plot.title = element_text(lineheight=.8, face="bold"))
+    )
+}
+theme_set(theme_ts1())
+```
+
+```{r}
+
+segrun <- c("totus_demd")
+
+```
+
+
+### Set up data to run using: `r segrun`
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# shorten dates
+#ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
+
+# sets up a single series to use for a few examples
+demo_df <- ushist_m %>%
+  data.frame(date=time(.), .) %>%
+  select_("date", segrun)
+
+```
+  
+  
+  
+```{r}
+
+x <- demo_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
+
+# with more regressors
+m3 <- seas(x = temp_ser_ts,
+           regression.variables = c("tdnolpyear", "ls2001.Sep"),
+           forecast.maxlead = 30,# extends 30 periods ahead
+           seats.appendfcst="yes",
+           xreg = cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m, 
+                       sepstr_ss_ts_m, sepstr_mon_ts_m, mempost_m), 
+           regression.usertype = c("holiday", "holiday2", "holiday3"),
+           regression.aictest = NULL)
+summary(m3)
+
+#"sepstr_fssm_ts_m", "sepstr_ss_ts_m", "sepstr_twt_ts_m", "sepstr_mon_ts_m", "sepstr_tue_ts_m", "sepstr_wed_ts_m"
+```

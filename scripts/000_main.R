@@ -69,4 +69,11 @@ rmarkdown::render("scripts/203_exp_seasonal_intro.Rmd")
 rmarkdown::render("scripts/204_exp_seasonal_intro-upm.Rmd")
 rmarkdown::render("scripts/205_exp_seasonal_demo.Rmd")
 rmarkdown::render("scripts/206_exp_seasonal_compare.Rmd")
+rmarkdown::render("scripts/207_exp_seasonal_examples.Rmd")
 
+# working on a more complete seasonal adjustment process
+
+# this creates outputs with holiday dates
+rmarkdown::render("scripts/210_seasonal_create_dates.Rmd")
+# this creates actual seasonal regressors
+rmarkdown::render("scripts/211_seasonal_create_regressors.Rmd")

@@ -10,6 +10,7 @@ library(arlodr)
 library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
 library(readr, warn.conflicts=FALSE)
+library(readxl, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
 library(seasonal, warn.conflicts=FALSE)
 require(xtable)
@@ -18,6 +19,7 @@ require(knitr)
 require(RColorBrewer)
 require(scales)
 library(lubridate)
+library(lazyeval, warn.conflicts=FALSE)
 
 # If I put autodep=TRUE as an argument in the following then I get
 # some issues with the graphs, such as grey backgrounds and changes
@@ -41,11 +43,40 @@ load(file="output_data/holiday_daily.Rdata")
 # dl <- data.frame(h_code = rep(names(holiday_dates), sapply(holiday_dates, length)),
 #                  date = unlist(holiday_dates)) %>%
 #   mutate(date = as.Date(date))
+
+# load in daily data used to estimate typical day of week averages for certain months. 
+# This file doesn't have to be kept up to date, since we're using longer run averages.
+usdaily <- read_excel(path="input_data/TEDailyUS_201509.xls", col_names=TRUE)
+colnames(usdaily) <- tolower(colnames(usdaily))
+usdaily <- usdaily %>%
+  mutate(date = as.Date(as.character(date), "%Y%m%d"))
 ```
 
 ```{r}
+# calculate certain day of week averages on a long-term basis
 
-# If I want to create vectors of dates, I could do the following
+d_avg <- usdaily %>%
+  mutate(month = months(date)) %>% 
+  mutate(day = day(date)) %>%
+  mutate(wday = wday(date, label=TRUE)) %>%
+  mutate(demand_roll = rollapply(data = demand, 
+                            width = 28, 
+                            FUN = mean, 
+                            align = "right", 
+                            fill = NA, 
+                            na.rm = T)) %>%
+  mutate(ratio_roll = demand/demand_roll)
+
+```
+
+
+
+```{r}
+
+# This is a bulk approach that creates date vectors for each of the holidays in
+# the holiday_daily data frame. These can then be used in the individual holiday
+# work below. I'll need to see if I use this approach, or if it might be fine to
+# just do it one by one when working through each holiday.
 
 # gather the data frame so that the holiday codes are in a single column
 # and the dates are in a column
@@ -65,12 +96,9 @@ for (i in seq_along(varNames)) {
  assign(varNames[i], hold_a)
 }
 
-# then I can use the resulting vectors of dates in genhol
-thk_ts_m <- genhol(thk, start = 0, end = 6, frequency=12)
-thk_ts_m
-
-# I can then save multiple objects into a single file
-save(thk_ts_m, val, file="output_data/holiday_regress.Rdata")
+# as an example, then I can use the resulting vectors of dates in genhol
+temp_ts_m <- genhol(thk, start = 0, end = 6, frequency=12)
+temp_ts_m
 
 ```
 
@@ -79,7 +107,6 @@ save(thk_ts_m, val, file="output_data/holiday_regress.Rdata")
 ```{r}
 
 # some of the regressors are created by constructing certain situations
-
 
 df1 <- holiday_daily %>%
   mutate(vet_wkend = ifelse(vet == 1 & satsun == 1, 1, 0)) %>%
@@ -90,11 +117,30 @@ df1 <- holiday_daily %>%
 vet_wkend <- df1 %>%
   filter(vet_wkend == 1)
 
-
 # use that vector to generate monthly holiday vector for seas
 # is a one in November when veterans day is on a weekend
 vet_wkend <- vet_wkend$date
-vet1 <- genhol(vet_wkend, start = 0, end = 0, frequency = 12)
+vet1_ts_m <- genhol(vet_wkend, start = 0, end = 0, frequency = 12)
+vet1_ts_m
+
+chr_wkend <- df1 %>%
+  filter(chr_wkend == 1)
+chr_wkend <- chr_wkend$date
+chr1 <- genhol(chr_wkend, start = 0, end = 0, frequency = 12)
+#chr1 <- window(chr1, start=c(1987, 1), end=c(2030, 12)) 
+
+jlf_wkend <- df1 %>%
+  filter(jlf_wkend == 1)
+jlf_wkend <- jlf_wkend$date
+jlf1 <- genhol(jlf_wkend, start = 0, end = 0, frequency = 12)
+#jlf1 <- window(jlf1, start=c(1987, 1), end=c(2030, 12)) 
+
+hlw_wkend <- df1 %>%
+  filter(hlw_wkend == 1)
+hlw_wkend <- hlw_wkend$date
+hlw1 <- genhol(hlw_wkend, start = 0, end = 0, frequency = 12)
+#hlw1 <- window(hlw1, start=c(1987, 1), end=c(2030, 12)) 
+
 
 ```
 
@@ -111,14 +157,229 @@ vet1 <- genhol(vet_wkend, start = 0, end = 0, frequency = 12)
 When: February 14
 Discussion comments: When it falls on a Saturday it is huge. Falling on Friday was good, but wasn’t great. How does it intereact with Presidents' day (e.g. if it is on the Sunday before President’s day)?
 
+```{r}
+
+df1 <- holiday_daily %>%
+  select(date:fssm, val, prs) %>%
+  mutate(val_fss = ifelse(val == 1 & fss == 1, 1, 0)) %>%
+  mutate(val_fs = ifelse(val == 1 & frisat == 1, 1, 0)) %>%
+  mutate(val_fri = ifelse(val == 1 & wday == "Fri", 1, 0)) %>%
+  mutate(val_sat = ifelse(val == 1 & wday == "Sat", 1, 0)) %>%
+  # creates dummy that is one the day before presidents day
+  mutate(prs_lead1 = lead(prs, order_by=date)) %>%
+  # two days before
+  mutate(prs_lead2 = lead(prs, n = 2, order_by=date)) %>%
+  # val_prs will be one if one of the two other dummies is one
+  # so it is a one if valentine's day is a saturday or sunday of president's day weekend
+  mutate(val_prs = (prs_lead1 + prs_lead2) * val)
+
+# take a look
+a <- df1 %>%
+  filter(val == 1) %>%
+  select(date:day, wday, val, val_fss, val_fs, val_fri, val_sat, val_prs)
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+# filter and use that vector to generate monthly holiday vector 
+# val_fss <- df1 %>%
+#   filter(val_fss == 1) 
+# val_fss <- val_fss$date
+
+# bulk approach of creating vectors based on initial example
+hold_vec <- df1 %>%
+  # set this part specifically, rest should be fine
+  select(date, val_fss:val_prs)  %>%
+  gather(h_code, value, -date) %>%
+  filter(value == 1)
+varNames <- as.character(unique(hold_vec$h_code))
+for (i in seq_along(varNames)) {
+ hold_a <- filter(hold_vec, h_code == varNames[i]) %>%
+ # creates a vector
+  .[,'date']
+ # names the vector, this uses the first object as a name for the second object
+ assign(varNames[i], hold_a)
+}
+
+# use genhol to generate time series object
+val_fss_ts_m <- genhol(val_fss, start = 0, end = 0, frequency = 12)
+val_fs_ts_m <-  genhol(val_fs, start = 0, end = 0, frequency = 12)
+val_fri_ts_m <- genhol(val_fri, start = 0, end = 0, frequency = 12)
+val_sat_ts_m <- genhol(val_sat, start = 0, end = 0, frequency = 12)
+val_prs_ts_m <- genhol(val_prs, start = 0, end = 0, frequency = 12)
+
+v_names <- c("val_fss_ts_m", "val_fs_ts_m", "val_fri_ts_m", "val_sat_ts_m", "val_prs_ts_m")
+
+val_list <- create_named_list(v_names)
+#val_fri_ts_m
+#val_fs_ts_m
+```
+
+
+
 ### Easter
 When: Many Christians celebrate Jesus Christ's resurrection on Easter Sunday. The Easter date depends on the ecclesiastical approximation of the March equinox. Palm Sunday is the Sunday before Easter Sunday. Easter can happen as early as March 22, but that is very rare. Looking at the 1950 to 2050 period, Easter happened once as early as March 23, but generally happens between March 25 and April 22. In this period, Easter happened as late as April 25.
 Discussion comments: Easter has a prolonged impact. Starts the Monday before, goes to the Monday after. 
 Approach: The effect could start as early as the Sunday before Easter. That Sunday might not experience much of an effect. The Easter effect might also extend a day after easter. So I would tend to look at the.
 
+
+```{r}
+df1 <- holiday_daily %>%
+  select(date:fssm, eas) 
+
+# take a look
+a <- df1 %>%
+  filter(eas == 1) %>%
+  select(date:day, wday, eas)
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+# bulk approach of creating vectors based on initial example
+hold_vec <- df1 %>%
+  # set this part specifically, rest should be fine
+  select(date, eas)  %>%
+  gather(h_code, value, -date) %>%
+  filter(value == 1)
+varNames <- as.character(unique(hold_vec$h_code))
+for (i in seq_along(varNames)) {
+ hold_a <- filter(hold_vec, h_code == varNames[i]) %>%
+ # creates a vector
+  .[,'date']
+ # names the vector, this uses the first object as a name for the second object
+ assign(varNames[i], hold_a)
+}
+
+# use genhol to generate time series object
+eas_7_1_ts_m <- genhol(eas, start = -7, end = 1, frequency = 12)
+
+v_names <- c("eas_7_1_ts_m")
+eas_list <- create_named_list(v_names)
+
+```
+
+
+
 ### Memorial Day 
 When: Last Monday of May
 Discussion comments: Sometimes it is the very last bit of May. If you have a full week after Memorial Day that is in May, then it’s a slow week. So if Memorial Day is the last day of may, then you’ve pushed that slowness into June. 
+
+Note: 
+Memorial Day was fixed to the last Monday in May for the first time in 1971 based on the input file. So I filtered to only those dates, I think that means 1970 doesn't have a Memorial Day flagged in the holiday_dates table.
+
+Approach for end of May: 
+Created regressor to measure how many business days follow Memorial Day, in May. 
+
+Also,created a weighted version of that regressor. In calculating the weighted version, this looks at the typical decline for that specific day of the week. For example, considering just the period after May 15, demand on the typcal Tuesday before Memorial is at 1.08 of the rolling average, while after Memorial Day the 14 sample Tuesdays are at 0.85, so a 21% decline. This is based on the following table.
+
+The approach is to calculate weight that is the average of those percentage declines. That helps gives a sense of whether the days that are following Memorial Day in May tend to be days with higher impacts. 
+
+```{r Memorial Day end of May}
+
+# this dataframe is used for two separate approaches
+df1 <- holiday_daily %>%
+  select(date:fssm, mem) %>%
+  # some temporoary colummns
+  mutate(mempost1 = ifelse(lag(mem, n=1, order_by=date) == 1, 1, 0)) %>%
+  mutate(mempost2 = ifelse(lag(mem, n=2, order_by=date) == 1, 1, 0)) %>%
+  mutate(mempost3 = ifelse(lag(mem, n=3, order_by=date) == 1, 1, 0)) %>%
+  mutate(mempost4 = ifelse(lag(mem, n=4, order_by=date) == 1, 1, 0)) %>%
+  mutate(mempost5 = ifelse(lag(mem, n=5, order_by=date) == 1, 1, 0)) %>%
+  mutate(mempost6 = ifelse(lag(mem, n=6, order_by=date) == 1, 1, 0)) %>%
+  # used to calculate an indicator of whether the day is after Memorial day
+  mutate(mempost = mempost1 + mempost2 + mempost3 + mempost4 + mempost5 + mempost6) %>%
+  # fix days in any month other than May (namely June) to be zero
+  mutate(mempost = ifelse(month == "May", mempost, 0)) %>%
+  # remove temp columns
+  select(-mempost1, -mempost2, -mempost3, -mempost4, -mempost5, -mempost6)
+
+#####
+#
+# Analysis of Tuesdays-Wednesdays and weekend days that follow Memorial Day
+#
+
+# calculate days
+mem_buswke <- df1 %>%
+  mutate(mempost_tw = ifelse(mempost == 1 & wday == "Tues" , 1, 
+                             ifelse(mempost == 1 & wday == "Wed" , 1, 0))) %>%
+  mutate(mempost_wke = ifelse(mempost == 1 & fss == 1, 1, 0)) %>%
+  mutate(year = year(date)) %>%
+  mutate(month = month(date, label = FALSE)) %>%
+  select(year, month, mempost_tw, mempost_wke) %>%
+  group_by(year, month) %>%
+  summarize_each(funs(sum), mempost_tw, mempost_wke) %>%
+  ungroup() %>%
+  mutate(date = paste(year, month, sep="-")) %>%
+  mutate(date = as.yearmon(date)) %>%
+  mutate(date = as.Date(date)) %>%
+  select(date, mempost_tw, mempost_wke) %>%
+  data.frame()
+
+# use function to add a centered regressor
+mem_buswke2 <- mem_buswke %>%
+  # first argument is the dataframe, second is the column to create the
+  # centered regressor of
+  arlodr::center_reg("mempost_tw") %>%
+  arlodr::center_reg("mempost_wke")
+
+# use a function to convert select series to monthly ts objects
+mempost_tw_m <- arlodr::create_ts_reg_m(mem_buswke2, "mempost_tw_cent") 
+mempost_wke_m <- arlodr::create_ts_reg_m(mem_buswke2, "mempost_wke_cent")
+
+
+########
+#
+# creates regressor based on the average effect of each day
+
+mem1 <- df1 %>%
+  left_join(select(d_avg, date, ratio_roll), by = "date") %>%
+  filter(ratio_roll > 0 & month == "May" & day > 15 & wday != "Mon") %>%
+  group_by(month, wday, mempost) %>%
+  summarize(avg = mean(ratio_roll), count = n()) %>%
+  mutate(avg_diff  = avg/lag(avg, n=1) - 1) %>%
+  select(month:avg, avg_diff, count)
+kable(mem1, digits = 2, row.names=FALSE)
+
+# average difference by day of week
+mem2 <- mem1 %>%
+  filter(mempost == 1) %>%
+  select(month, wday, mempost, avg_diff)
+kable(mem2, digits = 2, row.names=FALSE)
+
+# appends the daily data by adding the average difference by day of week
+df2 <- df1 %>%
+  # select the rows from df1 to work with
+  filter(month == "May" & mempost == 1) %>%
+  # this adds the avg_diff column to the corresponding rows
+  left_join(mem2, by = "wday") %>%
+  select(date, avg_diff)
+
+df3 <- df1 %>%
+  # then add that avg_diff column onto the original df1
+  full_join(df2, by = "date") %>%
+  # replace na's with zeros
+  mutate(avg_diff = ifelse(is.na(avg_diff),0,avg_diff)) %>%
+  # calculate weighted mempost as the sum of the avg_dff column for each May
+  mutate(year_mon = paste(year(date), month(date), sep="-")) %>%
+  group_by(year_mon) %>%
+  summarize(mem_diff = sum(avg_diff)) 
+
+# calculate centered regressor
+df4 <- df3 %>%
+  mutate(date = as.Date(as.yearmon(year_mon))) %>%
+  select(-year_mon) %>%
+  arlodr::center_reg("mem_diff") %>%
+  # keep date column in the front
+  select(date, everything()) %>%
+  arrange(date) %>%
+  data.frame()
+
+# use a function to convert select series to monthly ts objects
+
+mempost_m <- arlodr::create_ts_reg_m(df4, "mem_diff_cent") 
+
+v_names <- c("mempost_tw_m", "mempost_wke_m", "mempost_m")
+
+mem_list <- create_named_list(v_names)
+
+```
+
 
 ### Fourth of July
 When: July 4
@@ -127,6 +388,121 @@ Discussion comments: Can have a bit of an impact on June. If it is on a Friday f
 ### Labor Day - Start of September
 When: First Monday of September
 Discussion comments: Septembers that start on a Saturday, vs. Septembers that start on a Wednesday. Could potentially have an impact on August. So if August ends on Saturday, that’s going to make a strong last day of August. Also when August ends on Sunday, it’s pretty strong. 
+
+Approach for end of August:
+Created regressors that reflect whether the end of August is on a weekend. 
+
+```{r Labor Day end of August}
+
+df1 <- holiday_daily %>%
+  select(date:fssm) %>%
+  mutate(augend = ifelse(month == "August" & day == 31, 1, 0)) %>%
+  mutate(augend_fss = ifelse(augend == 1 & fss == 1, 1, 0)) %>%
+  mutate(augend_ss = ifelse(augend == 1 & satsun == 1, 1, 0)) 
+
+# take a look
+a <- df1 %>%
+  filter(augend == 1) %>%
+  select(date:day, wday, augend, augend_fss, augend_ss)
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+# bulk approach of creating vectors based on initial example
+hold_vec <- df1 %>%
+  # set this part specifically, rest should be fine
+  select(date, augend_fss:augend_ss)  %>%
+  gather(h_code, value, -date) %>%
+  filter(value == 1)
+varNames <- as.character(unique(hold_vec$h_code))
+for (i in seq_along(varNames)) {
+ hold_a <- filter(hold_vec, h_code == varNames[i]) %>%
+ # creates a vector
+  .[,'date']
+ # names the vector, this uses the first object as a name for the second object
+ assign(varNames[i], hold_a)
+}
+
+# use genhol to generate time series object
+augend_fss_ts_m <- genhol(augend_fss, start = 0, end = 0, frequency = 12, center = "calendar")
+augend_ss_ts_m <-  genhol(augend_ss, start = 0, end = 0, frequency = 12, center = "calendar")
+
+v_names <- c("augend_fss_ts_m", "augend_ss_ts_m")
+
+augend_list <- create_named_list(v_names)
+
+#####
+#
+# take a peek at the centered series
+#
+
+# create xts objects
+augend_fss_x_m <- augend_fss_ts_m %>%
+  xts(order.by=as.yearmon(index(.)))
+augend_ss_x_m <- augend_ss_ts_m %>%
+  xts(order.by=as.yearmon(index(.)))
+
+# create simple table
+a <- merge(augend_fss_x_m, augend_ss_x_m) %>%
+    data.frame(date=time(.), .) %>%
+  mutate(month = month(date)) %>%
+  filter(month %in% c(8))
+kable(head(a, n=8), digits = c(4, 4, 4), row.names=FALSE)
+
+```
+
+Approach for September
+Created regressors that reflect how September starts
+
+```{r Labor Day beg of September}
+
+df1 <- holiday_daily %>%
+  select(date:fssm) %>%
+  mutate(sepstr = ifelse(month == "September" & day == 1, 1, 0)) %>%
+  mutate(sepstr_fssm = ifelse(sepstr == 1 & fssm == 1, 1, 0)) %>%
+  mutate(sepstr_ss = ifelse(sepstr == 1 & satsun == 1, 1, 0)) %>%
+  mutate(sepstr_twt = ifelse(sepstr == 1 & wday %in% c("Tues", "Wed", "Thurs"), 1, 0)) %>%
+  mutate(sepstr_mon = ifelse(sepstr == 1 & wday == "Mon", 1, 0)) %>%
+  mutate(sepstr_tue = ifelse(sepstr == 1 & wday == "Tues", 1, 0)) %>%
+  mutate(sepstr_wed = ifelse(sepstr == 1 & wday == "Wed", 1, 0)) %>%
+  mutate(sepstr_thr = ifelse(sepstr == 1 & wday == "Thurs", 1, 0)) %>%
+  mutate(sepstr_fri = ifelse(sepstr == 1 & wday == "Fri", 1, 0))
+
+# take a look
+a <- df1 %>%
+  filter(sepstr == 1) %>%
+  select(date:day, wday, sepstr, sepstr_fssm, sepstr_ss, sepstr_twt, sepstr_mon, sepstr_tue, sepstr_wed, sepstr_thr, sepstr_fri)
+kable(head(a, n=12), digits = 4, row.names=FALSE)
+
+# bulk approach of creating vectors based on initial example
+hold_vec <- df1 %>%
+  # set this part specifically, rest should be fine
+  select(date, sepstr_fssm:sepstr_fri)  %>%
+  gather(h_code, value, -date) %>%
+  filter(value == 1)
+varNames <- as.character(unique(hold_vec$h_code))
+for (i in seq_along(varNames)) {
+ hold_a <- filter(hold_vec, h_code == varNames[i]) %>%
+ # creates a vector
+  .[,'date']
+ # names the vector, this uses the first object as a name for the second object
+ assign(varNames[i], hold_a)
+}
+
+# use genhol to generate time series object
+sepstr_fssm_ts_m <- genhol(sepstr_fssm, start = 0, end = 0, frequency = 12, center = "calendar")
+sepstr_ss_ts_m <-  genhol(sepstr_ss, start = 0, end = 0, frequency = 12, center = "calendar")
+sepstr_twt_ts_m <-  genhol(sepstr_twt, start = 0, end = 0, frequency = 12, center = "calendar")
+sepstr_mon_ts_m <-  genhol(sepstr_mon, start = 0, end = 0, frequency = 12, center = "calendar")
+sepstr_tue_ts_m <-  genhol(sepstr_tue, start = 0, end = 0, frequency = 12, center = "calendar")
+sepstr_wed_ts_m <-  genhol(sepstr_wed, start = 0, end = 0, frequency = 12, center = "calendar")
+sepstr_thr_ts_m <-  genhol(sepstr_thr, start = 0, end = 0, frequency = 12, center = "calendar")
+sepstr_fri_ts_m <-  genhol(sepstr_fri, start = 0, end = 0, frequency = 12, center = "calendar")
+
+v_names <- c("sepstr_fssm_ts_m", "sepstr_ss_ts_m", "sepstr_twt_ts_m", "sepstr_mon_ts_m", "sepstr_tue_ts_m", "sepstr_wed_ts_m", "sepstr_thr_ts_m", "sepstr_fri_ts_m")
+
+sepstr_list <- create_named_list(v_names)
+
+```
+
 
 ### Halloween
 When: October 31
@@ -156,43 +532,11 @@ Discussion comments: Christmas on the weekend vs. the middle of the week.
 ### Leap year
 Discussion comments: STR reallocates the day, so take total, divide by 29, then multiply by 28. 
 
+
+# Save results
+I can then save multiple objects into a single file
 ```{r}
-
-
-
-# there are a few potential ways to proceed
-# create a vector of dates on which veterans day is on a weekend
-vet_wkend <- df1 %>%
-  filter(vet_wkend == 1)
-# use that vector to generate monthly holiday vector for seas
-# is a one in November when veterans day is on a weekend
-vet_wkend <- vet_wkend$date
-vet1 <- genhol(vet_wkend, start = 0, end = 0, frequency = 12)
-#vet1 <- window(vet1, start=c(1987, 1), end=c(2030, 12))
-
-chr_wkend <- df1 %>%
-  filter(chr_wkend == 1)
-chr_wkend <- chr_wkend$date
-chr1 <- genhol(chr_wkend, start = 0, end = 0, frequency = 12)
-#chr1 <- window(chr1, start=c(1987, 1), end=c(2030, 12)) 
-
-jlf_wkend <- df1 %>%
-  filter(jlf_wkend == 1)
-jlf_wkend <- jlf_wkend$date
-jlf1 <- genhol(jlf_wkend, start = 0, end = 0, frequency = 12)
-#jlf1 <- window(jlf1, start=c(1987, 1), end=c(2030, 12)) 
-
-hlw_wkend <- df1 %>%
-  filter(hlw_wkend == 1)
-hlw_wkend <- hlw_wkend$date
-hlw1 <- genhol(hlw_wkend, start = 0, end = 0, frequency = 12)
-#hlw1 <- window(hlw1, start=c(1987, 1), end=c(2030, 12)) 
-
-data(holiday)
-ea1 <- genhol(easter, start = -2, end = 0, frequency = 12)
-#ea1 <- window(ea1, start=c(1987, 1), end=c(2030, 12)) 
-
-
+# save, with list of the objects to save together in the Rdata file
+save(val_list, mem_list, eas_list, augend_list, sepstr_list, file="output_data/holiday_regress.Rdata")
 
 ```
-
