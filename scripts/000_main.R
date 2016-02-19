@@ -62,6 +62,9 @@ source("scripts/101_graph_resolution_test.R")
 source("scripts/110_out_to_eviews.R")
 source("scripts/120_build_lodhstbk.R")
 
+# creates a file with ttm STR data and other monthly data
+# initially created to population Blackstone demand monitor
+rmarkdown::render("scripts/125_build_m_ttm.Rmd")
 
 # seasonal adjustment discussion files
 rmarkdown::render("scripts/202_exp_seasonal_short.Rmd") 
