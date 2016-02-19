@@ -1,0 +1,106 @@
+---
+title: "Create STR data file for Blackstone"
+author: "Tourism Economics"
+date: "February 19, 2016"
+output: html_document
+---
+
+```{r}
+library(arlodr, warn.conflicts=FALSE)
+library(zoo, warn.conflicts=FALSE)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+library(lubridate, warn.conflicts=FALSE)
+```
+
+
+```{r setup, include=FALSE}
+fpath <- c("~/Project/R projects/lodfor/") 
+#monthly data
+  load(paste(fpath,"output_data/ushist_m.Rdata", sep=""))
+
+```
+
+```{r}
+
+# put into tidy format
+
+ushist_m_t <- ushist_m %>%
+  window(end = as.Date("2016-01-01")) %>%
+  data.frame(date=index(.),.) %>%
+  gather(variable, value, -date) %>%
+  separate(variable, c("geo", "variable"), sep = "\\_", extra="merge") 
+
+```
+
+```{r}
+
+# calculate rolling 12 month totals
+
+temp_a <- ushist_m_t %>%
+  filter(variable %in% c("supt", "demt", "rmrevt")) %>%
+  arrange(geo, variable, date) %>%
+  group_by(geo, variable) %>%
+  mutate(ttm=rollsum(value, k=min(NROW(value), 12), fill=NA, align="right")) %>%
+  mutate(t3m=rollsum(value, k=min(NROW(value), 3), fill=NA, align="right")) %>%
+  ungroup()
+
+temp_a2 <- temp_a %>%
+  mutate(year = lubridate::year(date)) %>%
+  arrange(geo, variable, date) %>%
+  group_by(geo, variable, year) %>%
+  mutate(ytd=rollapplyr(value, width=12, FUN=sum, fill=NA, partial=TRUE)) %>%
+  ungroup() %>%
+  select(-year) 
+
+
+temp_b <- temp_a2 %>%
+  select(-value) %>%
+  gather(transf, value, -date, -geo, -variable)
+
+temp_c <- temp_b %>%
+  mutate(variable = paste(variable, transf, sep="_")) %>%
+  select(-transf) %>%
+  spread(variable, value) %>%
+  #ttm
+  mutate(occ_ttm = demt_ttm / supt_ttm) %>%
+  mutate(adr_ttm = rmrevt_ttm / demt_ttm) %>%
+  mutate(revpar_ttm = rmrevt_ttm / supt_ttm) %>%
+  #t3m
+  mutate(occ_t3m = demt_t3m / supt_t3m) %>%
+  mutate(adr_t3m = rmrevt_t3m / demt_t3m) %>%
+  mutate(revpar_t3m = rmrevt_t3m / supt_t3m) %>%
+  #ytd
+  mutate(occ_ytd = demt_ytd / supt_ytd) %>%
+  mutate(adr_ytd = rmrevt_ytd / demt_ytd) %>%
+  mutate(revpar_ytd = rmrevt_ytd / supt_ytd)
+
+ttm <- temp_c %>%
+  gather(variable, value, -date, -geo) %>%
+  separate(variable, c("variable", "transf"), sep = "\\_", extra="merge")
+  
+```
+
+```{r}
+
+# combine dataframes
+
+ushist_m_ttm <- ushist_m_t %>%
+  # add a transf column
+  mutate(transf = "none") %>%
+  select(date, geo, variable, transf, value) %>%
+  rbind(., ttm)
+
+```
+
+
+```{r}
+
+fname <- paste0(fpath, "/output_data/ushist_m_ttm.csv")
+write.csv(ushist_m_ttm, file=fname, row.names=FALSE)
+
+save(ushist_m_ttm, file=paste(fpath,"output_data/ushist_m_ttm.Rdata", sep=""))
+
+```
+

@@ -7,7 +7,6 @@ library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
 library(seasonal, warn.conflicts=FALSE)
-Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
 
 fpath <- c("~/Project/R projects/lodfor/")
 load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
@@ -17,7 +16,6 @@ ushist_q_m <- ushist_q %>%
   window(end = as.Date("2015-10-01")) %>%
   data.frame(date=index(.), .) %>%
   gather(variable, value, -date)
-  #reshape2::melt(id.vars = c("date"))
 
 # create dataframe with sums of selected markets
 # could be done as a function for a given list of metros

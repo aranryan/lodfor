@@ -4,14 +4,13 @@ library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
 library(seasonal, warn.conflicts=FALSE)
-Sys.setenv(X13_PATH = "C:/Aran Installed/x13ashtml")
 
 # in the following yearmon is a class for representing monthly data
 # I used it because I found a way to use that format in reading the data
 # would have liked to avoid it, as I later conver it with as.Date
 f <- function(x) as.yearmon(format(x, nsmall = 2), "%Y%m")
-fname_opens <- c("input_data/coopopen2016-01-19.txt")
-fname_closes <- c("input_data/coopclose2016-01-19.txt")
+fname_opens <- c("input_data/coopopen2016-02-19.txt")
+fname_closes <- c("input_data/coopclose2016-02-19.txt")
 
 # handles opens
 

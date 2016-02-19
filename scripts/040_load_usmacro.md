@@ -37,22 +37,14 @@ if (!require(quantmod)) {
   install.packages("quantmod")
   require(quantmod)
 }
-```
 
-```
-## Loading required package: quantmod
-## Loading required package: TTR
-## Version 0.4-0 included new data defaults. See ?getSymbols.
-```
-
-```r
 fpath <- c("~/Project/R projects/lodfor/")
 
 # when kniting from the button, I either needed the full path or to add "../" 
 # in front of each
 #load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
 
-fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2016_01_14.csv")
+fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2016_02_19.csv")
 #fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
 # the check.names piece fixes the issueof the column names coming in with
 # quotes and spaces due to the Oxford file format that is visible when 
@@ -122,7 +114,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ```
 
 ###A few plots
-![](040_load_usmacro_files/figure-html/plots-1.png) 
+![](040_load_usmacro_files/figure-html/plots-1.png)\
 
 ```
 ## An 'xts' object on 1980-01-01/2030-10-01 containing:
@@ -163,7 +155,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ##  $ us_pop    : num  226263 226962 227574 228100 228629 ...
 ##  $ us_popw   : num  166762 167416 168111 168694 169279 ...
 ##  $ us_et     : num  99862 98953 98899 99499 100239 ...
-##  $ us_yhat   : num  1641 1650 1659 1667 1676 ...
+##  $ us_yhat   : num  1641 1649 1657 1666 1674 ...
 ##  $ us_wc     : num  50.6 52.5 53.5 54.3 54.6 ...
 ##  $ us_cpi    : num  79 81.7 83.2 85.6 87.9 ...
 ##  $ us_pc     : num  42.4 43.4 44.4 45.5 46.7 ...
@@ -184,12 +176,12 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ##  $ us_gf     : num  157 161 158 159 162 ...
 ##  $ wd_wpo_wti: num  35.8 39.5 37.8 36.3 38 ...
 ##  $ jp_rxd    : num  244 232 220 211 206 ...
-##  $ wd_gdp    : num  6993780 6963350 7005310 7071400 7124310 ...
+##  $ wd_gdp    : num  6994330 6963900 7005860 7071950 7124860 ...
 ##  $ wd_gdpppp : num  7461790 7426430 7459940 7512830 7584170 ...
 ##  $ wd_gdpnusd: num  2763640 2777270 2791130 2805220 2828700 ...
 ```
 
-![](040_load_usmacro_files/figure-html/plots-2.png) ![](040_load_usmacro_files/figure-html/plots-3.png) ![](040_load_usmacro_files/figure-html/plots-4.png) ![](040_load_usmacro_files/figure-html/plots-5.png) ![](040_load_usmacro_files/figure-html/plots-6.png) 
+![](040_load_usmacro_files/figure-html/plots-2.png)\![](040_load_usmacro_files/figure-html/plots-3.png)\![](040_load_usmacro_files/figure-html/plots-4.png)\![](040_load_usmacro_files/figure-html/plots-5.png)\![](040_load_usmacro_files/figure-html/plots-6.png)\
 
 ```
 ##             us_gdp  us_gdp_cagr
@@ -204,7 +196,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ## 2015-01-01 4044.32  0.006424773
 ## 2015-04-01 4083.40  0.039215590
 ## 2015-07-01 4103.50  0.019835330
-## 2015-10-01 4110.66  0.006997696
+## 2015-10-01 4110.58  0.006919307
 ```
 
 ###Load FRED data
@@ -223,12 +215,12 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 
 ```
 ## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
-## extra): downloaded length 12619 != reported length 200
+## extra): downloaded length 12636 != reported length 200
 ```
 
 ```
 ## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
-## extra): downloaded length 5991 != reported length 200
+## extra): downloaded length 5447 != reported length 200
 ```
 
 ```
@@ -244,7 +236,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ## Warning: Removed 66 rows containing missing values (geom_path).
 ```
 
-![](040_load_usmacro_files/figure-html/fred_data-1.png) 
+![](040_load_usmacro_files/figure-html/fred_data-1.png)\
 
 ###Writing out files
 
