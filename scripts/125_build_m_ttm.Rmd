@@ -11,7 +11,10 @@ library(zoo, warn.conflicts=FALSE)
 library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
+<<<<<<< HEAD
 library(lubridate, warn.conflicts=FALSE)
+=======
+>>>>>>> a16beeda4a42940560082c19c174af6c1a740fee
 ```
 
 
@@ -43,6 +46,7 @@ temp_a <- ushist_m_t %>%
   arrange(geo, variable, date) %>%
   group_by(geo, variable) %>%
   mutate(ttm=rollsum(value, k=min(NROW(value), 12), fill=NA, align="right")) %>%
+<<<<<<< HEAD
   mutate(t3m=rollsum(value, k=min(NROW(value), 3), fill=NA, align="right")) %>%
   ungroup()
 
@@ -56,6 +60,11 @@ temp_a2 <- temp_a %>%
 
 
 temp_b <- temp_a2 %>%
+=======
+  ungroup()
+
+temp_b <- temp_a %>%
+>>>>>>> a16beeda4a42940560082c19c174af6c1a740fee
   select(-value) %>%
   gather(transf, value, -date, -geo, -variable)
 
@@ -63,6 +72,7 @@ temp_c <- temp_b %>%
   mutate(variable = paste(variable, transf, sep="_")) %>%
   select(-transf) %>%
   spread(variable, value) %>%
+<<<<<<< HEAD
   #ttm
   mutate(occ_ttm = demt_ttm / supt_ttm) %>%
   mutate(adr_ttm = rmrevt_ttm / demt_ttm) %>%
@@ -75,6 +85,11 @@ temp_c <- temp_b %>%
   mutate(occ_ytd = demt_ytd / supt_ytd) %>%
   mutate(adr_ytd = rmrevt_ytd / demt_ytd) %>%
   mutate(revpar_ytd = rmrevt_ytd / supt_ytd)
+=======
+  mutate(occ_ttm = demt_ttm / supt_ttm) %>%
+  mutate(adr_ttm = rmrevt_ttm / demt_ttm) %>%
+  mutate(revpar_ttm = rmrevt_ttm / supt_ttm)
+>>>>>>> a16beeda4a42940560082c19c174af6c1a740fee
 
 ttm <- temp_c %>%
   gather(variable, value, -date, -geo) %>%
