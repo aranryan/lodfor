@@ -10,6 +10,7 @@ Setup
 library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
+library(readr, warn.conflicts=FALSE)
 ```
 
 
@@ -52,7 +53,7 @@ str(m_cen_blsces)
 
 ```r
 # name of file to read
-fname <- paste0(fpath, "/input_data/Host - top 20 - ByMarket - 2015-07-27.csv")
+fname <- paste0(fpath, "/input_data/Host - Top Markets Data - YE 2015 - AR modified.csv")
 ```
 
 # load STR data
@@ -94,10 +95,13 @@ head(row1)
 # in the following, made a concious decision to convert cells with zeros to NA.
 # while zero could be true, it's could be that there are a small number of hotels 
 # and that the data was suppressed for confidentiality reasons
-data_1 <- read.csv(fname, header = FALSE, sep = ",", skip = 8,
-                    na.strings = c("", "na", "NA", "0", "/0"), stringsAsFactors=FALSE)
+# data_1 <- read.csv(fname, header = FALSE, sep = ",", skip = 8,
+#                     na.strings = c("", "na", "NA", "0", "/0"), stringsAsFactors=FALSE)
+# switched this over to read_csv because later on columns in character format were an issue
+data_1 <- read_csv(fname, col_names = FALSE, col_types = NULL, 
+                    na = c("", "na", "NA", "0", "/0"), skip = 8)
 data_2 <- data_1 %>%
-    select(V1,V2, num_range("V",5:ncol(.)))
+    select(X1,X2, num_range("X",5:ncol(.)))
 # applies the row1 column names prepared above
 colnames(data_2) <- row1
 
@@ -170,15 +174,11 @@ be a good way to fill small holes
 
 ```r
 # drops columns that are all NA
-# haven't figured out a less complex way to write this, but there must be
-data_6 <- data_6[, !apply(is.na(data_6), 2, all)]
+data_7 <- Filter(function(x)!all(is.na(x)), data_6)
 
-# first had to make it numeric, because it was characters for some reason
-data_7 <- as.data.frame(sapply(data_6, as.numeric)) 
-data_7$date <- data_6$date
-
-raw_str_us_host <- data_7%>%
+raw_str_us_host <- data_7 %>%
  # select(1:12) %>%
+  data.frame() %>%
   read.zoo() %>%
   lapply(., FUN=na.contiguous) %>%
   do.call("merge", .) %>%
