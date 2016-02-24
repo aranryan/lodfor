@@ -4,10 +4,6 @@ library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
 
 
-# end of data
-end_strdata <- "2015-04-01"
-start_strdata <- "1987-01-01"
-
 # load various files
 load("output_data/recession_df_m.Rdata")
 load("output_data/ushist_host_q.Rdata")
@@ -60,10 +56,17 @@ temp1 <- ushist_host_q_td %>%
   select(date, seg, geo, supd_sa, supd, supt, demd_sa, demd, demt, occ_sa, 
          adr_sa, adr_sar, adr, revpar_sa, revpar_sar, revpar, rmrevt)
 
+# had previously used a start and end date, but that required updating, so I
+# dropped it and replaced it with the step below.
+# temp2 <- temp1 %>%
+#   arrange(date) %>%
+#   filter(date >= start_strdata) %>%
+#   filter(date <= end_strdata)
+
+# remove any rows that are all NA from 4th column over
 temp2 <- temp1 %>%
-  arrange(date) %>%
-  filter(date >= start_strdata) %>%
-  filter(date <= end_strdata)
+  .[rowSums(is.na(.[4:ncol(.)])) != ncol(.[4:ncol(.)]),] %>%
+  arrange(date)
 
 out_e_hststr <- temp2 %>%
   gather(var, value, supd_sa:rmrevt) %>%
