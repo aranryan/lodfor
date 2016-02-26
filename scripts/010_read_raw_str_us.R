@@ -7,11 +7,8 @@ library(tidyr, warn.conflicts=FALSE)
 #
 # name of file to read
 
-<<<<<<< HEAD
+
 fname <- c("input_data/str_us_top25-2016-02-23.csv")
-=======
-fname <- c("input_data/str_us_top25-2016-02-19.csv")
->>>>>>> a16beeda4a42940560082c19c174af6c1a740fee
 
 ########
 #
