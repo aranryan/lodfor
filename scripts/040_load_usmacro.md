@@ -37,8 +37,8 @@ if (!require(quantmod)) {
   install.packages("quantmod")
   require(quantmod)
 }
+```
 
-<<<<<<< HEAD
 ```
 ## Loading required package: quantmod
 ```
@@ -52,8 +52,6 @@ if (!require(quantmod)) {
 ```
 
 ```r
-=======
->>>>>>> a16beeda4a42940560082c19c174af6c1a740fee
 fpath <- c("~/Project/R projects/lodfor/")
 
 # when kniting from the button, I either needed the full path or to add "../" 
