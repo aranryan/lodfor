@@ -105,41 +105,41 @@ temp_ts_m
 
 
 ```{r}
-
-# some of the regressors are created by constructing certain situations
-
-df1 <- holiday_daily %>%
-  mutate(vet_wkend = ifelse(vet == 1 & satsun == 1, 1, 0)) %>%
-  mutate(chr_wkend = ifelse(chr == 1 & satsun == 1, 1, 0)) %>%
-  mutate(jlf_wkend = ifelse(jlf == 1 & satsun == 1, 1, 0)) %>%
-  mutate(hlw_wkend = ifelse(hlw == 1 & satsun == 1, 1, 0))
-
-vet_wkend <- df1 %>%
-  filter(vet_wkend == 1)
-
-# use that vector to generate monthly holiday vector for seas
-# is a one in November when veterans day is on a weekend
-vet_wkend <- vet_wkend$date
-vet1_ts_m <- genhol(vet_wkend, start = 0, end = 0, frequency = 12)
-vet1_ts_m
-
-chr_wkend <- df1 %>%
-  filter(chr_wkend == 1)
-chr_wkend <- chr_wkend$date
-chr1 <- genhol(chr_wkend, start = 0, end = 0, frequency = 12)
-#chr1 <- window(chr1, start=c(1987, 1), end=c(2030, 12)) 
-
-jlf_wkend <- df1 %>%
-  filter(jlf_wkend == 1)
-jlf_wkend <- jlf_wkend$date
-jlf1 <- genhol(jlf_wkend, start = 0, end = 0, frequency = 12)
-#jlf1 <- window(jlf1, start=c(1987, 1), end=c(2030, 12)) 
-
-hlw_wkend <- df1 %>%
-  filter(hlw_wkend == 1)
-hlw_wkend <- hlw_wkend$date
-hlw1 <- genhol(hlw_wkend, start = 0, end = 0, frequency = 12)
-#hlw1 <- window(hlw1, start=c(1987, 1), end=c(2030, 12)) 
+# following code works, but then I broke it into separate steps for each holiday
+# # some of the regressors could be created by constructing certain situations
+# 
+# df1 <- holiday_daily %>%
+#   mutate(vet_wkend = ifelse(vet == 1 & satsun == 1, 1, 0)) %>%
+#   mutate(chr_wkend = ifelse(chr == 1 & satsun == 1, 1, 0)) %>%
+#   mutate(jlf_wkend = ifelse(jlf == 1 & satsun == 1, 1, 0)) %>%
+#   mutate(hlw_wkend = ifelse(hlw == 1 & satsun == 1, 1, 0))
+# 
+# vet_wkend <- df1 %>%
+#   filter(vet_wkend == 1)
+# 
+# # use that vector to generate monthly holiday vector for seas
+# # is a one in November when veterans day is on a weekend
+# vet_wkend <- vet_wkend$date
+# vet1_ts_m <- genhol(vet_wkend, start = 0, end = 0, frequency = 12)
+# vet1_ts_m
+# 
+# chr_wkend <- df1 %>%
+#   filter(chr_wkend == 1)
+# chr_wkend <- chr_wkend$date
+# chr1 <- genhol(chr_wkend, start = 0, end = 0, frequency = 12)
+# #chr1 <- window(chr1, start=c(1987, 1), end=c(2030, 12)) 
+# 
+# jlf_wkend <- df1 %>%
+#   filter(jlf_wkend == 1)
+# jlf_wkend <- jlf_wkend$date
+# jlf1 <- genhol(jlf_wkend, start = 0, end = 0, frequency = 12)
+# #jlf1 <- window(jlf1, start=c(1987, 1), end=c(2030, 12)) 
+# 
+# hlw_wkend <- df1 %>%
+#   filter(hlw_wkend == 1)
+# hlw_wkend <- hlw_wkend$date
+# hlw1 <- genhol(hlw_wkend, start = 0, end = 0, frequency = 12)
+# #hlw1 <- window(hlw1, start=c(1987, 1), end=c(2030, 12)) 
 
 
 ```
@@ -156,6 +156,8 @@ hlw1 <- genhol(hlw_wkend, start = 0, end = 0, frequency = 12)
 ### Valentine's Day
 When: February 14
 Discussion comments: When it falls on a Saturday it is huge. Falling on Friday was good, but wasn’t great. How does it intereact with Presidents' day (e.g. if it is on the Sunday before President’s day)?
+
+Approach: Set up regressors based on day of week groups. Follows model of other fixed date holidays such as July 4th (except it also adds an interaction with President's Day). For example, does it fall on a Fri-Sat. If it doesn't, it would be Sunday-Thur.
 
 ```{r}
 
@@ -258,7 +260,7 @@ eas_list <- create_named_list(v_names)
 
 ### Memorial Day 
 When: Last Monday of May
-Discussion comments: Sometimes it is the very last bit of May. If you have a full week after Memorial Day that is in May, then it’s a slow week. So if Memorial Day is the last day of may, then you’ve pushed that slowness into June. 
+Discussion comments: Sometimes it is the very last bit of May. If you have a full week after Memorial Day that is in May, then it’s a slow week. So if Memorial Day is the last day of May, then you’ve pushed that slowness into June. 
 
 Note: 
 Memorial Day was fixed to the last Monday in May for the first time in 1971 based on the input file. So I filtered to only those dates, I think that means 1970 doesn't have a Memorial Day flagged in the holiday_dates table.
@@ -266,7 +268,7 @@ Memorial Day was fixed to the last Monday in May for the first time in 1971 base
 Approach for end of May: 
 Created regressor to measure how many business days follow Memorial Day, in May. 
 
-Also,created a weighted version of that regressor. In calculating the weighted version, this looks at the typical decline for that specific day of the week. For example, considering just the period after May 15, demand on the typcal Tuesday before Memorial is at 1.08 of the rolling average, while after Memorial Day the 14 sample Tuesdays are at 0.85, so a 21% decline. This is based on the following table.
+Also, created a weighted version of that regressor. In calculating the weighted version, this looks at the typical decline for that specific day of the week. For example, considering just the period after May 15, demand on the typcal Tuesday before Memorial is at 1.08 of the rolling average, while after Memorial Day the 14 sample Tuesdays are at 0.85, so a 21% decline. This is based on the following table.
 
 The approach is to calculate weight that is the average of those percentage declines. That helps gives a sense of whether the days that are following Memorial Day in May tend to be days with higher impacts. 
 
@@ -384,6 +386,54 @@ mem_list <- create_named_list(v_names)
 ### Fourth of July
 When: July 4
 Discussion comments: Can have a bit of an impact on June. If it is on a Friday for example, then it’s a slower week that last week of June. Whereas, if it’s on Monday or Tuesday, then the June week is still strong. And it’s the week in July that will be week. 
+
+Approach: Set up regressors based on day of week groups. For example, does it fall on a Fri-Sat-Sun-Mon. 
+```{r}
+
+df1 <- holiday_daily %>%
+  select(date:fssm, jlf) %>%
+  mutate(jlf_fssm = ifelse(jlf == 1 & fssm == 1, 1, 0)) %>%
+  mutate(jlf_fss = ifelse(jlf == 1 & fss == 1, 1, 0)) %>%
+  mutate(jlf_fs = ifelse(jlf == 1 & frisat == 1, 1, 0)) %>%
+  mutate(jlf_fri = ifelse(jlf == 1 & wday == "Fri", 1, 0)) %>%
+  mutate(jlf_sat = ifelse(jlf == 1 & wday == "Sat", 1, 0))
+
+# take a look
+a <- df1 %>%
+  filter(jlf == 1) %>%
+  select(date:day, wday, jlf, jlf_fssm, jlf_fss, jlf_fs, jlf_fri, jlf_sat)
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+# bulk approach of creating vectors based on initial example
+hold_vec <- df1 %>%
+  # set this part specifically, rest should be fine
+  select(date, jlf_fssm:jlf_sat)  %>%
+  gather(h_code, value, -date) %>%
+  filter(value == 1)
+varNames <- as.character(unique(hold_vec$h_code))
+for (i in seq_along(varNames)) {
+ hold_a <- filter(hold_vec, h_code == varNames[i]) %>%
+ # creates a vector
+  .[,'date']
+ # names the vector, this uses the first object as a name for the second object
+ assign(varNames[i], hold_a)
+}
+
+# use genhol to generate time series object
+jlf_fssm_ts_m <- genhol(jlf_fssm, start = 0, end = 0, frequency = 12)
+jlf_fss_ts_m <- genhol(jlf_fss, start = 0, end = 0, frequency = 12)
+jlf_fs_ts_m <-  genhol(jlf_fs, start = 0, end = 0, frequency = 12)
+jlf_fri_ts_m <- genhol(jlf_fri, start = 0, end = 0, frequency = 12)
+jlf_sat_ts_m <- genhol(jlf_sat, start = 0, end = 0, frequency = 12)
+
+v_names <- c("jlf_fssm_ts_m", "jlf_fss_ts_m", "jlf_fs_ts_m", "jlf_fri_ts_m", "jlf_sat_ts_m")
+
+jlf_list <- create_named_list(v_names)
+#jlf_fri_ts_m
+#jlf_fs_ts_m
+```
+
+
 
 ### Labor Day - Start of September
 When: First Monday of September
@@ -508,16 +558,167 @@ sepstr_list <- create_named_list(v_names)
 When: October 31
 Discussion comments: Maybe it’s three groups: Sunday-midweek, Friday, Saturday. 
 
+Approach: Set up regressors based on day of week groups. Follows model of other fixed date holidays such as July 4th. For example, does it fall on a Fri-Sat. If it doesn't, it would be Sunday-Thur. 
+```{r}
+
+df1 <- holiday_daily %>%
+  select(date:fssm, hlw) %>%
+  mutate(hlw_fssm = ifelse(hlw == 1 & fssm == 1, 1, 0)) %>%
+  mutate(hlw_fss = ifelse(hlw == 1 & fss == 1, 1, 0)) %>%
+  mutate(hlw_fs = ifelse(hlw == 1 & frisat == 1, 1, 0)) %>%
+  mutate(hlw_fri = ifelse(hlw == 1 & wday == "Fri", 1, 0)) %>%
+  mutate(hlw_sat = ifelse(hlw == 1 & wday == "Sat", 1, 0))
+
+# take a look
+a <- df1 %>%
+  filter(hlw == 1) %>%
+  select(date:day, wday, hlw, hlw_fssm, hlw_fss, hlw_fs, hlw_fri, hlw_sat)
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+# bulk approach of creating vectors based on initial example
+hold_vec <- df1 %>%
+  # set this part specifically, rest should be fine
+  select(date, hlw_fssm:hlw_sat)  %>%
+  gather(h_code, value, -date) %>%
+  filter(value == 1)
+varNames <- as.character(unique(hold_vec$h_code))
+for (i in seq_along(varNames)) {
+ hold_a <- filter(hold_vec, h_code == varNames[i]) %>%
+ # creates a vector
+  .[,'date']
+ # names the vector, this uses the first object as a name for the second object
+ assign(varNames[i], hold_a)
+}
+
+# use genhol to generate time series object
+hlw_fssm_ts_m <- genhol(hlw_fssm, start = 0, end = 0, frequency = 12)
+hlw_fss_ts_m <- genhol(hlw_fss, start = 0, end = 0, frequency = 12)
+hlw_fs_ts_m <-  genhol(hlw_fs, start = 0, end = 0, frequency = 12)
+hlw_fri_ts_m <- genhol(hlw_fri, start = 0, end = 0, frequency = 12)
+hlw_sat_ts_m <- genhol(hlw_sat, start = 0, end = 0, frequency = 12)
+
+v_names <- c("hlw_fssm_ts_m", "hlw_fss_ts_m", "hlw_fs_ts_m", "hlw_fri_ts_m", "hlw_sat_ts_m")
+
+hlw_list <- create_named_list(v_names)
+
+```
+
+
 ### Presidential election days
 When: Election Day in the United States of America is the Tuesday following the first Monday in November. It can fall on or between November 2 and November 8. 
 
 ### Veteran’s day
-When: November 11
+When: November 11. Originally scheduled for celebration on November 11 of every year, starting in 1971 in accordance with the Uniform Monday Holiday Act, Veterans Day was moved to the fourth Monday of October. In 1978, it was moved back to its original celebration on November 11. 
 Discussion comments: Minimal impact
 
+Approach: Set up regressors based on day of week groups. Follows model of other fixed date holidays such as July 4th. For example, does it fall on a Fri-Sat-Sun-Mon. If it doesn't, it would be Sunday-Thur. 
+```{r}
+
+df1 <- holiday_daily %>%
+  select(date:fssm, vet) %>%
+  mutate(vet_fssm = ifelse(vet == 1 & fssm == 1, 1, 0)) %>%
+  mutate(vet_fss = ifelse(vet == 1 & fss == 1, 1, 0)) %>%
+  mutate(vet_fs = ifelse(vet == 1 & frisat == 1, 1, 0)) %>%
+  mutate(vet_fri = ifelse(vet == 1 & wday == "Fri", 1, 0)) %>%
+  mutate(vet_sat = ifelse(vet == 1 & wday == "Sat", 1, 0))
+
+# take a look
+a <- df1 %>%
+  filter(vet == 1) %>%
+  select(date:day, wday, vet, vet_fssm, vet_fss, vet_fs, vet_fri, vet_sat)
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+# bulk approach of creating vectors based on initial example
+hold_vec <- df1 %>%
+  # set this part specifically, rest should be fine
+  select(date, vet_fssm:vet_sat)  %>%
+  gather(h_code, value, -date) %>%
+  filter(value == 1)
+varNames <- as.character(unique(hold_vec$h_code))
+for (i in seq_along(varNames)) {
+ hold_a <- filter(hold_vec, h_code == varNames[i]) %>%
+ # creates a vector
+  .[,'date']
+ # names the vector, this uses the first object as a name for the second object
+ assign(varNames[i], hold_a)
+}
+
+# use genhol to generate time series object
+vet_fssm_ts_m <- genhol(vet_fssm, start = 0, end = 0, frequency = 12)
+vet_fss_ts_m <- genhol(vet_fss, start = 0, end = 0, frequency = 12)
+vet_fs_ts_m <-  genhol(vet_fs, start = 0, end = 0, frequency = 12)
+vet_fri_ts_m <- genhol(vet_fri, start = 0, end = 0, frequency = 12)
+vet_sat_ts_m <- genhol(vet_sat, start = 0, end = 0, frequency = 12)
+
+v_names <- c("vet_fssm_ts_m", "vet_fss_ts_m", "vet_fs_ts_m", "vet_fri_ts_m", "vet_sat_ts_m")
+
+vet_list <- create_named_list(v_names)
+
+```
+
 ### Thanksgiving
-When: Fourth Thursday of November
-Discussion comments: Does Thanksgiving week end the month, or is there another week after it. How many days are there between Thanksgiving and christmats. If you have an extra week before thanksgiving and December, then you might get a good week that first week of December because you have more time. 
+When: Fourth Thursday of November. This effectively means that Thanksgiving day can be as early as November 22 (with nine days after Thanksgiving), and as late as November 28 (with three days after Thanksgiving, fss). 
+
+Discussion comments: Does Thanksgiving week end the month, or is there another week after it. How many days are there between Thanksgiving and Christmas. If you have an extra week before Thanksgiving and December, then you might get a good week that first week of December because you have more time. 
+
+Thinking through approach: Think about November separate from December. If you have Thanksgiving on the 28th, there are no weekdays after Thanksgiving, it's all before. There are 30 days in November, so Thanksgiving on the 28th means the month ends on Saturday. As you start to have Thanksgiving earlier, you're adding initially a Sunday after Thanksgiving, then a Monday, and so on. So when it's on a 26th, you have a Monday after Thanksgiving. That goes on until Thanksgiving moves back to the 22nd, when a full set of weekdays has been added to the end of the month. 
+
+So consider the following groups for November
+- Thanksgiving on the 28, 27 or 26. This means there are either no weekdays in Nov. after Thanksgiving, or just a Monday.
+- Thanksgiving on the 25. This means there is a Mon. and Tues. in Nov. after Thanksgiving
+- Thanksgiving on the 24. This means there is as Mon. Tues and Wednesday in Nov. after Thanksgiving
+- Thanksgiving on the 23 or 22. This means there is a Mon to Thur. or Mon-Fri in Nov. after Thanksgiving
+
+Approach: 
+```{r Thanksgiving}
+
+df1 <- holiday_daily %>%
+  select(date:fss, thk) %>%
+  mutate(thk_2826 = ifelse(thk == 1 & (day == 28 | day == 27 | day == 26), 1, 0)) %>%
+  mutate(thk_25 = ifelse(thk == 1 & day == 25, 1, 0)) %>%
+  mutate(thk_24 = ifelse(thk == 1 & day == 24, 1, 0)) 
+  
+# take a look at occurances of Thanksgiving by date
+a <- df1 %>%
+  filter(thk == 1) %>%
+  group_by(day) %>%
+  summarize(n = n())
+kable(a, digits = 4, row.names=FALSE)
+
+# take a look at the variables just created
+a <- df1 %>%
+  filter(thk == 1) %>%
+  select(-satsun, -frisat, -fss)
+kable(tail(a, n=20), digits = 4, row.names=FALSE)
+
+# bulk approach of creating vectors based on initial example
+hold_vec <- df1 %>%
+  # set this part specifically, rest should be fine
+  select(date, thk_2826:thk_24)  %>%
+  gather(h_code, value, -date) %>%
+  filter(value == 1)
+varNames <- as.character(unique(hold_vec$h_code))
+for (i in seq_along(varNames)) {
+ hold_a <- filter(hold_vec, h_code == varNames[i]) %>%
+ # creates a vector
+  .[,'date']
+ # names the vector, this uses the first object as a name for the second object
+ assign(varNames[i], hold_a)
+}
+
+# use genhol to generate time series object
+thk_2826_ts_m <- genhol(thk_2826, start = 0, end = 0, frequency = 12)
+thk_25_ts_m <- genhol(thk_25, start = 0, end = 0, frequency = 12)
+thk_24_ts_m <-  genhol(thk_24, start = 0, end = 0, frequency = 12)
+
+v_names <- c("thk_2826_ts_m", "thk_25_ts_m", "thk_24_ts_m")
+
+vet_list <- create_named_list(v_names)
+
+```
+
+
+
 
 ### Hanukkah
 When: Hanukkah is an eight-day Jewish observance.The first night of Hanukkah is the night before the first day of Hanukkah. From 1950 to 2050, the earliest is Nov. 28 and the latest is Dec. 27. About a tenth of the time it starts in those last few days of November. About a third of the time it starts on or before Dec. 7. About a fifth of the time it starts on or after Dec. 22. 
@@ -526,6 +727,52 @@ Sometimes Hanuakah and Christmas intersect
 
 ### Christmas
 Discussion comments: Christmas on the weekend vs. the middle of the week. 
+
+Approach: Set up regressors based on day of week groups. Follows model of other fixed date holidays such as July 4th. For example, does it fall on a Fri-Sat-Sun-Mon. 
+```{r}
+
+df1 <- holiday_daily %>%
+  select(date:fssm, chr) %>%
+  mutate(chr_fssm = ifelse(chr == 1 & fssm == 1, 1, 0)) %>%
+  mutate(chr_fss = ifelse(chr == 1 & fss == 1, 1, 0)) %>%
+  mutate(chr_fs = ifelse(chr == 1 & frisat == 1, 1, 0)) %>%
+  mutate(chr_fri = ifelse(chr == 1 & wday == "Fri", 1, 0)) %>%
+  mutate(chr_sat = ifelse(chr == 1 & wday == "Sat", 1, 0))
+
+# take a look
+a <- df1 %>%
+  filter(chr == 1) %>%
+  select(date:day, wday, chr, chr_fssm, chr_fss, chr_fs, chr_fri, chr_sat)
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+# bulk approach of creating vectors based on initial example
+hold_vec <- df1 %>%
+  # set this part specifically, rest should be fine
+  select(date, chr_fssm:chr_sat)  %>%
+  gather(h_code, value, -date) %>%
+  filter(value == 1)
+varNames <- as.character(unique(hold_vec$h_code))
+for (i in seq_along(varNames)) {
+ hold_a <- filter(hold_vec, h_code == varNames[i]) %>%
+ # creates a vector
+  .[,'date']
+ # names the vector, this uses the first object as a name for the second object
+ assign(varNames[i], hold_a)
+}
+
+# use genhol to generate time series object
+chr_fssm_ts_m <- genhol(chr_fssm, start = 0, end = 0, frequency = 12)
+chr_fss_ts_m <- genhol(chr_fss, start = 0, end = 0, frequency = 12)
+chr_fs_ts_m <-  genhol(chr_fs, start = 0, end = 0, frequency = 12)
+chr_fri_ts_m <- genhol(chr_fri, start = 0, end = 0, frequency = 12)
+chr_sat_ts_m <- genhol(chr_sat, start = 0, end = 0, frequency = 12)
+
+v_names <- c("chr_fssm_ts_m", "chr_fss_ts_m", "chr_fs_ts_m", "chr_fri_ts_m", "chr_sat_ts_m")
+
+chr_list <- create_named_list(v_names)
+
+```
+
 
 ### New Year's Day
 
@@ -537,6 +784,6 @@ Discussion comments: STR reallocates the day, so take total, divide by 29, then 
 I can then save multiple objects into a single file
 ```{r}
 # save, with list of the objects to save together in the Rdata file
-save(val_list, mem_list, eas_list, augend_list, sepstr_list, file="output_data/holiday_regress.Rdata")
+save(val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, chr_list, file="output_data/holiday_regress.Rdata")
 
 ```
