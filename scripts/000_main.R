@@ -80,3 +80,9 @@ rmarkdown::render("scripts/207_exp_seasonal_examples.Rmd")
 rmarkdown::render("scripts/210_seasonal_create_dates.Rmd")
 # this creates actual seasonal regressors
 rmarkdown::render("scripts/211_seasonal_create_regressors.Rmd")
+# this is a discussion document I used with IHG on March 15, 2016
+rmarkdown::render("scripts/220_sea_model_work.Rmd")
+# taking the analysis further
+rmarkdown::render("scripts/221_sea_model_work.Rmd")
+
+

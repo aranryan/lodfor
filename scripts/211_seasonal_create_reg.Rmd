@@ -713,7 +713,7 @@ thk_24_ts_m <-  genhol(thk_24, start = 0, end = 0, frequency = 12)
 
 v_names <- c("thk_2826_ts_m", "thk_25_ts_m", "thk_24_ts_m")
 
-vet_list <- create_named_list(v_names)
+thk_list <- create_named_list(v_names)
 
 ```
 
@@ -784,6 +784,6 @@ Discussion comments: STR reallocates the day, so take total, divide by 29, then 
 I can then save multiple objects into a single file
 ```{r}
 # save, with list of the objects to save together in the Rdata file
-save(val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, chr_list, file="output_data/holiday_regress.Rdata")
+save(val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, thk_list, chr_list, file="output_data/holiday_regress.Rdata")
 
 ```

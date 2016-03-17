@@ -1,0 +1,100 @@
+---
+title: "Untitled"
+author: "Tourism Economics"
+date: "March 16, 2016"
+output: html_document
+---
+
+Step 0: Setting up the data and trainControl:(from your question)
+
+
+```{r}
+library(caret)
+library(ggplot2)
+library(pls)
+
+data(economics)
+str(economics)
+```
+
+Step 1: Creating the timeSlices for the index of the data:
+```{r}
+timeSlices <- createTimeSlices(1:nrow(economics), 
+                   initialWindow = 36, horizon = 12, fixedWindow = FALSE)
+str(timeSlices)
+```
+
+
+This creates a list of training and testing timeSlices.
+```{r}
+str(timeSlices,max.level = 1)
+```
+
+For ease of understanding, I am saving them in separate variable:
+```{r}
+trainSlices <- timeSlices[[1]]
+testSlices <- timeSlices[[2]]
+
+str(trainSlices)
+economics[trainSlices[[1]],]
+economics[trainSlices[[2]],]
+
+```
+
+Step 2: Training on the first of the trainSlices:
+```{r}
+plsFitTime <- train(unemploy ~ pce + pop + psavert,
+                    data = economics[trainSlices[[1]],],
+                    method = "pls",
+                    preProc = c("center", "scale"))
+```
+
+Step 3: Testing on the first of the trainSlices:
+```{r}
+pred <- predict(plsFitTime,economics[testSlices[[1]],])
+```
+
+
+Step 4: Plotting:
+```{r}
+true <- economics$unemploy[testSlices[[1]]]
+
+plot(true, col = "red", ylab = "true (red) , pred (blue)", ylim = range(c(pred,true)))
+points(pred, col = "blue") 
+```
+
+
+You can then do this for all the slices:
+```{r}
+for(i in 1:length(trainSlices)){
+  plsFitTime <- train(unemploy ~ pce + pop + psavert,
+                      data = economics[trainSlices[[i]],],
+                      method = "pls",
+                      preProc = c("center", "scale"))
+  pred <- predict(plsFitTime,economics[testSlices[[i]],])
+
+
+  true <- economics$unemploy[testSlices[[i]]]
+  plot(true, col = "red", ylab = "true (red) , pred (blue)", 
+            main = i, ylim = range(c(pred,true)))
+  points(pred, col = "blue") 
+}
+```
+
+
+As mentioned earlier, this sort of timeSlicing is done by your original function in one step:
+
+```{r}
+ myTimeControl <- trainControl(method = "timeslice",
+                               initialWindow = 36,
+                               horizon = 12,
+                               fixedWindow = TRUE)
+ 
+ plsFitTime <- train(unemploy ~ pce + pop + psavert,
+                     data = economics,
+                     method = "pls",
+                    preProc = c("center", "scale"),
+                     trControl = myTimeControl)
+ plsFitTime
+```
+

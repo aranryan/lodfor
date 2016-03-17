@@ -1,0 +1,205 @@
+---
+title: "Seasonal model working"
+author: "Tourism Economics"
+date: "February 12, 2016"
+output: html_document
+---
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(readr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+library(seasonal, warn.conflicts=FALSE)
+require(xtable)
+require(ggplot2)
+require(knitr)
+require(RColorBrewer)
+require(scales)
+library(lubridate)
+
+# If I put autodep=TRUE as an argument in the following then I get
+# some issues with the graphs, such as grey backgrounds and changes
+# in labeling. Maybe it somehow impacts the theme?
+#knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_exp_seasonal_short/fig-',  fig.show='asis', fig.keep='high')
+# tells it to keep going even if there is an error
+knitr::opts_chunk$set(error = TRUE)
+
+```
+
+
+```{r}
+
+load(file="~/Project/R projects/lodfor/output_data/holiday_regress.Rdata")
+```
+
+```{r}
+# unpack lists
+
+a <- c(val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, thk_list, chr_list)
+
+varNames <- names(a)
+for (i in seq_along(varNames)) {
+print(varNames[i])
+ hold_a <- a[[i]]
+ # names the vector, this uses the first object as a name for the second object
+ assign(paste(varNames[i], sep=""), hold_a)
+}
+
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+load("~/Project/R projects/lodfor/output_data/ushist_m.Rdata")
+load("~/Project/R projects/lodfor/output_data/ushist_q.Rdata")
+load("~/Project/R projects/lodfor/output_data/ushist_a.Rdata")
+
+```
+
+```{r}
+
+segrun <- c("upmus_demd")
+
+```
+
+
+### Set up data to run using: `r segrun`
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# shorten dates
+#ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
+
+# sets up a single series to use for a few examples
+demo_df <- ushist_m %>%
+  data.frame(date=time(.), .) %>%
+  select_("date", segrun)
+
+# sets up a similar annual data frame
+demo_df_a <- ushist_a %>%
+  data.frame(date=time(.), .) %>%
+  mutate(upmus_demd = upmus_demt / 365) %>%
+  select_("date", segrun)
+  
+x <- demo_df_a %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+tempa <- x %>%
+  data.frame(date=time(.), .) %>%
+  rename_("sa1a" = segrun) %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  as.xts(order.by = as.yearmon(index(.)))
+
+# use annual to create data frame
+# monthly series that is the annual value for each month
+# steps are a bit lengthy, but this is the way I could figure out to get the 
+# annual data turned into monthly, filling all the way through the current year.
+tempa_1 <- tempa %>%
+  data.frame(date=time(.), .) %>%
+  mutate(year = year(date)) %>%
+  select(-date)
+
+# creates a sequence of dates
+sq <- seq(as.Date(start(tempa)), as.Date(end(tempa), frac = 1), by = "month") %>%
+  as.yearmon(.) %>%
+  data.frame()
+colnames(sq) <- c("date")
+sq <- sq %>%
+  mutate(year = year(date))
+
+# join the data onto the data
+tempa_by_m  <- sq %>%
+  left_join(tempa_1, by=c("year")) %>%
+  filter(!(is.na(sa1a))) %>%
+  select(-year) %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+```
+  
+
+## Training period through 2013, test on 2014
+
+Estimate seasonal model on a training period, use it to look at a test period
+```{r}
+
+# Full history
+x <- demo_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+# shorten dates, create time series
+x<- x["1987-01-01/2013-12-01"]
+temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
+
+# estimate model
+
+mmod <- seas(x = temp_ser_ts,
+        #   regression.variables = c("tdnolpyear", "ls2001.Sep"),
+           forecast.maxlead = 48,# extends 30 periods ahead
+           seats.appendfcst="yes",
+           regression.aictest = NULL)
+summary(mmod)
+
+# use monthly to create data frame
+tempm <- merge(
+   # creates and merges invididual zoo series
+   oa1 = as.zoo(original(mmod)),
+   sa1 = as.zoo(final(mmod)),
+   sa1_sf = as.zoo(series(mmod, "s16"))) %>%
+   # converts to xts
+   as.xts(order.by = as.yearmon(index(.)))
+
+# look at data
+a <- tempm %>%
+  data.frame(date=time(.), .) %>%
+  filter(date <= "2016-12-01") %>%
+  mutate_each(funs(sprintf("%1.2f%%",100*.)), contains("_pchya"))
+kable(tail(a, n=36), digits = 3, row.names=FALSE, align = c("l", rep("r", 7)))
+
+```
+
+
+```{r}
+str(AirPassengers)
+head(AirPassengers)
+
+a <- AirPassengers %>%
+ # as.zoo() %>%
+  as.xts()
+
+mmod <- seas(x = AirPassengers,
+          regression.variables = c("td"),
+           forecast.maxlead = 48,# extends 30 periods ahead
+           seats.appendfcst="yes",
+           regression.aictest = NULL)
+summary(mmod)
+
+tail(series(mmod, "s16"), 48)
+
+tempm <- merge(
+   # creates and merges invididual zoo series
+   oa1 = as.zoo(original(mmod)),
+   sa1 = as.zoo(final(mmod)),
+   sa1_sf = as.zoo(series(mmod, "s16"))) %>%
+   # converts to xts
+   as.xts(order.by = as.yearmon(index(.)))
+
+tail(tempm, 48)
+
+# look at data
+a <- tempm %>%
+  data.frame(date=time(.), .) %>%
+  filter(date <= "2016-12-01") %>%
+  mutate_each(funs(sprintf("%1.2f%%",100*.)), contains("_pchya"))
+kable(tail(a, n=36), digits = 3, row.names=FALSE, align = c("l", rep("r", 7)))
+
+```
+
