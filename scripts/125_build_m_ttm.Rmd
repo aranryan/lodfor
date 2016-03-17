@@ -56,10 +56,10 @@ temp_a2 <- temp_a %>%
   select(-year) 
 
 
-temp_b <- temp_a2 %>%
-  ungroup()
+# temp_b <- temp_a2 %>%
+#   ungroup()
 
-temp_b <- temp_a %>%
+temp_b <- temp_a2 %>%
   select(-value) %>%
   gather(transf, value, -date, -geo, -variable)
 
@@ -78,15 +78,28 @@ temp_c <- temp_b %>%
   #ytd
   mutate(occ_ytd = demt_ytd / supt_ytd) %>%
   mutate(adr_ytd = rmrevt_ytd / demt_ytd) %>%
-  mutate(revpar_ytd = rmrevt_ytd / supt_ytd)
-  mutate(occ_ttm = demt_ttm / supt_ttm) %>%
-  mutate(adr_ttm = rmrevt_ttm / demt_ttm) %>%
-  mutate(revpar_ttm = rmrevt_ttm / supt_ttm)
+  mutate(revpar_ytd = rmrevt_ytd / supt_ytd) %>%
+  gather(variable, value, -date, -geo)
 
+#  calculate some pchya series
+temp_c_pchya <- temp_c %>%
+  arrange(geo, variable, date) %>%
+  group_by(geo, variable) %>%
+  mutate(pchya=value/lag(value,12)-1) %>%
+  ungroup() %>%
+  select(-value) %>%
+  gather(var2, value, -date, -geo, -variable) %>%
+  mutate(variable = paste(variable, var2, sep="_")) %>%
+  select(-var2)
 
-ttm <- temp_c %>%
-  gather(variable, value, -date, -geo) %>%
-  separate(variable, c("variable", "transf"), sep = "\\_", extra="merge")
+# bind on the pchya series to the original temp_c
+ttm <- rbind(temp_c, temp_c_pchya) %>%
+  # separate the variable column based on the first occurance
+  separate(variable, c("variable", "transf"), sep = "_", extra="merge") 
+
+# ttm <- temp_d %>%
+#   gather(variable, value, -date, -geo) %>%
+#   separate(variable, c("variable", "transf"), sep = "\\_", extra="merge")
   
 ```
 
