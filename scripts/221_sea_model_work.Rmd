@@ -20,6 +20,8 @@ require(RColorBrewer)
 require(scales)
 library(lubridate)
 library(purrr)
+library(lazyeval)
+
 
 # If I put autodep=TRUE as an argument in the following then I get
 # some issues with the graphs, such as grey backgrounds and changes
@@ -275,21 +277,21 @@ x<- x["1987-01-01/2015-12-01"]
 #temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
 
 
-timeSlices <- createTimeSlices(1:nrow(x), 
-                   initialWindow = 332, horizon = 12, fixedWindow = FALSE)
-
-df_1 <- data_frame(train_slices = timeSlices[[1]], test_slices = timeSlices[[2]])
-str(df_1)
-str(x)
-train_slices <- x[trainSlices[[1]],]
-head(train_slices)
-
-
-df_2 <- df_1 %>%
-  mutate(hold_df)
-
-economics[trainSlices[[1]],]
-################3
+# timeSlices <- createTimeSlices(1:nrow(x), 
+#                    initialWindow = 332, horizon = 12, fixedWindow = FALSE)
+# 
+# df_1 <- data_frame(train_slices = timeSlices[[1]], test_slices = timeSlices[[2]])
+# str(df_1)
+# str(x)
+# train_slices <- x[trainSlices[[1]],]
+# head(train_slices)
+# 
+# 
+# df_2 <- df_1 %>%
+#   mutate(hold_df)
+# 
+# economics[trainSlices[[1]],]
+################
 
 f_temp1 <- function(x, start, end) {
   .dots <- list(~date <= end)
@@ -304,41 +306,8 @@ f_convert_to_ts <- function(x) {
     as.ts(start = start(.), end = end(.))
 }
 
-x2 <- x %>%
-  data.frame(date=time(.), .) %>%
-  mutate(date = as.Date(date))
-
-df_1 <- data_frame(start_1 = as.Date("1987-01-01"), end_1 = seq(from =2008, to = 2015), hold = list(x2,x2,x2,x2,x2,x2,x2,x2))
-
-df_2 <- df_1 %>%
-  # formats date
-  mutate(end_1 = as.Date(paste0(end_1, "-01-01"))) %>%
-  # uses the function I defined to filter based on start and end dates
-  mutate(hold_2 = pmap(list(x=hold, start=start_1, end=end_1), f_temp1)) %>% 
-  # converts to time series
-  mutate(hold_ts = map(hold_2, f_convert_to_ts))
-
-
-# for testing as I built
-a <- df_3$hold_df3[[2]]
-str(a)
-b <- as.ts(a, start = start(a), end = end(a))
-b
-
-# looks like it worked!
-a <- df_4$hold_ts[1]
-str(a)
-
-
-
-
-
-# estimate model
-hold_reg <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m,
-                        sepstr_ss_ts_m, sepstr_mon_ts_m, mempost_m, jlf_fssm_ts_m, hlw_fss_ts_m,
-                   thk_2826_ts_m, chr_fri_ts_m)  
-
-mmod <- seas(x = temp_ser_ts,
+f_seas1<- function(x) {
+  seas(x,
            transform.function = "log",
            regression.variables = c("tdnolpyear", "ls2001.Sep"),
            forecast.maxlead = 48,# extends 30 periods ahead
@@ -346,6 +315,108 @@ mmod <- seas(x = temp_ser_ts,
            xreg = hold_reg, 
            regression.usertype = c("holiday", "holiday2", "holiday3"),
            regression.aictest = NULL)
+}
+
+f_extract_series <- function(x) {
+merge(
+   # creates and merges invididual zoo series
+   og = as.zoo(original(x)),
+   sa = as.zoo(final(x)),
+   sf = as.zoo(series(x, "s16"))) %>%
+   # converts to xts
+   as.xts(order.by = as.yearmon(index(.))) %>%
+  data.frame(date=time(.), .) %>%
+  mutate(date = as.Date(date)) %>%
+  # calculate a forecast of non-seasonally adjusted
+  mutate(og_fct = sa*sf)
+}
+
+f_ready_1 <- function(x, start_var, end_var) {
+  x <- x %>%
+  mutate(train_start = as.Date(start_var),
+            train_end = as.Date(end_var)) %>%
+  # calculates number of months since end of training period
+  mutate(proj_month = as.period(interval(ymd(date), ymd(train_end)), unit="months")) %>%
+  mutate(proj_month = as.character(proj_month)) %>%
+  mutate(proj_month = gsub("m 0d 0H 0M 0S","",proj_month)) %>%
+  mutate(proj_month = gsub("0S",0,proj_month)) %>%
+  mutate(proj_month = as.integer(proj_month)*-1)
+}
+
+x2 <- x %>%
+  data.frame(date=time(.), .) %>%
+  mutate(date = as.Date(date))
+
+df_1 <- data_frame(start_1 = as.Date("1987-01-01"), end_1 = seq(from =2010, to = 2014), hold = list(x2,x2,x2,x2,x2))
+
+
+df_2 <- df_1 %>%
+  # formats date
+  mutate(end_1 = as.Date(paste0(end_1, "-12-01"))) %>%
+  # uses the function I defined to filter based on start and end dates
+  mutate(hold_ts = pmap(list(x=hold, start=start_1, end=end_1), f_temp1)) %>% 
+  # converts to time series
+  mutate(hold_ts = map(hold_ts, f_convert_to_ts))
+
+# temporary look
+# a <- df_3$hold_df3[[2]]
+# str(a)
+# b <- as.ts(a, start = start(a), end = end(a))
+# b
+
+# another temporary look
+# a <- df_4$hold_ts[1]
+# str(a)
+
+# regressors
+hold_reg <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m,
+                        sepstr_ss_ts_m, sepstr_mon_ts_m, mempost_m, jlf_fssm_ts_m, hlw_fss_ts_m,
+                   thk_2826_ts_m, chr_fri_ts_m)  
+
+#estimate models
+df_3 <- df_2 %>%
+  mutate(model = map(hold_ts, f_seas1)) 
+
+#extract series
+df_4 <- df_3 %>%
+  mutate(selected_ser = map(model, f_extract_series)) %>%
+  mutate(selected_ser2 = pmap(list(x=selected_ser, start_var=start_1, end_var=end_1), f_ready_1))
+
+# temporary look at output
+#a_1 <- df_4$selected2[[1]]
+
+est_factors_1 <- df_4 %>%
+  select(selected_ser2) %>%
+  unnest() 
+
+# join on the original data
+# first rename the series
+colnames(x2)[2] <- c("og_act")
+est_factors_2 <- est_factors_1 %>%
+  left_join(x2, by="date")
+
+est_factors_3 <- est_factors_2 %>%
+    filter(proj_month >= 1 & proj_month <= 12)
+
+tograph <- est_factors_3 %>%
+  #filter(train_end == as.Date("2014-12-01")) %>%
+  gather(variable, value, -date, -train_start, -train_end, -proj_month) %>%
+  filter(variable %in% c("og_act", "og_fct"))
+
+p1 <- ggplot(data=tograph, aes(x=proj_month, y=value, color=variable))
+p1 <- p1 + geom_line()
+p1 <- p1 + facet_grid(train_end ~ . )
+p1
+
+
+# mmod <- seas(x = temp_ser_ts,
+#            transform.function = "log",
+#            regression.variables = c("tdnolpyear", "ls2001.Sep"),
+#            forecast.maxlead = 48,# extends 30 periods ahead
+#            seats.appendfcst="yes",
+#            xreg = hold_reg, 
+#            regression.usertype = c("holiday", "holiday2", "holiday3"),
+#            regression.aictest = NULL)
 summary(mmod)
 
 # use monthly to create data frame
