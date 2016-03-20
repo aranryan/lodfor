@@ -21,6 +21,7 @@ require(scales)
 library(lubridate)
 library(purrr)
 library(lazyeval)
+library(forecast)
 
 
 # If I put autodep=TRUE as an argument in the following then I get
@@ -317,6 +318,13 @@ f_seas1<- function(x) {
            regression.aictest = NULL)
 }
 
+f_hw<- function(x) {
+  y <- hw(x, seasonal="multiplicative")
+  # as.zoo()%>% 
+  #  as.xts(order.by = as.yearmon(index(.)))  %>%
+  #  data.frame(date=time(.), .)
+}
+
 f_extract_series <- function(x) {
 merge(
    # creates and merges invididual zoo series
@@ -329,6 +337,18 @@ merge(
   mutate(date = as.Date(date)) %>%
   # calculate a forecast of non-seasonally adjusted
   mutate(og_fct = sa*sf)
+}
+
+f_extract_hw <- function(X) {
+ x$mean #%>%
+   #as.zoo() 
+ 
+ # %>% 
+ #   as.xts(order.by = as.yearmon(index(.))) %>%
+ #   data.frame(date=time(.), .) %>%
+ #   mutate(date = as.Date(date))
+ #   colnames(b)[2] <- c("oghw_fct")
+    
 }
 
 f_ready_1 <- function(x, start_var, end_var) {
@@ -375,38 +395,171 @@ hold_reg <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m,
 
 #estimate models
 df_3 <- df_2 %>%
-  mutate(model = map(hold_ts, f_seas1)) 
+  mutate(model = map(hold_ts, f_seas1)) %>%
+  # fit a holt winters seasonal model
+  mutate(model_hw = map(hold_ts, f_hw))
+
+ab <-df_3$model_hw[4]
+str(ab)
+ba <- ab[[1]]
+
+
+ba  <- ab[[1]][[2]] %>%
+  as.zoo()%>% 
+   as.xts(order.by = as.yearmon(index(.))) 
+
+ba <- ab$mean %>%
+   as.zoo() %>% 
+   as.xts(order.by = as.yearmon(index(.))) %>%
+   data.frame(date=time(.), .) %>%
+   mutate(date = as.Date(date))
+   colnames(ba)[2] <- c("oghw_fct")
+ 
+     ba
+c <- f_extract_hw(a)
 
 #extract series
 df_4 <- df_3 %>%
-  mutate(selected_ser = map(model, f_extract_series)) %>%
-  mutate(selected_ser2 = pmap(list(x=selected_ser, start_var=start_1, end_var=end_1), f_ready_1))
+  mutate(selected_series = map(model, f_extract_series)) %>%
+  # modified data frame of selected series a bit
+  mutate(selected_series = pmap(list(x=selected_series, start_var=start_1, end_var=end_1), f_ready_1)) %>%
+  # from the hw models stored in a column, extract the second element, which is the mean
+  mutate(hw_mean = map(model_hw, "mean")) 
 
-# temporary look at output
-#a_1 <- df_4$selected2[[1]]
+# for looking at an individual element
+a_1 <- df_4$hw_mean[[1]]
+str(a_1)
+
+######
+#
+# extract the hw predictions
+# I couldn't manage to do this as a map step.Keeping getting hung up with
+# having a "list of 1" containing a time series.
+
+# this works
+a_1 <- df_4$hw_mean
+d_1 <- NULL
+for (i in 1:5) {
+  e_1 <- xts(a_1[[i]], order.by = as.yearmon(index(a_1[[i]])))
+  #print(e_1)
+  d_1 <- cbind(d_1, e_1)
+}
+
+# convert to a data frame
+d_2 <- d_1 %>%
+   data.frame(date=time(.), .) %>%
+   mutate(date = as.Date(date))
+# then I would need to do this to help name it
+colnames(d_2) <- c("date", as.character(df_4$end_1))
+# tidy
+hw_mean_results <- d_2 %>%
+  gather(train_end, oghw_fct, -date) %>%
+  mutate(train_end = as.Date(train_end))
+
+###
+#
+# extract estimated factors 
 
 est_factors_1 <- df_4 %>%
-  select(selected_ser2) %>%
+  select(selected_series) %>%
   unnest() 
 
-# join on the original data
+#### add on the hw predictions
+# made the assumption there is only one test_start
+# if the following is not true, then need to think about the code more. Need
+# to bring train_start into the dataframe of hw results to make better join.
+stopifnot(1 == length(unique(est_factors_1$train_start)))
+
+est_factors_2 <- est_factors_1 %>%
+  left_join(hw_mean_results, by=c("train_end", "date"))
+
+####
+#
+# could I compare to a smoothed version of the actual series
+
 # first rename the series
 colnames(x2)[2] <- c("og_act")
-est_factors_2 <- est_factors_1 %>%
-  left_join(x2, by="date")
 
+x3 <- x2 %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+# fit a STL decomposition
+# STL stands for Seasonal and Trend decomposition using Loess
+fit_stl <- stl(x3,s.window="periodic")
+
+# # extract the fitted one-step ahead forecast values
+# hw <- fit2$fitted %>%
+#   xts(order.by=(index(x3)))
+# # name the series
+# colnames(trend)[1] <- c("oghw_act")
+
+a <- fit_stl$time.series
+trend <- a[,"trend"] %>%
+  xts(order.by=(index(x3)))
+
+# name the series
+colnames(trend)[1] <- c("ogstl_act")
+# merge with original
+x4 <- x3 %>%
+  merge(trend) %>%
+  data.frame(date=time(.), .) %>%
+  mutate(date = as.Date(date))
+
+
+# graph it to tak a look
+tograph <- x4 %>%
+  gather(variable, value, -date)
+p1 <- ggplot(data=tograph, aes(x=date, y=value, color=variable))
+p1 <- p1 + geom_line()
+p1
+
+# join the original data onto the test projections
 est_factors_3 <- est_factors_2 %>%
+  left_join(x4, by="date") %>%
+  arrange(train_end, date) %>%
+  group_by(train_end) %>%
+  mutate(og_act_pchya = og_act / lag(og_act,12)-1) %>%
+  # calculate based on hw forecast
+  mutate(oghw_fct_pchya = oghw_fct / lag(og_act,12)-1) %>%
+  # calculate a forecast based on the stl trend
+  mutate(ogstl_fct = ogstl_act*sf) %>%
+  mutate(ogstl_fct_pchya = ogstl_fct / lag(og_act,12)-1) %>%
+  # calculate a trend based pchya based on the stl trend
+  mutate(ogstl_act_pchya = ogstl_act / lag(ogstl_act,12)-1) %>%
+  ungroup()
+
+est_factors_4 <- est_factors_3 %>%
     filter(proj_month >= 1 & proj_month <= 12)
 
-tograph <- est_factors_3 %>%
-  #filter(train_end == as.Date("2014-12-01")) %>%
+# looking at levels
+tograph <- est_factors_4 %>%
+#  filter(train_end == as.Date("2012-12-01")) %>%
   gather(variable, value, -date, -train_start, -train_end, -proj_month) %>%
-  filter(variable %in% c("og_act", "og_fct"))
+  filter(variable %in% c("og_act", "ogstl_act", "ogstl_fct"))
 
 p1 <- ggplot(data=tograph, aes(x=proj_month, y=value, color=variable))
 p1 <- p1 + geom_line()
-p1 <- p1 + facet_grid(train_end ~ . )
+p1 <- p1 + facet_wrap(~train_end)
 p1
+
+# looking at pchya
+tograph <- est_factors_4 %>%
+#  filter(train_end == as.Date("2012-12-01")) %>%
+  gather(variable, value, -date, -train_start, -train_end, -proj_month) %>%
+  filter(variable %in% c("og_act_pchya", "ogstl_act_pchya", "ogstl_fct_pchya"))
+
+p1 <- ggplot(data=tograph, aes(x=proj_month, y=value, color=variable))
+p1 <- p1 + geom_line()
+p1 <- p1 + facet_wrap(~train_end)
+p1
+
+
+# wow, lot's of progress up to this point!
+
+
+
 
 
 # mmod <- seas(x = temp_ser_ts,
