@@ -1,0 +1,413 @@
+---
+title: "Seasonal model working"
+author: "Tourism Economics"
+date: "February 12, 2016"
+output: html_document
+---
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(readr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+library(seasonal, warn.conflicts=FALSE)
+require(xtable)
+require(ggplot2)
+require(knitr)
+require(RColorBrewer)
+require(scales)
+library(lubridate)
+library(purrr)
+library(lazyeval)
+library(forecast)
+
+
+# If I put autodep=TRUE as an argument in the following then I get
+# some issues with the graphs, such as grey backgrounds and changes
+# in labeling. Maybe it somehow impacts the theme?
+#knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_exp_seasonal_short/fig-',  fig.show='asis', fig.keep='high')
+# tells it to keep going even if there is an error
+knitr::opts_chunk$set(error = TRUE)
+
+```
+
+
+```{r}
+
+load(file="~/Project/R projects/lodfor/output_data/holiday_regress.Rdata")
+```
+
+```{r}
+# unpack lists
+
+a <- c(val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, thk_list, chr_list)
+
+varNames <- names(a)
+for (i in seq_along(varNames)) {
+print(varNames[i])
+ hold_a <- a[[i]]
+ # names the vector, this uses the first object as a name for the second object
+ assign(paste(varNames[i], sep=""), hold_a)
+}
+
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+load("~/Project/R projects/lodfor/output_data/ushist_m.Rdata")
+load("~/Project/R projects/lodfor/output_data/ushist_q.Rdata")
+load("~/Project/R projects/lodfor/output_data/ushist_a.Rdata")
+
+```
+
+```{r define_theme, echo=FALSE, message=FALSE, warning=FALSE}
+#Displays palette and sets the ts1 theme
+
+#display.brewer.pal(10, "RdBu")
+mypallete <- brewer.pal( 10 , "RdBu" )
+colors_ts1 <- scale_colour_manual(values = mypallete[c(10, 1, 5, 4)])
+# I don't use the following, was an example I saw somewhere maybe as a way to 
+# interpolate additional palette colors
+#mypal <- colorRampPalette( brewer.pal( 10 , "RdBu" ) )
+theme_ts1 <- function(base_size = 12, base_family = "") {
+  theme_classic(base_size = base_size) %+replace%
+    theme(                                 
+      panel.grid.major.x=element_blank(),
+      panel.grid.minor.x=element_blank(),
+      panel.grid.minor.y=element_blank(),
+      axis.ticks.y=element_line(size=.2),
+      axis.ticks.x=element_line(size=.2),
+      panel.background=element_blank(),
+      legend.title=element_blank(),
+      legend.key=element_rect(fill="white", colour = "white"),
+      legend.key.size=unit(1, "cm"),
+      legend.text=element_text(size=rel(1)),
+      #legend.position = c(1, .1),
+      legend.justification = "right",
+      axis.line=element_line(size=.2),
+      axis.title.y=element_blank(),
+      axis.title.x=element_blank(),
+      axis.text=element_text(color="black",size=rel(.7)),
+      # following seems to adjust y-axis title
+      plot.title=element_text(size=base_size * .8, face="plain",hjust=0,vjust=1)
+    #theme(plot.title = element_text(lineheight=.8, face="bold"))
+    )
+}
+theme_set(theme_ts1())
+```
+
+```{r}
+
+segrun <- c("upmus_demd")
+
+```
+
+
+### Set up data to run using: `r segrun`
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# shorten dates
+#ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
+
+# sets up a single series to use for a few examples
+demo_df <- ushist_m %>%
+  data.frame(date=time(.), .) %>%
+  select_("date", segrun)
+
+# sets up a similar annual data frame
+demo_df_a <- ushist_a %>%
+  data.frame(date=time(.), .) %>%
+  mutate(upmus_demd = upmus_demt / 365) %>%
+  select_("date", segrun)
+  
+x <- demo_df_a %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+tempa <- x %>%
+  data.frame(date=time(.), .) %>%
+  rename_("sa1a" = segrun) %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  as.xts(order.by = as.yearmon(index(.)))
+
+# use annual to create data frame
+# monthly series that is the annual value for each month
+# steps are a bit lengthy, but this is the way I could figure out to get the 
+# annual data turned into monthly, filling all the way through the current year.
+tempa_1 <- tempa %>%
+  data.frame(date=time(.), .) %>%
+  mutate(year = year(date)) %>%
+  select(-date)
+
+# creates a sequence of dates
+sq <- seq(as.Date(start(tempa)), as.Date(end(tempa), frac = 1), by = "month") %>%
+  as.yearmon(.) %>%
+  data.frame()
+colnames(sq) <- c("date")
+sq <- sq %>%
+  mutate(year = year(date))
+
+# join the data onto the data
+tempa_by_m  <- sq %>%
+  left_join(tempa_1, by=c("year")) %>%
+  filter(!(is.na(sa1a))) %>%
+  select(-year) %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+```
+  
+
+## Estimate and test model on multiple periods
+
+```{r}
+
+# define functions
+f_filter_start_end <- function(x, start, end) {
+  .dots <- list(~date <= end)
+  filter_(x, .dots = .dots)
+}
+
+f_convert_to_ts <- function(x) {
+  x <- x %>%
+    read.zoo(regular=TRUE, drop=FALSE) %>%
+    xts() %>%
+    convertIndex(value="yearmon") %>%
+    as.ts(start = start(.), end = end(.))
+}
+
+f_seas1<- function(x) {
+  seas(x,
+           transform.function = "log",
+           regression.variables = c("tdnolpyear", "ls2001.Sep"),
+           forecast.maxlead = 48,# extends 30 periods ahead
+           seats.appendfcst="yes",
+           xreg = hold_reg, 
+           regression.usertype = c("holiday", "holiday2", "holiday3"),
+           regression.aictest = NULL)
+}
+
+f_extract_series <- function(x) {
+merge(
+   # creates and merges invididual zoo series
+   og = as.zoo(original(x)),
+   sa = as.zoo(final(x)),
+   sf = as.zoo(series(x, "s16"))) %>%
+   # converts to xts
+   as.xts(order.by = as.yearmon(index(.))) %>%
+  data.frame(date=time(.), .) %>%
+  mutate(date = as.Date(date)) %>%
+  # calculate a forecast of non-seasonally adjusted
+  mutate(og_fct = sa*sf)
+}
+
+f_ready_1 <- function(x, start_var, end_var) {
+  x <- x %>%
+  mutate(train_start = as.Date(start_var),
+            train_end = as.Date(end_var)) %>%
+  # calculates number of months since end of training period
+  mutate(proj_month = as.period(interval(ymd(date), ymd(train_end)), unit="months")) %>%
+  mutate(proj_month = as.character(proj_month)) %>%
+  mutate(proj_month = gsub("m 0d 0H 0M 0S","",proj_month)) %>%
+  mutate(proj_month = gsub("0S",0,proj_month)) %>%
+  mutate(proj_month = as.integer(proj_month)*-1)
+}
+
+# create historical data frame
+
+x_df <- demo_df %>%
+  # shorten to available history
+  filter(date >= as.Date("1987-01-01") & date <= as.Date("2015-12-12")) %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon") %>%
+  data.frame(date=time(.), .) %>%
+  mutate(date = as.Date(date))
+
+df_1 <- data_frame(start_1 = as.Date("1987-01-01"), end_1 = seq(from =2010, to = 2014), 
+                   hold_data = list(x_df, x_df, x_df, x_df, x_df))
+
+df_2 <- df_1 %>%
+  # formats date
+  mutate(end_1 = as.Date(paste0(end_1, "-12-01"))) %>%
+  # uses the function I defined to filter based on start and end dates
+  mutate(hold_ts = pmap(list(x=hold_data, start=start_1, end=end_1), f_filter_start_end)) %>% 
+  # converts to time series
+  mutate(hold_ts = map(hold_ts, f_convert_to_ts))
+
+# temporary look
+# a <- df_3$hold_df3[[2]]
+# str(a)
+# b <- as.ts(a, start = start(a), end = end(a))
+# b
+
+# regressors
+hold_reg <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m,
+                        sepstr_ss_ts_m, sepstr_mon_ts_m, mempost_m, jlf_fssm_ts_m, hlw_fss_ts_m,
+                   thk_2826_ts_m, chr_fri_ts_m)  
+
+#estimate seasonal model, extract certain series and process them
+df_3 <- df_2 %>%
+  # seasonal adjustment
+  mutate(model = map(hold_ts, f_seas1)) %>%
+  # extract series
+  mutate(selected_series = map(model, f_extract_series)) %>%
+  # process the series a bit
+  mutate(selected_series = pmap(list(x=selected_series, start_var=start_1, end_var=end_1), f_ready_1))
+  
+
+# estimate holt-winters model, and extract series
+df_4 <- df_3 %>%
+  # fit a holt winters seasonal model
+  mutate(model_hw = map(hold_ts, function(x) hw(x, seasonal="multiplicative"))) %>%
+  # from the hw models stored in a column, extract the second element, which is the mean
+  mutate(hw_mean = map(model_hw, "mean")) 
+
+# # temporary look at an individual element
+# a_1 <- df_4$hw_mean[[1]]
+# str(a_1)
+
+######
+#
+# extract the hw predictions
+# I couldn't manage to do this as a map step. Keeping getting hung up with
+# having a "list of 1" containing a time series.
+
+# extract hw predictions
+a_1 <- df_4$hw_mean
+# use loop to get out of list
+d_1 <- NULL
+for (i in 1:5) {
+  e_1 <- xts(a_1[[i]], order.by = as.yearmon(index(a_1[[i]])))
+  #print(e_1)
+  d_1 <- cbind(d_1, e_1)
+}
+
+# convert hw predictions to a data frame
+d_2 <- d_1 %>%
+   data.frame(date=time(.), .) %>%
+   mutate(date = as.Date(date))
+# then I would need to do this to help name it
+colnames(d_2) <- c("date", as.character(df_4$end_1))
+# set up tidy container of hw predictions
+hw_mean_results <- d_2 %>%
+  gather(train_end, oghw_fct, -date) %>%
+  mutate(train_end = as.Date(train_end))
+
+#######
+#
+# extract estimated factors 
+
+est_factors_1 <- df_4 %>%
+  select(selected_series) %>%
+  unnest() 
+
+######
+#
+# add on the hw predictions
+#
+
+# made the assumption there is only one test_start
+# if the following is not true, then need to think about the code more. Need
+# to bring train_start into the dataframe of hw results to make better join.
+stopifnot(1 == length(unique(est_factors_1$train_start)))
+
+est_factors_2 <- est_factors_1 %>%
+  left_join(hw_mean_results, by=c("train_end", "date"))
+
+####
+#
+# could I compare to a smoothed version of the actual series
+
+# first rename the series
+colnames(x_df)[2] <- c("og_act")
+
+x3 <- x_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+
+# fit a STL decomposition
+# STL stands for Seasonal and Trend decomposition using Loess
+fit_stl <- stl(x3,s.window="periodic")
+
+# # extract the fitted one-step ahead forecast values
+# hw <- fit2$fitted %>%
+#   xts(order.by=(index(x3)))
+# # name the series
+# colnames(trend)[1] <- c("oghw_act")
+
+a <- fit_stl$time.series
+trend <- a[,"trend"] %>%
+  xts(order.by=(index(x3)))
+
+# name the series
+colnames(trend)[1] <- c("ogstl_act")
+# merge with original
+x4 <- x3 %>%
+  merge(trend) %>%
+  data.frame(date=time(.), .) %>%
+  mutate(date = as.Date(date))
+
+
+# graph it to take a look
+tograph <- x4 %>%
+  gather(variable, value, -date)
+p1 <- ggplot(data=tograph, aes(x=date, y=value, color=variable))
+p1 <- p1 + geom_line()
+p1
+
+# join the original data onto the test projections
+est_factors_3 <- est_factors_2 %>%
+  left_join(x4, by="date") %>%
+  arrange(train_end, date) %>%
+  group_by(train_end) %>%
+  mutate(og_act_pchya = og_act / lag(og_act,12)-1) %>%
+  # calculate based on hw forecast
+  mutate(oghw_fct_pchya = oghw_fct / lag(og_act,12)-1) %>%
+  # calculate a forecast based on the stl trend
+  mutate(ogstl_fct = ogstl_act*sf) %>%
+  mutate(ogstl_fct_pchya = ogstl_fct / lag(og_act,12)-1) %>%
+  # calculate a trend based pchya based on the stl trend
+  mutate(ogstl_act_pchya = ogstl_act / lag(ogstl_act,12)-1) %>%
+  ungroup()
+
+est_factors_4 <- est_factors_3 %>%
+    filter(proj_month >= 1 & proj_month <= 12)
+
+# looking at levels
+tograph <- est_factors_4 %>%
+#  filter(train_end == as.Date("2012-12-01")) %>%
+  gather(variable, value, -date, -train_start, -train_end, -proj_month) %>%
+  filter(variable %in% c("og_act", "ogstl_act", "ogstl_fct"))
+
+p1 <- ggplot(data=tograph, aes(x=proj_month, y=value, color=variable))
+p1 <- p1 + geom_line()
+p1 <- p1 + facet_wrap(~train_end)
+p1
+
+# looking at pchya
+tograph <- est_factors_4 %>%
+#  filter(train_end == as.Date("2012-12-01")) %>%
+  gather(variable, value, -date, -train_start, -train_end, -proj_month) %>%
+  filter(variable %in% c("og_act_pchya", "ogstl_act_pchya", "ogstl_fct_pchya"))
+
+p1 <- ggplot(data=tograph, aes(x=proj_month, y=value, color=variable))
+p1 <- p1 + geom_line()
+p1 <- p1 + facet_wrap(~train_end)
+p1
+
+
+# wow, lot's of progress up to this point!
+
+
+
+```
+
+

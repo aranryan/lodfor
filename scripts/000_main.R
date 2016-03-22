@@ -82,7 +82,10 @@ rmarkdown::render("scripts/210_seasonal_create_dates.Rmd")
 rmarkdown::render("scripts/211_seasonal_create_regressors.Rmd")
 # this is a discussion document I used with IHG on March 15, 2016
 rmarkdown::render("scripts/220_sea_model_work.Rmd")
-# taking the analysis further
-rmarkdown::render("scripts/221_sea_model_work.Rmd")
+# taking the analysis further, works through it by steps
+# successfully runs a model for multiple test periods
+rmarkdown::render("scripts/221_sea_model_work_bysteps.Rmd")
+# taking the analysis further, better structuring of steps
+rmarkdown::render("scripts/222_sea_model_work_structure.Rmd")
 
 
