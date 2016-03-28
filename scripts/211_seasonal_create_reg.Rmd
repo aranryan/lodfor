@@ -721,9 +721,74 @@ thk_list <- create_named_list(v_names)
 
 
 ### Hanukkah
-When: Hanukkah is an eight-day Jewish observance.The first night of Hanukkah is the night before the first day of Hanukkah. From 1950 to 2050, the earliest is Nov. 28 and the latest is Dec. 27. About a tenth of the time it starts in those last few days of November. About a third of the time it starts on or before Dec. 7. About a fifth of the time it starts on or after Dec. 22. 
+When: Hanukkah is an eight-day Jewish observance.The first night of Hanukkah is the night before the first day of Hanukkah. The dates as I have them are for the first day, but the Jewish day begins sunset of the day before, so Hanukkah starts on the evening before the dates I have. From 1950 to 2050, the earliest is Nov. 28 and the latest is Dec. 27. About a tenth of the time it starts in those last few days of November. About a third of the time it starts on or before Dec. 7. About a fifth of the time it starts on or after Dec. 22. 
 Discussion comments: Hanukah doesn’t have a huge impact. Mainly groups and there isn’t that much business in December. 
-Sometimes Hanuakah and Christmas intersect
+Sometimes Hanukkah and Christmas intersect
+Approach: Count the number of days in Nov., Dec., Jan. that are covered by Hanukah. Also count the number of weekdays in those months covered by Hanukkah.
+
+```{r Hanukkah}
+
+df1 <- holiday_daily %>%
+  select(date:fssm, han) %>%
+  # some temporoary colummns
+  mutate(hanpre1 = ifelse(lead(han, n=1, order_by=date) == 1, 1, 0)) %>%
+  mutate(hanpost1 = ifelse(lag(han, n=1, order_by=date) == 1, 1, 0)) %>%
+  mutate(hanpost2 = ifelse(lag(han, n=2, order_by=date) == 1, 1, 0)) %>%
+  mutate(hanpost3 = ifelse(lag(han, n=3, order_by=date) == 1, 1, 0)) %>%
+  mutate(hanpost4 = ifelse(lag(han, n=4, order_by=date) == 1, 1, 0)) %>%
+  mutate(hanpost5 = ifelse(lag(han, n=5, order_by=date) == 1, 1, 0)) %>%
+  mutate(hanpost6 = ifelse(lag(han, n=6, order_by=date) == 1, 1, 0)) %>%
+  # used to calculate an indicator of whether the day is after the first night
+  mutate(hannights = hanpre1 + han + hanpost1 + hanpost2 + hanpost3 + hanpost4 + hanpost5 + hanpost6) %>%
+  # remove temp columns
+  select(-hanpre1, -hanpost1, -hanpost2, -hanpost3, -hanpost4, -hanpost5, -hanpost6)
+
+# create a series indicating number of weekdays cvered by hanukah
+df2 <- df1 %>%
+  mutate(hanwdays = ifelse(hannights == 1 & fss != 1, 1, 0))
+
+# take a look
+a <- df2 %>%
+  filter(hannights == 1) %>%
+  select(date:day, wday, hannights, hanwdays) %>%
+  filter(date >= as.Date("2015-01-01") & date <= as.Date("2017-01-01"))
+kable(tail(a, n=12), digits = 4, row.names=FALSE)
+
+# sum daily series into monthly totals
+df3 <- df2 %>%
+  mutate(year_mon = paste(year(date), month(date), sep="-")) %>%
+  group_by(year_mon) %>%
+  summarize(hannights = sum(hannights), hanwdays = sum(hanwdays)) %>%
+  # fixes the first row, which was coming through as NA and was
+  # messing up the centered regression calculation
+  mutate(hannights = ifelse(is.na(hannights),0, hannights)) %>%
+  mutate(hanwdays = ifelse(is.na(hanwdays),0, hanwdays)) %>%
+  mutate(date = as.Date(as.yearmon(year_mon))) %>%
+  arrange(date)
+
+  
+# calculate centered regressor
+df4 <- df3 %>%
+  select(-year_mon) %>%
+  arlodr::center_reg("hannights") %>%
+    arlodr::center_reg("hanwdays") %>%
+  # keep date column in the front
+  select(date, everything()) %>%
+  arrange(date) %>%
+  data.frame()
+
+# use a function to convert select series to monthly ts objects
+
+hannights_m <- arlodr::create_ts_reg_m(df4, "hannights_cent") 
+hanwdays_m <- arlodr::create_ts_reg_m(df4, "hanwdays_cent") 
+v_names <- c("hannights_m", "hanwdays_m")
+
+han_list <- create_named_list(v_names)
+
+```
+
+
+
 
 ### Christmas
 Discussion comments: Christmas on the weekend vs. the middle of the week. 
@@ -784,6 +849,6 @@ Discussion comments: STR reallocates the day, so take total, divide by 29, then 
 I can then save multiple objects into a single file
 ```{r}
 # save, with list of the objects to save together in the Rdata file
-save(val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, thk_list, chr_list, file="output_data/holiday_regress.Rdata")
+save(val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, thk_list, chr_list, han_list, file="output_data/holiday_regress.Rdata")
 
 ```

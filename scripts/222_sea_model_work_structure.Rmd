@@ -43,7 +43,7 @@ load(file="~/Project/R projects/lodfor/output_data/holiday_regress.Rdata")
 ```{r}
 # unpack lists
 
-a <- c(val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, thk_list, chr_list)
+a <- c(val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, thk_list, chr_list, han_list)
 
 varNames <- names(a)
 for (i in seq_along(varNames)) {
@@ -102,71 +102,12 @@ theme_set(theme_ts1())
 
 ```{r}
 
-segrun <- c("upmus_demd")
+segrun <- c("totus_demd")
 
 ```
-
-
-### Set up data to run using: `r segrun`
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-
-# shorten dates
-#ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
-
-# sets up a single series to use for a few examples
-demo_df <- ushist_m %>%
-  data.frame(date=time(.), .) %>%
-  select_("date", segrun)
-
-# sets up a similar annual data frame
-demo_df_a <- ushist_a %>%
-  data.frame(date=time(.), .) %>%
-  mutate(upmus_demd = upmus_demt / 365) %>%
-  select_("date", segrun)
-  
-x <- demo_df_a %>%
-  read.zoo(regular=TRUE, drop=FALSE) %>%
-  xts() %>%
-  convertIndex("yearmon")
-
-tempa <- x %>%
-  data.frame(date=time(.), .) %>%
-  rename_("sa1a" = segrun) %>%
-  read.zoo(regular=TRUE, drop=FALSE) %>%
-  as.xts(order.by = as.yearmon(index(.)))
-
-# use annual to create data frame
-# monthly series that is the annual value for each month
-# steps are a bit lengthy, but this is the way I could figure out to get the 
-# annual data turned into monthly, filling all the way through the current year.
-tempa_1 <- tempa %>%
-  data.frame(date=time(.), .) %>%
-  mutate(year = year(date)) %>%
-  select(-date)
-
-# creates a sequence of dates
-sq <- seq(as.Date(start(tempa)), as.Date(end(tempa), frac = 1), by = "month") %>%
-  as.yearmon(.) %>%
-  data.frame()
-colnames(sq) <- c("date")
-sq <- sq %>%
-  mutate(year = year(date))
-
-# join the data onto the data
-tempa_by_m  <- sq %>%
-  left_join(tempa_1, by=c("year")) %>%
-  filter(!(is.na(sa1a))) %>%
-  select(-year) %>%
-  read.zoo(regular=TRUE, drop=FALSE) %>%
-  xts() %>%
-  convertIndex("yearmon")
-
-```
-  
-
-## Estimate and test model on multiple periods
 
 ```{r}
+# Define functions
 
 # define functions
 f_filter_start_end <- function(x, start, end) {
@@ -182,7 +123,7 @@ f_convert_to_ts <- function(x) {
     as.ts(start = start(.), end = end(.))
 }
 
-f_seas1<- function(x) {
+f_seas1<- function(x, hold_reg) {
   seas(x,
            transform.function = "log",
            regression.variables = c("tdnolpyear", "ls2001.Sep"),
@@ -219,153 +160,188 @@ f_ready_1 <- function(x, start_var, end_var) {
   mutate(proj_month = as.integer(proj_month)*-1)
 }
 
-# create historical data frame
+f_ready_2 <- function(x, start_var, end_var) {
+  x <- x %>%
+  mutate(train_start = as.Date(start_var),
+            train_end = as.Date(end_var))
+}
 
-x_df <- demo_df %>%
-  # shorten to available history
-  filter(date >= as.Date("1987-01-01") & date <= as.Date("2015-12-12")) %>%
+extract_ts <- function(x, newname) {
+ temp <- xts(x, order.by = as.yearmon(index(x))) %>%
+   data.frame(date=time(.), .) %>%
+   mutate(date = as.Date(date))
+   # set the name of the column with the data
+   colnames(temp) <- c("date", newname)
+   return(temp)
+}
+
+# function that estimates a smoothed version of a series
+# by using the stl function and extracting the trend component
+# Accepts a dataframe and a name for the smoothed series, such as
+# "ogstl_act" and returns a data frame with the original series plus
+# the smoothed series
+
+f_stl_trend <- function(x, newname) {
+# create an xts object
+x_xts <- x %>%
   read.zoo(regular=TRUE, drop=FALSE) %>%
   xts() %>%
-  convertIndex("yearmon") %>%
+  convertIndex("yearmon") 
+
+# fit a STL decomposition
+# STL stands for Seasonal and Trend decomposition using Loess
+fit_stl <- stl(x_xts,s.window="periodic")
+
+tempts <- fit_stl$time.series
+trend <- tempts[,"trend"] %>%
+  xts(order.by=(index(x_xts)))
+
+# name the series
+colnames(trend)[1] <- c(newname)
+
+# merge with original
+out <- x_xts %>%
+  merge(trend) %>%
   data.frame(date=time(.), .) %>%
   mutate(date = as.Date(date))
+}
 
-df_1 <- data_frame(start_1 = as.Date("1987-01-01"), end_1 = seq(from =2010, to = 2014), 
-                   hold_data = list(x_df, x_df, x_df, x_df, x_df))
+```
+
+
+### Set up data to run using: `r segrun`
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+# shorten dates
+#ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
+
+# sets up a single series to use for a few examples
+demo_df <- ushist_m %>%
+  data.frame(date=time(.), .) %>%
+  select_("date", segrun)
+
+##########
+#
+# I dropped this annual step because I was using the smoothed data for comparisons
+#
+
+# # sets up a similar annual data frame
+# demo_df_a <- ushist_a %>%
+#   data.frame(date=time(.), .) %>%
+#   mutate(upmus_demd = upmus_demt / 365) %>%
+#   select_("date", segrun)
+#   
+# x <- demo_df_a %>%
+#   read.zoo(regular=TRUE, drop=FALSE) %>%
+#   xts() %>%
+#   convertIndex("yearmon")
+# 
+# tempa <- x %>%
+#   data.frame(date=time(.), .) %>%
+#   rename_("sa1a" = segrun) %>%
+#   read.zoo(regular=TRUE, drop=FALSE) %>%
+#   as.xts(order.by = as.yearmon(index(.)))
+# 
+# # use annual to create data frame
+# # monthly series that is the annual value for each month
+# # steps are a bit lengthy, but this is the way I could figure out to get the 
+# # annual data turned into monthly, filling all the way through the current year.
+# tempa_1 <- tempa %>%
+#   data.frame(date=time(.), .) %>%
+#   mutate(year = year(date)) %>%
+#   select(-date)
+# 
+# # creates a sequence of dates
+# sq <- seq(as.Date(start(tempa)), as.Date(end(tempa), frac = 1), by = "month") %>%
+#   as.yearmon(.) %>%
+#   data.frame()
+# colnames(sq) <- c("date")
+# sq <- sq %>%
+#   mutate(year = year(date))
+# 
+# # join the data onto the data
+# tempa_by_m  <- sq %>%
+#   left_join(tempa_1, by=c("year")) %>%
+#   filter(!(is.na(sa1a))) %>%
+#   select(-year) %>%
+#   read.zoo(regular=TRUE, drop=FALSE) %>%
+#   xts() %>%
+#   convertIndex("yearmon")
+
+```
+  
+
+## Estimate and test model on multiple periods
+
+```{r}
+
+
+test_seasonal <- function(hold_reg, hist_df, train_start_year, train_end_year){
+
+# calculate the earlies date in the historical data frame to use in the start column
+earliest_date <- min(x_df$date)
+
+# set up data frame with sequence of start and end dates for the training periods
+df_1 <- data_frame(start_1 = earliest_date, 
+                   end_1 = seq(from = train_start_year, to = train_end_year))
 
 df_2 <- df_1 %>%
   # formats date
   mutate(end_1 = as.Date(paste0(end_1, "-12-01"))) %>%
   # uses the function I defined to filter based on start and end dates
-  mutate(hold_ts = pmap(list(x=hold_data, start=start_1, end=end_1), f_filter_start_end)) %>% 
+  mutate(hold_ts = pmap(list(start=start_1, end=end_1), f_filter_start_end, x=x_df)) %>% 
   # converts to time series
   mutate(hold_ts = map(hold_ts, f_convert_to_ts))
-
-# temporary look
-# a <- df_3$hold_df3[[2]]
-# str(a)
-# b <- as.ts(a, start = start(a), end = end(a))
-# b
-
-# regressors
-hold_reg <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m,
-                        sepstr_ss_ts_m, sepstr_mon_ts_m, mempost_m, jlf_fssm_ts_m, hlw_fss_ts_m,
-                   thk_2826_ts_m, chr_fri_ts_m)  
 
 #estimate seasonal model, extract certain series and process them
 df_3 <- df_2 %>%
   # seasonal adjustment
-  mutate(model = map(hold_ts, f_seas1)) %>%
+  mutate(model = map(hold_ts, f_seas1, hold_reg=hold_reg)) %>%
   # extract series
   mutate(selected_series = map(model, f_extract_series)) %>%
   # process the series a bit
   mutate(selected_series = pmap(list(x=selected_series, start_var=start_1, end_var=end_1), f_ready_1))
-  
 
 # estimate holt-winters model, and extract series
 df_4 <- df_3 %>%
   # fit a holt winters seasonal model
   mutate(model_hw = map(hold_ts, function(x) hw(x, seasonal="multiplicative"))) %>%
   # from the hw models stored in a column, extract the second element, which is the mean
-  mutate(hw_mean = map(model_hw, "mean")) 
+  mutate(hw_mean = map(model_hw, "mean")) %>%
+  # extract the time series
+  mutate(hw_mean = pmap(list(x=hw_mean, newname = "oghw_fct"), extract_ts)) %>%
+  # process the series a bit
+  mutate(hw_mean = pmap(list(x=hw_mean, start_var=start_1, end_var=end_1), f_ready_2)) %>%
+  # join the hw predictions onto the factors
+  mutate(selected_series = map2(.x=selected_series, .y=hw_mean, .f=left_join, by=c("date", "train_start", "train_end")))
 
 # # temporary look at an individual element
-# a_1 <- df_4$hw_mean[[1]]
-# str(a_1)
+# a_1 <- df_4$selected_series[[1]]
+# a_2 <- df_4$hw_mean[[1]]
 
-######
-#
-# extract the hw predictions
-# I couldn't manage to do this as a map step. Keeping getting hung up with
-# having a "list of 1" containing a time series.
-
-# extract hw predictions
-a_1 <- df_4$hw_mean
-# use loop to get out of list
-d_1 <- NULL
-for (i in 1:5) {
-  e_1 <- xts(a_1[[i]], order.by = as.yearmon(index(a_1[[i]])))
-  #print(e_1)
-  d_1 <- cbind(d_1, e_1)
-}
-
-# convert hw predictions to a data frame
-d_2 <- d_1 %>%
-   data.frame(date=time(.), .) %>%
-   mutate(date = as.Date(date))
-# then I would need to do this to help name it
-colnames(d_2) <- c("date", as.character(df_4$end_1))
-# set up tidy container of hw predictions
-hw_mean_results <- d_2 %>%
-  gather(train_end, oghw_fct, -date) %>%
-  mutate(train_end = as.Date(train_end))
-
-#######
-#
-# extract estimated factors 
-
+# extract the factors
 est_factors_1 <- df_4 %>%
   select(selected_series) %>%
   unnest() 
 
-######
-#
-# add on the hw predictions
-#
+# estimate a smoothed version of the actual series 
+# using stl in a function I defined
+x_df_stl <- x_df %>%
+  f_stl_trend(., newname="ogstl_act")
 
-# made the assumption there is only one test_start
-# if the following is not true, then need to think about the code more. Need
-# to bring train_start into the dataframe of hw results to make better join.
-stopifnot(1 == length(unique(est_factors_1$train_start)))
+# # graph it to take a look
+# tograph <- x_df_stl %>%
+#   gather(variable, value, -date)
+# p1 <- ggplot(data=tograph, aes(x=date, y=value, color=variable))
+# p1 <- p1 + geom_line()
+# p1
+
+#######
+#
+# join the original data onto the test projections
 
 est_factors_2 <- est_factors_1 %>%
-  left_join(hw_mean_results, by=c("train_end", "date"))
-
-####
-#
-# could I compare to a smoothed version of the actual series
-
-# first rename the series
-colnames(x_df)[2] <- c("og_act")
-
-x3 <- x_df %>%
-  read.zoo(regular=TRUE, drop=FALSE) %>%
-  xts() %>%
-  convertIndex("yearmon")
-
-# fit a STL decomposition
-# STL stands for Seasonal and Trend decomposition using Loess
-fit_stl <- stl(x3,s.window="periodic")
-
-# # extract the fitted one-step ahead forecast values
-# hw <- fit2$fitted %>%
-#   xts(order.by=(index(x3)))
-# # name the series
-# colnames(trend)[1] <- c("oghw_act")
-
-a <- fit_stl$time.series
-trend <- a[,"trend"] %>%
-  xts(order.by=(index(x3)))
-
-# name the series
-colnames(trend)[1] <- c("ogstl_act")
-# merge with original
-x4 <- x3 %>%
-  merge(trend) %>%
-  data.frame(date=time(.), .) %>%
-  mutate(date = as.Date(date))
-
-
-# graph it to take a look
-tograph <- x4 %>%
-  gather(variable, value, -date)
-p1 <- ggplot(data=tograph, aes(x=date, y=value, color=variable))
-p1 <- p1 + geom_line()
-p1
-
-# join the original data onto the test projections
-est_factors_3 <- est_factors_2 %>%
-  left_join(x4, by="date") %>%
+  left_join(x_df_stl, by="date") %>%
   arrange(train_end, date) %>%
   group_by(train_end) %>%
   mutate(og_act_pchya = og_act / lag(og_act,12)-1) %>%
@@ -378,33 +354,124 @@ est_factors_3 <- est_factors_2 %>%
   mutate(ogstl_act_pchya = ogstl_act / lag(ogstl_act,12)-1) %>%
   ungroup()
 
-est_factors_4 <- est_factors_3 %>%
-    filter(proj_month >= 1 & proj_month <= 12)
+}
+```
+
+
+```{r}
+
+# create historical data frame
+
+x_df <- demo_df %>%
+  # shorten to available history
+  filter(date >= as.Date("1987-01-01") & date <= as.Date("2015-12-12")) %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon") %>%
+  data.frame(date=time(.), .) %>%
+  mutate(date = as.Date(date))
+
+# the name of the series doesn't impact things, I thought it easier to 
+# rename it here at the beginning to make that clear. 
+colnames(x_df)[2] <- c("og_act")
+
+
+reg_group1 <- cbind(eas_7_1_ts_m)  
+reg_group2 <- cbind(eas_7_1_ts_m, thk_2826_ts_m) 
+reg_group3 <- cbind(eas_7_1_ts_m, thk_2826_ts_m, jlf_fssm_ts_m, hlw_fss_ts_m) 
+reg_group4 <- cbind(eas_7_1_ts_m, thk_2826_ts_m, jlf_fssm_ts_m, hlw_fss_ts_m, mempost_m) 
+reg_group5 <- cbind(eas_7_1_ts_m, thk_2826_ts_m, jlf_fssm_ts_m, hlw_fss_ts_m, mempost_m,                            chr_fri_ts_m) 
+reg_group6 <- cbind(eas_7_1_ts_m, thk_2826_ts_m, jlf_fssm_ts_m, hlw_fss_ts_m, mempost_m,                            augend_ss_ts_m)  
+reg_group7 <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m,
+                    sepstr_ss_ts_m, sepstr_mon_ts_m, mempost_m, jlf_fssm_ts_m, hlw_fss_ts_m,
+                    thk_2826_ts_m, chr_fri_ts_m)  
+reg_group8 <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m,
+                    sepstr_ss_ts_m, sepstr_mon_ts_m, mempost_m, jlf_fssm_ts_m, hlw_fss_ts_m,
+                    thk_2826_ts_m, chr_fri_ts_m, hannights_m)  
+
+
+
+models_to_run <- data_frame(reg_groups = list(reg_group1, reg_group2, reg_group3, reg_group4,
+                                              reg_group5, reg_group6, reg_group7, reg_group8)) %>%
+  mutate(model_id = paste0("model_", rownames(.)))
+
+# models_to_run <- models_to_run %>%
+#   filter(model_id == "model_3")
+
+out <- models_to_run %>%
+  mutate(factorsout = map(reg_groups, test_seasonal, hist_df=x_df, train_start_year = 2004, train_end_year = 2014)) 
+
+
+
+out_hold <- out %>%
+  unnest(factorsout) %>%
+  mutate(ogstl_fct_pchya_absd = abs(ogstl_fct_pchya - og_act_pchya)) %>%
+  mutate(ogstl_act_pchya_absd = abs(ogstl_act_pchya - og_act_pchya)) 
+
+out_hold_2 <- out_hold %>%
+  # filter to the first year of projections
+  filter(proj_month >= 1 & proj_month <= 12) 
+
+out_hold_3 <- NULL
+out_hold_3 <- rbind(out_hold_3, out_hold_2)
+
+#write.csv(out_hold_3, file="output_data/out_hold_3.csv", row.names=FALSE)
+
+model_sum <- out_hold_2 %>%
+  group_by(model_id) %>%
+  summarize(mean(ogstl_fct_pchya_absd), mean(ogstl_act_pchya_absd))
+
+
+
+
+  
+```
+
+
+```{r}
+
+selected <- out_hold_3 %>%
+  mutate(year = year(date)) %>%
+  mutate(month = month(date)) %>%
+  filter(model_id == "model_8")
+
+######
+#
+# graphing the results
 
 # looking at levels
-tograph <- est_factors_4 %>%
-#  filter(train_end == as.Date("2012-12-01")) %>%
-  gather(variable, value, -date, -train_start, -train_end, -proj_month) %>%
-  filter(variable %in% c("og_act", "ogstl_act", "ogstl_fct"))
+tograph <- selected %>%
+  gather(variable, value, -date, -year, -month, -proj_month, -model_id) %>%
+  mutate(value = as.numeric(value)) %>%
+  filter(variable %in% c("og_act", "ogstl_act", "ogstl_fct")) 
 
-p1 <- ggplot(data=tograph, aes(x=proj_month, y=value, color=variable))
+p1 <- ggplot(data=tograph, aes(x=month, y=value, color=variable))
 p1 <- p1 + geom_line()
-p1 <- p1 + facet_wrap(~train_end)
+p1 <- p1 + facet_wrap(~year)
 p1
 
 # looking at pchya
-tograph <- est_factors_4 %>%
-#  filter(train_end == as.Date("2012-12-01")) %>%
-  gather(variable, value, -date, -train_start, -train_end, -proj_month) %>%
-  filter(variable %in% c("og_act_pchya", "ogstl_act_pchya", "ogstl_fct_pchya"))
+tograph <- selected %>%
+  gather(variable, value, -date, -year, -month, -proj_month, -model_id) %>%
+  mutate(value = as.numeric(value)) %>%
+  filter(variable %in% c("og_act_pchya", "ogstl_act_pchya", "ogstl_fct_pchya")) 
+# %>%
+#   filter(date >= as.Date("2011-01-01") & date <= as.Date("2011-12-01"))
 
-p1 <- ggplot(data=tograph, aes(x=proj_month, y=value, color=variable))
+p1 <- ggplot(data=tograph, aes(x=month, y=value, color=variable))
 p1 <- p1 + geom_line()
-p1 <- p1 + facet_wrap(~train_end)
+p1 <- p1 + facet_wrap(~year)
+p1
+
+tograph_2 <- tograph %>%
+  filter(date >= as.Date("2011-01-01")) %>% 
+filter(date <= as.Date("2016-01-01")) 
+  p1 <- ggplot(data=tograph_2, aes(x=date, y=value, color=variable))
+p1 <- p1 + geom_line()
 p1
 
 
-# wow, lot's of progress up to this point!
+
 
 
 

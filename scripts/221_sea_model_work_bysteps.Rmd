@@ -383,7 +383,7 @@ est_factors_4 <- est_factors_3 %>%
 tograph <- est_factors_4 %>%
 #  filter(train_end == as.Date("2012-12-01")) %>%
   gather(variable, value, -date, -train_start, -train_end, -proj_month) %>%
-  filter(variable %in% c("og_act", "ogstl_act", "ogstl_fct"))
+  filter(variable %in% c("og_act", "ogstl_act", "ogstl_fct")) 
 
 p1 <- ggplot(data=tograph, aes(x=proj_month, y=value, color=variable))
 p1 <- p1 + geom_line()
