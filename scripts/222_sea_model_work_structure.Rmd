@@ -27,23 +27,38 @@ library(forecast)
 # If I put autodep=TRUE as an argument in the following then I get
 # some issues with the graphs, such as grey backgrounds and changes
 # in labeling. Maybe it somehow impacts the theme?
-#knitr::opts_chunk$set(cache=TRUE, cache.path='output_data/cache/', dpi=96)
-knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path='../output_data/cache/', autodep=TRUE, fig.path='../output_data/figure_exp_seasonal_short/fig-',  fig.show='asis', fig.keep='high')
+
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path="/output_data/cache/", autodep=TRUE, fig.path="/output_data/figure_sea_model_work_structure/fig-",  fig.show="asis", fig.keep="high")
+
 # tells it to keep going even if there is an error
 knitr::opts_chunk$set(error = TRUE)
 
 ```
 
 
-```{r}
+```{r load}
 
-load(file="~/Project/R projects/lodfor/output_data/holiday_regress.Rdata")
+fpath <- c("~/Project/R projects/lodfor/") 
+
+load(file=paste0(fpath,"output_data/holiday_regress.Rdata"))
+
+load(file=paste0(fpath,"output_data/ushist_m.Rdata"))
+load(file=paste0(fpath,"output_data/ushist_q.Rdata"))
+load(file=paste0(fpath,"output_data/ushist_a.Rdata"))
 ```
 
-```{r}
+
+```{r set segrun}
+
+segrun <- c("upsus_occ")
+
+```
+
+
+```{r unpack}
 # unpack lists
 
-a <- c(val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, thk_list, chr_list, han_list)
+a <- c(janend_list, val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, thk_list, chr_list, han_list)
 
 varNames <- names(a)
 for (i in seq_along(varNames)) {
@@ -55,59 +70,7 @@ print(varNames[i])
 
 ```
 
-
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-load("~/Project/R projects/lodfor/output_data/ushist_m.Rdata")
-load("~/Project/R projects/lodfor/output_data/ushist_q.Rdata")
-load("~/Project/R projects/lodfor/output_data/ushist_a.Rdata")
-
-```
-
-```{r define_theme, echo=FALSE, message=FALSE, warning=FALSE}
-#Displays palette and sets the ts1 theme
-
-#display.brewer.pal(10, "RdBu")
-mypallete <- brewer.pal( 10 , "RdBu" )
-colors_ts1 <- scale_colour_manual(values = mypallete[c(10, 1, 5, 4)])
-# I don't use the following, was an example I saw somewhere maybe as a way to 
-# interpolate additional palette colors
-#mypal <- colorRampPalette( brewer.pal( 10 , "RdBu" ) )
-theme_ts1 <- function(base_size = 12, base_family = "") {
-  theme_classic(base_size = base_size) %+replace%
-    theme(                                 
-      panel.grid.major.x=element_blank(),
-      panel.grid.minor.x=element_blank(),
-      panel.grid.minor.y=element_blank(),
-      axis.ticks.y=element_line(size=.2),
-      axis.ticks.x=element_line(size=.2),
-      panel.background=element_blank(),
-      legend.title=element_blank(),
-      legend.key=element_rect(fill="white", colour = "white"),
-      legend.key.size=unit(1, "cm"),
-      legend.text=element_text(size=rel(1)),
-      #legend.position = c(1, .1),
-      legend.justification = "right",
-      axis.line=element_line(size=.2),
-      axis.title.y=element_blank(),
-      axis.title.x=element_blank(),
-      axis.text=element_text(color="black",size=rel(.7)),
-      # following seems to adjust y-axis title
-      plot.title=element_text(size=base_size * .8, face="plain",hjust=0,vjust=1)
-    #theme(plot.title = element_text(lineheight=.8, face="bold"))
-    )
-}
-theme_set(theme_ts1())
-```
-
-```{r}
-
-segrun <- c("totus_demd")
-
-```
-
-```{r}
-# Define functions
+```{r define functions}
 
 # define functions
 f_filter_start_end <- function(x, start, end) {
@@ -273,7 +236,7 @@ demo_df <- ushist_m %>%
 
 ## Estimate and test model on multiple periods
 
-```{r}
+```{r model function}
 
 
 test_seasonal <- function(hold_reg, hist_df, train_start_year, train_end_year){
@@ -358,7 +321,7 @@ est_factors_2 <- est_factors_1 %>%
 ```
 
 
-```{r}
+```{r create historical}
 
 # create historical data frame
 
@@ -387,94 +350,40 @@ reg_group7 <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m,
                     thk_2826_ts_m, chr_fri_ts_m)  
 reg_group8 <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m,
                     sepstr_ss_ts_m, sepstr_mon_ts_m, mempost_m, jlf_fssm_ts_m, hlw_fss_ts_m,
-                    thk_2826_ts_m, chr_fri_ts_m, hannights_m)  
-
-
+                    thk_2826_ts_m, chr_fri_ts_m, hanwdayschr_m)  
+reg_group9 <- cbind(eas_7_1_ts_m, hannights_m)  
+reg_group10 <- cbind(eas_7_1_ts_m, hanwdays_m)  
+reg_group11 <- cbind(eas_7_1_ts_m, hannightschr_m)  
+reg_group12 <- cbind(eas_7_1_ts_m, hanwdayschr_m)  
+reg_group13 <- cbind(janend_twt_ts_m, eas_7_1_ts_m, val_fs_ts_m, jlf_fssm_ts_m, augend_ss_ts_m,
+                    sepstr_ss_ts_m, mempost_m, hlw_fss_ts_m,
+                    thk_2826_ts_m, chr_fri_ts_m, hanwdayschr_m) 
+ 
 
 models_to_run <- data_frame(reg_groups = list(reg_group1, reg_group2, reg_group3, reg_group4,
-                                              reg_group5, reg_group6, reg_group7, reg_group8)) %>%
+                                              reg_group5, reg_group6, reg_group7, reg_group8,
+                                              reg_group9, reg_group10, reg_group11, reg_group12,
+                                              reg_group13)) %>%
   mutate(model_id = paste0("model_", rownames(.)))
 
-# models_to_run <- models_to_run %>%
-#   filter(model_id == "model_3")
+# if you just want to run a couple models, you can filter
+models_to_run <- models_to_run %>%
+  filter(model_id %in% c("model_1", "model_8"))
+  #filter(model_id %in% c("model_1", "model_8", "model_13"))
 
 out <- models_to_run %>%
   mutate(factorsout = map(reg_groups, test_seasonal, hist_df=x_df, train_start_year = 2004, train_end_year = 2014)) 
 
-
-
-out_hold <- out %>%
-  unnest(factorsout) %>%
-  mutate(ogstl_fct_pchya_absd = abs(ogstl_fct_pchya - og_act_pchya)) %>%
-  mutate(ogstl_act_pchya_absd = abs(ogstl_act_pchya - og_act_pchya)) 
-
-out_hold_2 <- out_hold %>%
-  # filter to the first year of projections
-  filter(proj_month >= 1 & proj_month <= 12) 
-
-out_hold_3 <- NULL
-out_hold_3 <- rbind(out_hold_3, out_hold_2)
+out_seamod <- NULL
+out_seamod <- rbind(out_seamod, out)
 
 #write.csv(out_hold_3, file="output_data/out_hold_3.csv", row.names=FALSE)
 
-model_sum <- out_hold_2 %>%
-  group_by(model_id) %>%
-  summarize(mean(ogstl_fct_pchya_absd), mean(ogstl_act_pchya_absd))
-
-
-
-
-  
-```
-
-
-```{r}
-
-selected <- out_hold_3 %>%
-  mutate(year = year(date)) %>%
-  mutate(month = month(date)) %>%
-  filter(model_id == "model_8")
-
-######
-#
-# graphing the results
-
-# looking at levels
-tograph <- selected %>%
-  gather(variable, value, -date, -year, -month, -proj_month, -model_id) %>%
-  mutate(value = as.numeric(value)) %>%
-  filter(variable %in% c("og_act", "ogstl_act", "ogstl_fct")) 
-
-p1 <- ggplot(data=tograph, aes(x=month, y=value, color=variable))
-p1 <- p1 + geom_line()
-p1 <- p1 + facet_wrap(~year)
-p1
-
-# looking at pchya
-tograph <- selected %>%
-  gather(variable, value, -date, -year, -month, -proj_month, -model_id) %>%
-  mutate(value = as.numeric(value)) %>%
-  filter(variable %in% c("og_act_pchya", "ogstl_act_pchya", "ogstl_fct_pchya")) 
-# %>%
-#   filter(date >= as.Date("2011-01-01") & date <= as.Date("2011-12-01"))
-
-p1 <- ggplot(data=tograph, aes(x=month, y=value, color=variable))
-p1 <- p1 + geom_line()
-p1 <- p1 + facet_wrap(~year)
-p1
-
-tograph_2 <- tograph %>%
-  filter(date >= as.Date("2011-01-01")) %>% 
-filter(date <= as.Date("2016-01-01")) 
-  p1 <- ggplot(data=tograph_2, aes(x=date, y=value, color=variable))
-p1 <- p1 + geom_line()
-p1
-
-
+# saves Rdata versions of the output files
+save(out_seamod, file=paste0(fpath,"output_data/out_seamod_", segrun, ".Rdata"))
 
 
 
 
 ```
-
 

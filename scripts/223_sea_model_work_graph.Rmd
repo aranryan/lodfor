@@ -1,0 +1,393 @@
+---
+title: "Untitled"
+author: "Tourism Economics"
+date: "March 30, 2016"
+output: html_document
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(arlodr)
+library(xts, warn.conflicts=FALSE)
+library(dplyr, warn.conflicts=FALSE)
+library(readr, warn.conflicts=FALSE)
+library(tidyr, warn.conflicts=FALSE)
+library(seasonal, warn.conflicts=FALSE)
+require(xtable)
+require(ggplot2)
+require(knitr)
+require(RColorBrewer)
+require(scales)
+library(lubridate)
+library(purrr)
+library(lazyeval)
+library(forecast)
+
+
+require(directlabels)
+require(gridExtra)
+require(gtable)
+require(Cairo)
+require(grid)
+
+# If I put autodep=TRUE as an argument in the following then I get
+# some issues with the graphs, such as grey backgrounds and changes
+# in labeling. Maybe it somehow impacts the theme?
+
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, cache=FALSE, cache.path="/output_data/cache/", autodep=TRUE, fig.path="/output_data/figure_sea_model_work_structure/fig-",  fig.show="asis", fig.keep="high")
+
+# tells it to keep going even if there is an error
+knitr::opts_chunk$set(error = TRUE)
+
+# increases resolution of figures being shown in html
+opts_chunk$set(fig.width = 9, fig.height = 5, dpi = 144)
+```
+
+
+```{r set segrun}
+
+segrun <- c("upsus_occ")
+
+```
+
+
+```{r}
+
+
+fpath <- c("~/Project/R projects/lodfor/") 
+
+load(file=paste0(fpath,"output_data/out_seamod_", segrun, ".Rdata"))
+work_seamod <- out_seamod
+
+```
+
+
+
+```{r define_theme, echo=FALSE, message=FALSE, warning=FALSE}
+#Displays palette and sets the ts1 theme
+
+#display.brewer.pal(10, "RdBu")
+mypallete <- brewer.pal( 10 , "RdBu" )
+colors_ts1 <- scale_colour_manual(values = mypallete[c(10, 1, 5, 4)])
+# I don't use the following, was an example I saw somewhere maybe as a way to 
+# interpolate additional palette colors
+#mypal <- colorRampPalette( brewer.pal( 10 , "RdBu" ) )
+theme_ts1 <- function(base_size = 12, base_family = "") {
+  theme_classic(base_size = base_size) %+replace%
+    theme(                                 
+      panel.grid.major.x=element_blank(),
+      panel.grid.minor.x=element_blank(),
+      panel.grid.minor.y=element_blank(),
+      axis.ticks.y=element_line(size=.2),
+      axis.ticks.x=element_line(size=.2),
+      panel.background=element_blank(),
+      legend.title=element_blank(),
+      legend.key=element_rect(fill="white", colour = "white"),
+      legend.key.size=unit(1, "cm"),
+      legend.text=element_text(size=rel(1)),
+      #legend.position = c(1, .1),
+      legend.justification = "right",
+      axis.line=element_line(size=.2),
+      axis.title.y=element_blank(),
+      axis.title.x=element_blank(),
+      axis.text=element_text(color="black",size=rel(.7)),
+      # following seems to adjust y-axis title
+      plot.title=element_text(size=base_size * .8, face="plain",hjust=0,vjust=1)
+    #theme(plot.title = element_text(lineheight=.8, face="bold"))
+    )
+}
+theme_set(theme_ts1())
+```
+
+
+```{r}
+
+out_hold <- work_seamod %>%
+  unnest(factorsout) %>%
+  mutate(ogstl_fct_pchya_absd = abs(ogstl_fct_pchya - og_act_pchya)) %>%
+  mutate(ogstl_act_pchya_absd = abs(ogstl_act_pchya - og_act_pchya)) 
+
+out_hold_2 <- out_hold %>%
+  # filter to the first year of projections
+  filter(proj_month >= 1 & proj_month <= 12) 
+
+```
+
+
+```{r}
+
+temp_a <- out_hold %>%
+  filter(model_id == "model_8" ) %>%
+  filter(train_end == as.Date("2014-12-01")) %>%
+  filter(date >= as.Date("2003-01-01")) %>%
+  filter(date <= as.Date("2014-12-01"))
+  
+tograph <- temp_a %>%
+  select(-model_id, -train_start, -train_end) %>%
+  gather(variable, value, -date, -proj_month) %>%
+  mutate(value = as.numeric(value)) %>%
+  filter(variable %in% c("og_act", "ogstl_act", "ogstl_fct")) 
+
+# all years
+p1 <- ggplot(data=tograph, aes(x=date, y=value, group=variable, size=variable, color=variable))
+p1 <- p1 + geom_line()
+p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey70", mypallete[9:9]))
+p1 <- p1 + scale_size_manual(values=c(.7, 1.2, .7))
+p1 <- p1 + scale_alpha_manual(values=c(1, .5, 1))
+# adds points for one group
+p1 <- p1 + geom_point(data = subset(tograph, variable %in% c("og_act")), size=1, color=mypallete[3:3])
+# points in blank points for all, so that we can override the legend
+p1 <- p1 + geom_point(size=0)
+# overrides legend to also show shape for the first series
+p1 <- p1 + guides(color=guide_legend(override.aes=list(shape=c(16,NA,NA))))
+
+# shorter period
+tograph_1 <- tograph %>%
+  filter(date >= as.Date("2012-01-01"))
+p2 <- ggplot(data=tograph_1, aes(x=date, y=value, group=variable, size=variable, color=variable))
+p2 <- p2 + geom_line()
+p2 <- p2 + scale_color_manual(values = c(mypallete[3:3], "grey70", mypallete[9:9]))
+p2 <- p2 + scale_size_manual(values=c(.7, 1.2, .7))
+p2 <- p2 + scale_alpha_manual(values=c(1, .5, 1))
+# adds points for one group
+p2 <- p2 + geom_point(data = subset(tograph_1, variable %in% c("og_act")), size=1, color=mypallete[3:3])
+# points in blank points for all, so that we can override the legend
+p2 <- p2 + geom_point(size=0)
+# overrides legend to also show shape for the first series
+p2 <- p2 + guides(color=guide_legend(override.aes=list(shape=c(16,NA,NA))))
+
+
+tograph <- temp_a %>%
+  select(-model_id, -train_start, -train_end) %>%
+  gather(variable, value, -date, -proj_month) %>%
+  mutate(value = as.numeric(value)) %>%
+  filter(variable %in% c("sa", "ogstl_act")) 
+
+p3 <- ggplot(data=tograph, aes(x=date, y=value, group=variable, size=variable, color=variable))
+p3 <- p3 + geom_line()
+p3 <- p3 + scale_color_manual(values = c("grey70", mypallete[9:9]))
+p3 <- p3 + scale_size_manual(values=c(1.2, .8))
+p3 <- p3 + scale_alpha_manual(values=c(.5, 1))
+p3 <- p3 + scale_y_log10()
+
+```
+
+### Comparison over time
+```{r}
+p1
+```
+
+
+### Comparison over shorter period of time
+```{r}
+p2
+```
+
+
+### Comparison of smoothed series
+```{r}
+p3
+```
+
+
+```{r}
+
+selected <- out_hold_2 %>%
+  mutate(year = year(date)) %>%
+  mutate(month = month(date, label=TRUE, abbr= FALSE)) %>%
+  mutate(month = factor(month, month.name)) %>%
+  mutate(month_num = month(date, label=FALSE)) %>%
+  filter(model_id == "model_8")
+
+```
+
+### Graphs of levels by year
+```{r}
+
+######
+#
+# graphing the results
+
+# looking at levels
+tograph <- selected %>%
+  gather(variable, value, -date, -year, -month,  -month_num, -proj_month, -model_id) %>%
+  mutate(value = as.numeric(value)) %>%
+  filter(variable %in% c("og_act", "ogstl_act", "ogstl_fct")) 
+
+# function to use in creating a short series of plots
+
+plot1 <- function(df) {
+p1 <- ggplot(data=df, aes(x=month_num, y=value, group=variable, size=variable, color=variable))
+p1 <- p1 + geom_line()
+p1 <- p1 + facet_wrap(~year)
+p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey70", mypallete[9:9]))
+p1 <- p1 + scale_size_manual(values=c(.7, 1.2, .7))
+p1 <- p1 + scale_alpha_manual(values=c(1, .5, 1))
+# adds points for one group
+p1 <- p1 + geom_point(data = subset(df, variable %in% c("og_act")), size=1, color=mypallete[3:3])
+# points in blank points for all, so that we can override the legend
+p1 <- p1 + geom_point(size=0)
+# overrides legend to also show shape for the first series
+p1 <- p1 + guides(color=guide_legend(override.aes=list(shape=c(16,NA,NA))))
+p1
+}
+
+tograph_1 <- tograph %>%
+  filter(year >= 2005 & year <= 2007)
+plot1(tograph_1)
+
+tograph_1 <- tograph %>%
+  filter(year >= 2008 & year <= 2010)
+plot1(tograph_1)
+
+tograph_1 <- tograph %>%
+  filter(year >= 2011 & year <= 2013)
+plot1(tograph_1)
+
+tograph_1 <- tograph %>%
+  filter(year >= 2014 & year <= 2016)
+plot1(tograph_1)
+
+```
+
+### Graph of percent change from prior year, by year
+```{r}
+
+# looking at pchya
+tograph <- selected %>%
+  gather(variable, value, -date, -year, -month, -month_num, -proj_month, -model_id) %>%
+  mutate(value = as.numeric(value)) %>%
+  filter(variable %in% c("og_act_pchya", "ogstl_act_pchya", "ogstl_fct_pchya")) # %>%
+  #filter(date >= as.Date("2014-01-01") & date <= as.Date("2015-12-01"))
+  
+tograph_hold <- tograph %>%
+    filter(year == 2015)
+
+plot2 <- function(df) {
+  # p1 <- ggplot(data=tograph_hold, aes(x=date, y=value, color=variable))
+  # p1 <- p1 + geom_line()
+  # p1 <- p1 + ggtitle(i)
+  # p1 <- p1 + scale_x_date(date_breaks = "1 month", date_labels = "%b")
+  # print(p1)
+  
+p1 <- ggplot(data=df, aes(x=date, y=value, group=variable, size=variable, color=variable))
+p1 <- p1 + geom_line()
+p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey70", mypallete[9:9]))
+p1 <- p1 + scale_size_manual(values=c(.7, 1.2, .7))
+p1 <- p1 + scale_alpha_manual(values=c(1, .5, 1))
+# adds points for one group
+p1 <- p1 + geom_point(data = subset(df, variable %in% c("og_act")), size=1, color=mypallete[3:3])
+# points in blank points for all, so that we can override the legend
+p1 <- p1 + geom_point(size=0)
+# overrides legend to also show shape for the first series
+p1 <- p1 + guides(color=guide_legend(override.aes=list(shape=c(16,NA,NA))))
+p1 <- p1 + scale_x_date(date_breaks = "1 month", date_labels = "%b")
+p1 <- p1 + ggtitle(i)
+p1 <- p1 + theme(plot.title = element_text(face="bold", size=12, hjust=0))
+print(p1)
+  
+}
+
+years <- unique(tograph$year)
+for (i in years) {
+  tograph_hold <- tograph %>%
+    filter(year == i)
+  
+plot2(tograph_hold)
+  
+}
+  
+  
+
+```
+
+### Multiple years
+```{r}
+
+tograph_2 <- tograph %>%
+  filter(date >= as.Date("2014-01-01")) %>% 
+  filter(date <= as.Date("2015-12-01")) 
+
+# nothing special, based on approach for some earlier plots above
+p1 <- ggplot(data=tograph_2, aes(x=date, y=value, group=variable, size=variable, color=variable))
+p1 <- p1 + geom_line()
+p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey70", mypallete[9:9]))
+p1 <- p1 + scale_size_manual(values=c(.7, 1.2, .7))
+p1 <- p1 + scale_alpha_manual(values=c(1, .5, 1))
+# adds points for one group
+p1 <- p1 + geom_point(data = subset(tograph_2, variable %in% c("og_act")), size=1, color=mypallete[3:3])
+# points in blank points for all, so that we can override the legend
+p1 <- p1 + geom_point(size=0)
+# overrides legend to also show shape for the first series
+p1 <- p1 + guides(color=guide_legend(override.aes=list(shape=c(16,NA,NA))))
+p1 <- p1 + theme(plot.title = element_text(face="bold", size=12, hjust=0))
+p1
+
+```
+
+
+### Performance by model
+```{r}
+
+model_sum <- out_hold_2 %>%
+  group_by(model_id) %>%
+  summarize(fct = mean(ogstl_fct_pchya_absd), act = mean(ogstl_act_pchya_absd)) %>%
+  mutate(ratio = fct/act)
+
+kable(model_sum, digits = 4, row.names=FALSE)
+
+```
+
+
+### Performance of all models averaged by year
+```{r}
+
+model_sum <- out_hold_2 %>%
+  mutate(year = year(date)) %>%
+  group_by(year) %>%
+  summarize(fct = mean(ogstl_fct_pchya_absd), act = mean(ogstl_act_pchya_absd)) %>%
+  mutate(ratio = fct/act)
+
+kable(model_sum, digits = 4, row.names=FALSE)
+
+```
+
+
+### Performance of selected model averaged by month
+```{r}
+
+
+model_sum <- selected %>%
+  group_by(month) %>%
+  summarize(fct = mean(ogstl_fct_pchya_absd), act = mean(ogstl_act_pchya_absd)) %>%
+  mutate(ratio = fct/act)
+
+kable(model_sum, digits = 4, row.names=FALSE)
+
+```
+
+
+### Evoluation of estimates
+```{r}
+
+view_ser <- out_hold %>%
+  filter(model_id == "model_8") %>%
+  filter(date >= as.Date("2015-01-01") & date <= as.Date("2015-12-01")) %>%
+  filter(train_end >= as.Date("2013-12-01") & train_end <= as.Date("2014-12-01"))
+
+
+# %>%
+#   select(-model_id, -train_start) %>%
+#   gather(variable, value, -date, -train_end)
+
+# p1 <- ggplot(data=tograph)
+# p1 <- p1 + geom_line(aes(x=date, y=sa, color=factor(train_end)))
+# p1 <- p1 + geom_line(aes(x=date, y=ogstl_act, color=factor(train_end)))
+# p1
+
+p1 <- ggplot(data=view_ser)
+p1 <- p1 + geom_line(aes(x=date, y=ogstl_fct_pchya, color=factor(train_end)))
+p1 <- p1 + geom_line(aes(x=date, y=og_act_pchya, color=factor(train_end)))
+p1
+
+```
+

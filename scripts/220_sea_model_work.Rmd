@@ -31,15 +31,19 @@ knitr::opts_chunk$set(error = TRUE)
 ```
 
 
-```{r}
+```{r load}
 
 load(file="~/Project/R projects/lodfor/output_data/holiday_regress.Rdata")
+
+load("~/Project/R projects/lodfor/output_data/ushist_m.Rdata")
+load("~/Project/R projects/lodfor/output_data/ushist_q.Rdata")
+load("~/Project/R projects/lodfor/output_data/ushist_a.Rdata")
 ```
 
-```{r}
+```{r unpack}
 # unpack lists
 
-a <- c(val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, thk_list, chr_list)
+a <- c(janend_list, val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, hlw_list, vet_list, thk_list, chr_list, han_list)
 
 varNames <- names(a)
 for (i in seq_along(varNames)) {
@@ -51,14 +55,6 @@ print(varNames[i])
 
 ```
 
-
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-load("~/Project/R projects/lodfor/output_data/ushist_m.Rdata")
-load("~/Project/R projects/lodfor/output_data/ushist_q.Rdata")
-load("~/Project/R projects/lodfor/output_data/ushist_a.Rdata")
-
-```
 
 ```{r define_theme, echo=FALSE, message=FALSE, warning=FALSE}
 #Displays palette and sets the ts1 theme
@@ -96,15 +92,14 @@ theme_ts1 <- function(base_size = 12, base_family = "") {
 theme_set(theme_ts1())
 ```
 
-```{r}
+```{r segrun}
 
 segrun <- c("upmus_demd")
 
 ```
 
-
 ### Set up data to run using: `r segrun`
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r setup_data echo=FALSE, message=FALSE, warning=FALSE}
 
 # shorten dates
 #ushist_m_1 <- ushist_m["1987-01-01/2015-09-01"]
@@ -163,47 +158,38 @@ tempa_by_m  <- sq %>%
   
 ```{r}
 
-# # Full history, create time series
-# x <- demo_df %>%
-#   read.zoo(regular=TRUE, drop=FALSE) %>%
-#   xts() %>%
-#   convertIndex("yearmon")
-# temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
+# Full history, create time series
+x <- demo_df %>%
+  read.zoo(regular=TRUE, drop=FALSE) %>%
+  xts() %>%
+  convertIndex("yearmon")
+temp_ser_ts <- as.ts(x, start = start(x), end = end(x))
 
-# # with more regressors
-# m3 <- seas(x = temp_ser_ts,
-#            regression.variables = c("tdnolpyear", "ls2001.Sep"),
-#            forecast.maxlead = 30,# extends 30 periods ahead
-#            seats.appendfcst="yes",
-#            xreg = cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m, 
-#                        sepstr_ss_ts_m, sepstr_mon_ts_m, mempost_m), 
-#            regression.usertype = c("holiday", "holiday2", "holiday3"),
-#            regression.aictest = NULL)
-# summary(m3)
-# 
-# # try it by creating on object to hold the regressors
-# hold_reg <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m, 
-#                        sepstr_ss_ts_m, sepstr_mon_ts_m, mempost_m)
-# m4 <- seas(x = temp_ser_ts,
-#            regression.variables = c("tdnolpyear", "ls2001.Sep"),
-#            forecast.maxlead = 30,# extends 30 periods ahead
-#            seats.appendfcst="yes",
-#            xreg = hold_reg, 
-#            regression.usertype = c("holiday", "holiday2", "holiday3"),
-#            regression.aictest = NULL)
-# summary(m4)
-# 
-# # try with a different set of regressors
-# hold_reg <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m, 
-#                        sepstr_ss_ts_m, sepstr_mon_ts_m, mempost_m, jlf_fssm_ts_m)
-# m5 <- seas(x = temp_ser_ts,
-#            regression.variables = c("tdnolpyear", "ls2001.Sep"),
-#            forecast.maxlead = 30,# extends 30 periods ahead
-#            seats.appendfcst="yes",
-#            xreg = hold_reg, 
-#            regression.usertype = c("holiday", "holiday2", "holiday3"),
-#            regression.aictest = NULL)
-# summary(m5)
+# try it by creating on object to hold the regressors
+hold_reg <- cbind(janend_twt_ts_m, eas_7_1_ts_m, val_fs_ts_m, jlf_fssm_ts_m, augend_ss_ts_m,
+                    sepstr_ss_ts_m, mempost_m, hlw_fss_ts_m,
+                    thk_2826_ts_m, chr_fri_ts_m, hanwdayschr_m)
+m4 <- seas(x = temp_ser_ts,
+           regression.variables = c("tdnolpyear", "ls2001.Sep"),
+           forecast.maxlead = 30,# extends 30 periods ahead
+           seats.appendfcst="yes",
+           xreg = hold_reg,
+           regression.usertype = c("holiday", "holiday2", "holiday3"),
+           regression.aictest = NULL)
+summary(m4)
+
+# try with a different set of regressors
+hold_reg <- cbind(janend_twt_ts_m, eas_7_1_ts_m, val_fs_ts_m, jlf_fssm_ts_m, augend_ss_ts_m,
+                    sepstr_ss_ts_m, mempost_m, hlw_fss_ts_m,
+                    thk_2826_ts_m, chr_fri_ts_m, hanwdayschr_m)
+m5 <- seas(x = temp_ser_ts,
+           regression.variables = c("tdnolpyear", "ls2001.Sep"),
+           forecast.maxlead = 30,# extends 30 periods ahead
+           seats.appendfcst="yes",
+           xreg = hold_reg,
+           regression.usertype = c("holiday", "holiday2", "holiday3"),
+           regression.aictest = NULL)
+summary(m5)
 # 
 # # try another group
 # hold_reg <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m, 
