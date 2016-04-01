@@ -1,5 +1,5 @@
 ---
-title: "Seasonal model workign graphs"
+title: "Seasonal model working graphs"
 author: "Tourism Economics"
 date: "March 30, 2016"
 output: html_document
@@ -45,7 +45,7 @@ opts_chunk$set(fig.width = 9, fig.height = 5, dpi = 144)
 
 ```{r set segrun}
 
-segrun <- c("upsus_occ")
+segrun <- c("totus_adr")
 
 ```
 Series being run is `r segrun`.
@@ -382,7 +382,7 @@ kable(model_sum, digits = 4, row.names=FALSE)
 ```
 
 ****** 
-### Evoluation of estimates
+### Evolution of estimates
 Compares the:  
 * estimates based on a training period through the end of 2013  
 * estimates based on the training period through the end of 2014 (which includes actual data)  

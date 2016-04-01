@@ -50,7 +50,7 @@ load(file=paste0(fpath,"output_data/ushist_a.Rdata"))
 
 ```{r set segrun}
 
-segrun <- c("upsus_occ")
+segrun <- c("totus_demd")
 
 ```
 
