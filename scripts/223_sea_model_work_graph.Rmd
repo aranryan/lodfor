@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Seasonal model workign graphs"
 author: "Tourism Economics"
 date: "March 30, 2016"
 output: html_document
@@ -48,7 +48,7 @@ opts_chunk$set(fig.width = 9, fig.height = 5, dpi = 144)
 segrun <- c("upsus_occ")
 
 ```
-
+Series being run is `r segrun`.
 
 ```{r}
 
@@ -172,6 +172,9 @@ p3 <- p3 + scale_y_log10()
 ```
 
 ### Comparison over time
+* og_act: actual results (non-seasonally adjusted)  
+* ogstl_act: actual results, but smoothed using a seasonal decomposition by loess (stl)  
+* ogstl_fct: forecast, based on the ogstl_act series multiplied by the estimated seasonal factors  
 ```{r}
 p1
 ```
@@ -249,6 +252,7 @@ plot1(tograph_1)
 
 ```
 
+******  
 ### Graph of percent change from prior year, by year
 ```{r}
 
@@ -300,7 +304,9 @@ plot2(tograph_hold)
 
 ```
 
+****** 
 ### Multiple years
+Estimates for each year is based on the training period through the prior December. 
 ```{r}
 
 tograph_2 <- tograph %>%
@@ -324,8 +330,16 @@ p1
 
 ```
 
-
+****** 
 ### Performance by model
+Average error of the seasonal factor approach resulting from each model. Each model has a different set of seasonal dummy regressors.  
+model_1 only contains the trading day seasonal regressor. The average error is assessed during the 12 months of each test period.  
+  
+* fct: Mean absolute error (MAE) of the estimates based on seasonal factors (ogstl_fct_pchya) during each test period  
+* act: MAE of the smoothed series (ogstl_act_pchya)  
+* ratio: fct/act  
+
+In these examples the MAE is equivalent to the average error in percentage points. In other words, the series being evaluated are in terms of the percentage change from the prior year. So if the MAE is 0.01, then it indicates that the estimate is off by an average of one percentage point (e.g. actual change was 3.0% from prior year, estimated change was 2.0% from prior year, implying an error of 1.0 percentage point).  
 ```{r}
 
 model_sum <- out_hold_2 %>%
@@ -339,6 +353,7 @@ kable(model_sum, digits = 4, row.names=FALSE)
 
 
 ### Performance of all models averaged by year
+Same measures as above, with each MAPE averaged across the 12 months of each year.  
 ```{r}
 
 model_sum <- out_hold_2 %>%
@@ -353,6 +368,7 @@ kable(model_sum, digits = 4, row.names=FALSE)
 
 
 ### Performance of selected model averaged by month
+Same measures as above, with each MAPE averaged for a particular month across all test periods.  
 ```{r}
 
 
@@ -365,15 +381,40 @@ kable(model_sum, digits = 4, row.names=FALSE)
 
 ```
 
-
+****** 
 ### Evoluation of estimates
+Compares the:  
+* estimates based on a training period through the end of 2013  
+* estimates based on the training period through the end of 2014 (which includes actual data)  
+* actual data  
+This shows that how the estimates of the seasonal factors for a particular year tend to change once data for that year is being used.
 ```{r}
+
+first_train_end <- as.Date("2013-12-01") 
+second_train_end <- as.Date("2014-12-01")
 
 view_ser <- out_hold %>%
   filter(model_id == "model_8") %>%
-  filter(date >= as.Date("2015-01-01") & date <= as.Date("2015-12-01")) %>%
-  filter(train_end >= as.Date("2013-12-01") & train_end <= as.Date("2014-12-01"))
+  filter(date >= as.Date("2014-01-01") & date <= as.Date("2014-12-01")) %>%
+  filter(train_end == first_train_end | train_end == second_train_end)
 
+
+p1 <- ggplot()
+p1 <- p1 + geom_line(data = subset(view_ser, train_end == first_train_end), aes(x=date, y=og_act_pchya, color="og_act_pchya"))
+
+p1 <- p1 + geom_line(data = subset(view_ser, train_end == first_train_end), 
+                                   aes(x=date, y=ogstl_fct_pchya, color=paste0("ogstl_fct_pchya ", first_train_end)))
+p1 <- p1 + geom_line(data = subset(view_ser, train_end == second_train_end), 
+                                   aes(x=date, y=ogstl_fct_pchya, color=paste0("ogstl_fct_pchya ", second_train_end)))
+p1 <- p1 + scale_color_manual(values = c(mypallete[3:3], "grey70", mypallete[9:9]))
+p1 <- p1 + scale_size_manual(values=c(.7, .7, .7))
+# adds points for one set of data
+p1 <- p1 + geom_point(data = subset(view_ser, train_end == first_train_end), aes(x=date, y=og_act_pchya, color="og_act_pchya"), size=1)
+# points in blank points for all, so that we can override the legend
+p1 <- p1 + geom_point(size=0)
+# overrides legend to also show shape for the first series
+p1 <- p1 + guides(color=guide_legend(override.aes=list(shape=c(16,NA,NA))))
+p1
 
 # %>%
 #   select(-model_id, -train_start) %>%
@@ -384,10 +425,6 @@ view_ser <- out_hold %>%
 # p1 <- p1 + geom_line(aes(x=date, y=ogstl_act, color=factor(train_end)))
 # p1
 
-p1 <- ggplot(data=view_ser)
-p1 <- p1 + geom_line(aes(x=date, y=ogstl_fct_pchya, color=factor(train_end)))
-p1 <- p1 + geom_line(aes(x=date, y=og_act_pchya, color=factor(train_end)))
-p1
 
 ```
 
