@@ -58,7 +58,7 @@ fpath <- c("~/Project/R projects/lodfor/")
 # in front of each
 #load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
 
-fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2016_02_19.csv")
+fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2016_03_11.csv")
 #fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
 # the check.names piece fixes the issueof the column names coming in with
 # quotes and spaces due to the Oxford file format that is visible when 
@@ -73,14 +73,15 @@ colnames(temp)
 
 ```
 ##  [1] "dates"      "us_ipnr"    "us_if"      "us_gdp"     "us_rlg"    
-##  [6] "us_psh"     "us_smp"     "us_rrx"     "us_cd"      "us_domd"   
-## [11] "us_inrs"    "us_ipde"    "us_rcorp"   "us_iconstr" "us_popnipa"
-## [16] "us_pop"     "us_popw"    "us_et"      "us_yhat"    "us_wc"     
-## [21] "us_cpi"     "us_pc"      "us_pgdp"    "us_eci"     "us_pedy"   
-## [26] "us_penwall" "us_cogtp"   "us_conw"    "us_up"      "mx_gdp"    
-## [31] "mx_cpi"     "mx_pc"      "ca_gdp"     "ca_cpi"     "ca_pc"     
-## [36] "us_gfnc"    "us_gf"      "wd_wpo_wti" "jp_rxd"     "wd_gdp"    
-## [41] "wd_gdpppp"  "wd_gdp$&"
+##  [6] "us_psh"     "us_smp"     "us_rrx"     "us_c"       "us_cd"     
+## [11] "us_cnd"     "us_domd"    "us_inrs"    "us_ipde"    "us_iprd"   
+## [16] "us_gc"      "us_rcorp"   "us_iconstr" "us_popnipa" "us_pop"    
+## [21] "us_popw"    "us_et"      "us_yhat"    "us_wc"      "us_cpi"    
+## [26] "us_pc"      "us_pgdp"    "us_eci"     "us_pedy"    "us_penwall"
+## [31] "us_cogtp"   "us_conw"    "us_up"      "mx_gdp"     "mx_cpi"    
+## [36] "mx_pc"      "ca_gdp"     "ca_cpi"     "ca_pc"      "us_gfnc"   
+## [41] "us_gf"      "wd_wpo_wti" "jp_rxd"     "wd_gdp"     "wd_gdpppp" 
+## [46] "wd_gdp$&"
 ```
 
 ```r
@@ -128,21 +129,21 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ```
 
 ###A few plots
-![](040_load_usmacro_files/figure-html/plots-1.png)\
+![](040_load_usmacro_files/figure-html/plots-1.png)
 
 ```
 ## An 'xts' object on 1980-01-01/2030-10-01 containing:
-##   Data: num [1:204, 1:41] 42.3 43.4 44.6 45.9 47.4 ...
+##   Data: num [1:204, 1:45] 42.3 43.4 44.6 45.9 47.4 ...
 ##  - attr(*, "dimnames")=List of 2
 ##   ..$ : NULL
-##   ..$ : chr [1:41] "can_cpi" "can_gdp" "can_pc" "jp_rxd" ...
+##   ..$ : chr [1:45] "can_cpi" "can_gdp" "can_pc" "jp_rxd" ...
 ##   Indexed by objects of class: [Date] TZ: UTC
 ##   xts Attributes:  
 ##  NULL
 ```
 
 ```
-## 'data.frame':	10004 obs. of  4 variables:
+## 'data.frame':	10980 obs. of  4 variables:
 ##  $ date    : Date, format: "1980-01-01" "1980-04-01" ...
 ##  $ geo     : chr  "us" "us" "us" "us" ...
 ##  $ variable: chr  "ipnr" "ipnr" "ipnr" "ipnr" ...
@@ -150,7 +151,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ```
 
 ```
-## 'data.frame':	244 obs. of  42 variables:
+## 'data.frame':	244 obs. of  46 variables:
 ##  $ date      : Date, format: "1980-01-01" "1980-04-01" ...
 ##  $ us_ipnr   : num  150 143 144 147 150 ...
 ##  $ us_if     : num  309 287 288 297 301 ...
@@ -159,10 +160,14 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ##  $ us_psh    : num  1132 1099 1269 1386 1363 ...
 ##  $ us_smp    : num  110 108 123 133 132 ...
 ##  $ us_rrx    : num  105 105 101 103 107 ...
+##  $ us_c      : num  1006 984 994 1007 1013 ...
 ##  $ us_cd     : num  59.8 53.3 55.6 57.4 59 ...
+##  $ us_cnd    : num  984 975 980 991 993 ...
 ##  $ us_domd   : num  1634 1586 1572 1611 1648 ...
 ##  $ us_inrs   : num  111 109 109 112 112 ...
 ##  $ us_ipde   : num  55.5 51.6 52 52.7 54.2 ...
+##  $ us_iprd   : num  93.2 76 78.3 85.6 83.5 ...
+##  $ us_gc     : num  335 341 337 336 339 ...
 ##  $ us_rcorp  : num  0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001 ...
 ##  $ us_iconstr: num  198 177 180 191 189 ...
 ##  $ us_popnipa: num  226754 227389 228070 228689 229155 ...
@@ -190,12 +195,12 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ##  $ us_gf     : num  157 161 158 159 162 ...
 ##  $ wd_wpo_wti: num  35.8 39.5 37.8 36.3 38 ...
 ##  $ jp_rxd    : num  244 232 220 211 206 ...
-##  $ wd_gdp    : num  6994330 6963900 7005860 7071950 7124860 ...
-##  $ wd_gdpppp : num  7461790 7426430 7459940 7512830 7584170 ...
+##  $ wd_gdp    : num  6994470 6964030 7006000 7072080 7125000 ...
+##  $ wd_gdpppp : num  7462200 7426840 7460360 7513240 7584580 ...
 ##  $ wd_gdpnusd: num  2763640 2777270 2791130 2805220 2828700 ...
 ```
 
-![](040_load_usmacro_files/figure-html/plots-2.png)\![](040_load_usmacro_files/figure-html/plots-3.png)\![](040_load_usmacro_files/figure-html/plots-4.png)\![](040_load_usmacro_files/figure-html/plots-5.png)\![](040_load_usmacro_files/figure-html/plots-6.png)\
+![](040_load_usmacro_files/figure-html/plots-2.png)![](040_load_usmacro_files/figure-html/plots-3.png)![](040_load_usmacro_files/figure-html/plots-4.png)![](040_load_usmacro_files/figure-html/plots-5.png)![](040_load_usmacro_files/figure-html/plots-6.png)
 
 ```
 ##             us_gdp  us_gdp_cagr
@@ -210,7 +215,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ## 2015-01-01 4044.32  0.006424773
 ## 2015-04-01 4083.40  0.039215590
 ## 2015-07-01 4103.50  0.019835330
-## 2015-10-01 4110.58  0.006919307
+## 2015-10-01 4113.77  0.010048611
 ```
 
 ###Load FRED data
@@ -229,7 +234,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 
 ```
 ## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
-## extra): downloaded length 12636 != reported length 200
+## extra): downloaded length 12653 != reported length 200
 ```
 
 ```
@@ -250,7 +255,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ## Warning: Removed 66 rows containing missing values (geom_path).
 ```
 
-![](040_load_usmacro_files/figure-html/fred_data-1.png)\
+![](040_load_usmacro_files/figure-html/fred_data-1.png)
 
 ###Writing out files
 

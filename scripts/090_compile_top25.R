@@ -13,6 +13,7 @@ load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
 
 # puts the quarterly ushist into a melted data frame
 ushist_q_m <- ushist_q %>%
+  # appears to use the start date of the most recently complete quarter of STR data
   window(end = as.Date("2015-10-01")) %>%
   data.frame(date=index(.), .) %>%
   gather(variable, value, -date)

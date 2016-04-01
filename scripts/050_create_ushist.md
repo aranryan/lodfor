@@ -123,7 +123,7 @@ ushist_q <- merge(ushist_q, us_pc_index)
 autoplot.zoo(ushist_q$us_pc_index)
 ```
 
-![](050_create_ushist_files/figure-html/create_q-1.png)\
+![](050_create_ushist_files/figure-html/create_q-1.png)
 
 ```r
 # select the series that contain adr or revpar and convert to real
@@ -223,13 +223,13 @@ rm(tempnames)
 autoplot.zoo(window(real$luxus_adr_sarpc, start="2000-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/create_q-2.png)\
+![](050_create_ushist_files/figure-html/create_q-2.png)
 
 ```r
 autoplot.zoo(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/create_q-3.png)\
+![](050_create_ushist_files/figure-html/create_q-3.png)
 
 ```r
 # merges onto ushist_q
@@ -237,7 +237,7 @@ ushist_q <- merge(ushist_q, real)
 autoplot.zoo(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/create_q-4.png)\
+![](050_create_ushist_files/figure-html/create_q-4.png)
 
 
 
@@ -247,19 +247,19 @@ ushist_q <- merge(ushist_q, out_str_ihg_mex_q,out_str_ihg_can_q)
 autoplot.zoo(window(ushist_q$totcan_adr_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_ihg_mex_can-1.png)\
+![](050_create_ushist_files/figure-html/add_ihg_mex_can-1.png)
 
 ```r
 autoplot.zoo(window(ushist_q$totcan_demd_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_ihg_mex_can-2.png)\
+![](050_create_ushist_files/figure-html/add_ihg_mex_can-2.png)
 
 ```r
 autoplot.zoo(window(ushist_q$upmmex_revpar_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_ihg_mex_can-3.png)\
+![](050_create_ushist_files/figure-html/add_ihg_mex_can-3.png)
 
 Adds open close data
 
@@ -293,12 +293,12 @@ head(temp_opcl)
 
 ```
 ##            totus_oprms_sa totus_oprms_sf totus_oprms totus_clrms
-## 1987-01-01       45600.33      0.8040732       36666         458
-## 1987-04-01       39123.36      1.5448313       60439         141
-## 1987-07-01       36626.31      0.8753271       32060           0
-## 1987-10-01       32925.92      0.7945109       26160         350
-## 1988-01-01       31283.38      0.8519541       26652         165
-## 1988-04-01       35677.97      1.4716645       52506         991
+## 1987-01-01       45399.22      0.8076350       36666         458
+## 1987-04-01       38916.99      1.5530234       60439         141
+## 1987-07-01       37959.03      0.8445948       32060           0
+## 1987-10-01       32043.52      0.8163896       26160         350
+## 1988-01-01       31422.19      0.8481903       26652         165
+## 1988-04-01       35450.87      1.4827280       52564         991
 ```
 
 ```r
@@ -330,12 +330,12 @@ head(out_str_us_m$totus_supd) #monthly
 
 ```
 ##            totus_supd
-## 1987-01-01   2.864859
-## 1987-02-01   2.874859
-## 1987-03-01   2.894016
-## 1987-04-01   2.922109
-## 1987-05-01   2.968849
-## 1987-06-01   3.012075
+## 1987-01-01   2.865610
+## 1987-02-01   2.875610
+## 1987-03-01   2.894767
+## 1987-04-01   2.922860
+## 1987-05-01   2.969600
+## 1987-06-01   3.012826
 ```
 
 ```r
@@ -344,12 +344,12 @@ head(sup_qtr$totus_sups) # based on start of quarter
 
 ```
 ##            totus_sups
-## 1987-01-01   2.864859
-## 1987-04-01   2.922109
-## 1987-07-01   3.024534
-## 1987-10-01   3.038248
-## 1988-01-01   3.015634
-## 1988-04-01   3.065528
+## 1987-01-01   2.865610
+## 1987-04-01   2.922860
+## 1987-07-01   3.025285
+## 1987-10-01   3.038999
+## 1988-01-01   3.016385
+## 1988-04-01   3.066279
 ```
 
 ```r
@@ -358,12 +358,12 @@ head(sup_qtr$totus_supe) # based on start of quarter
 
 ```
 ##            totus_supe
-## 1987-01-01   2.922109
-## 1987-04-01   3.024534
-## 1987-07-01   3.038248
-## 1987-10-01   3.015634
-## 1988-01-01   3.065528
-## 1988-04-01   3.158917
+## 1987-01-01   2.922860
+## 1987-04-01   3.025285
+## 1987-07-01   3.038999
+## 1987-10-01   3.016385
+## 1988-01-01   3.066279
+## 1988-04-01   3.159726
 ```
 
 ```r
@@ -384,25 +384,25 @@ ushist_q <- data.frame(date=time(ushist_q), ushist_q) %>%
 autoplot.zoo(window(ushist_q$totus_oprms, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-1.png)\
+![](050_create_ushist_files/figure-html/add_opencl-1.png)
 
 ```r
 autoplot.zoo(window(ushist_q$totus_clrms, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-2.png)\
+![](050_create_ushist_files/figure-html/add_opencl-2.png)
 
 ```r
 autoplot.zoo(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-3.png)\
+![](050_create_ushist_files/figure-html/add_opencl-3.png)
 
 ```r
 autoplot.zoo(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-4.png)\
+![](050_create_ushist_files/figure-html/add_opencl-4.png)
 
 ```r
 # looking at it as a ts
@@ -411,7 +411,7 @@ tempa_ts <<- ts(as.numeric(tempa), start=c(1987, 1), frequency=4)
 plot(tempa_ts)
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-5.png)\
+![](050_create_ushist_files/figure-html/add_opencl-5.png)
 
 ```r
 head(tempa_ts)
@@ -425,7 +425,7 @@ head(tempa_ts)
 monthplot(tempa_ts)
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-6.png)\
+![](050_create_ushist_files/figure-html/add_opencl-6.png)
 
 ```r
 # looking at schanger
@@ -436,15 +436,15 @@ head(tempa_ts)
 ```
 
 ```
-## [1]  0.007344864  0.014416642 -0.006065728 -0.015938133  0.007761884
-## [6]  0.013659637
+## [1]  0.007342939  0.014412938 -0.006064222 -0.015934194  0.007759951
+## [6]  0.013656292
 ```
 
 ```r
 monthplot(tempa_ts)
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-7.png)\
+![](050_create_ushist_files/figure-html/add_opencl-7.png)
 
 ```r
 # if I adjust as seas, it works, but my function didn't
@@ -529,25 +529,25 @@ mp <- seas(y,
 
 ```
 ##            totus_schanger_sa totus_schanger_sf
-## 1987-01-01     -0.0007198856       0.008064750
-## 1987-04-01      0.0010376795       0.013378963
-## 1987-07-01     -0.0010411746      -0.005024553
-## 1987-10-01      0.0005266746      -0.016464807
-## 1988-01-01     -0.0005483677       0.008310251
-## 1988-04-01      0.0005193654       0.013140272
+## 1987-01-01     -0.0007185912       0.008061530
+## 1987-04-01      0.0010292836       0.013383654
+## 1987-07-01     -0.0010422589      -0.005021963
+## 1987-10-01      0.0005345956      -0.016468790
+## 1988-01-01     -0.0005473174       0.008307268
+## 1988-04-01      0.0005115692       0.013144722
 ```
 
 ```r
 autoplot.zoo(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-8.png)\
+![](050_create_ushist_files/figure-html/add_opencl-8.png)
 
 ```r
 autoplot.zoo(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-9.png)\
+![](050_create_ushist_files/figure-html/add_opencl-9.png)
 
 ```r
 # merge onto ushist_q
@@ -556,7 +556,7 @@ ushist_q <- merge(ushist_q, temp_schanger)
 autoplot.zoo(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-10.png)\
+![](050_create_ushist_files/figure-html/add_opencl-10.png)
 
 Looking at what's in quarterly databank
 
@@ -738,7 +738,7 @@ autoplot.zoo(ushist_a$totus_schange)
 ## Warning: Removed 22 rows containing missing values (geom_path).
 ```
 
-![](050_create_ushist_files/figure-html/create_a-1.png)\
+![](050_create_ushist_files/figure-html/create_a-1.png)
 
 ```r
 autoplot.zoo(ushist_a$luxus_revpar)
@@ -748,13 +748,13 @@ autoplot.zoo(ushist_a$luxus_revpar)
 ## Warning: Removed 22 rows containing missing values (geom_path).
 ```
 
-![](050_create_ushist_files/figure-html/create_a-2.png)\
+![](050_create_ushist_files/figure-html/create_a-2.png)
 
 ```r
 autoplot.zoo(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2015-10-01")))
 ```
 
-![](050_create_ushist_files/figure-html/create_a-3.png)\
+![](050_create_ushist_files/figure-html/create_a-3.png)
 
 Creating monthly historical databank
 
