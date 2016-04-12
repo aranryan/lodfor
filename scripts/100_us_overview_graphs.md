@@ -19,8 +19,8 @@ Insert date
 
 
 ```
-## An 'xts' object on 2005-01-01/2018-10-01 containing:
-##   Data: num [1:56, 1:150] 6.95 6.99 7.04 7.03 7.21 ...
+## An 'xts' object on 2005-01-01/2020-10-01 containing:
+##   Data: num [1:64, 1:150] 6.95 6.99 7.04 7.03 7.21 ...
 ##  - attr(*, "dimnames")=List of 2
 ##   ..$ : NULL
 ##   ..$ : chr [1:150] "luxus_supt" "luxus_demt" "luxus_occ" "luxus_adr" ...
@@ -50,7 +50,7 @@ Insert date
 
 ```
 ##  (Intercept)         date 
-## 3.424817e+00 8.300935e-05
+## 3.426776e+00 8.290662e-05
 ```
 
 <img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_fcst-1.png" title="" alt="" width="9in" height="5.7in" />
@@ -60,7 +60,7 @@ Insert date
 
 ```
 ##  (Intercept)         date 
-## 1.248748e+00 1.980497e-05
+## 1.249252e+00 1.977676e-05
 ```
 
 <img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-2.png" title="" alt="" width="9in" height="5.7in" />

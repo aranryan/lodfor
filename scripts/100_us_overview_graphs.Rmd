@@ -21,13 +21,12 @@ output:
 
 
 ```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
-require(directlabels)
-#require(rmarkdown)
-#require(knitr)
-require(RColorBrewer)
-require(gridExtra)
-require(gtable)
-require(Cairo)
+library(directlabels)
+library(RColorBrewer)
+library(gridExtra)
+library(gtable)
+library(Cairo)
+library(grid)
 
 # If I put autodep=TRUE as an argument in the following then I get
 # some issues with the graphs, such as grey backgrounds and changes
