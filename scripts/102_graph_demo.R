@@ -1,3 +1,4 @@
+#devtools::install_github("hadley/ggplot2") 
 
 library(directlabels)
 library(grid)
@@ -7,6 +8,8 @@ library(Cairo)
 library(RColorBrewer)
 library(rmarkdown)
 library(knitr)
+library(cowplot)
+
 
 # install.packages("extrafont")
 # library(extrafont)
@@ -27,6 +30,7 @@ library(tidyr)
 
 fpath <- c("~/Project/R projects/lodfor/")
 load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
+graph_path <- c("output_data/figure_us_overview_graphs/")
 
 # puts the quarterly ushist into a melted data frame
 ushist_q_m <- ushist_q %>%
@@ -64,7 +68,6 @@ theme_ts1 <- function (base_size = 12, base_family = "Arial") {
       axis.text=element_text(color="black",size=rel(.7)),
       # following seems to adjust y-axis title
       plot.title=element_text(size=base_size * .8, face="plain",hjust=0,vjust=1)
-      #theme(plot.title = element_text(lineheight=.8, face="bold"))
     )
 }
 
@@ -87,25 +90,61 @@ end_mean <- as.Date("2014-10-01")
 
 variable_text <- c("")
 
-
 temp <- ushist_q_m %>% 
   filter(variable == todo, !is.na(value)) 
 
 p1 <- ggplot(temp, aes(x = date, y=value)) +
   ggtitle(variable_text) +
   scale_y_continuous(labels=percent) +
-  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], color=mypallete[10:10], size=.6, linetype = 1)
-CairoPNG("output_data/figure_us_overview_graphs/fig-testR400dpi-occupancy_forecast.png", units="in", width=9, height=5.7, dpi=400)
-#CairoPDF("output_data/figure_us_overview_graphs/fig-testR400dpi-occupancy_forecast.pdf", width=9, height=5.7)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
-dev.off()
-
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
-p1 <- ggplot(temp, aes(x = date, y=value)) +
-  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], size=.6, linetype = 1)
+  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], color=mypallete[9:9], size=.6, linetype = 1)
+plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, 
+             filename = paste0(graph_path, "fig-test_ggsave_0_R600dpi-occupancy_forecast.png"))
 p1
-ggsave("output_data/figure_us_overview_graphs/fig-test_ggsave_1_R600dpi-occupancy_forecast.png", dpi=600)
-ggsave("output_data/figure_us_overview_graphs/fig-test_ggsave_2_R400dpi-occupancy_forecast.pdf")
-ggsave("output_data/figure_us_overview_graphs/fig-test_ggsave_3_R600dpi-occupancy_forecast2.png", height=5.5, width=9, dpi=600)
 
 
+
+####
+#
+# trying the caption approach that is in the dev version of ggplot
+
+caption <- "\nNote: Seasonally adjusted. History through fourth quarter 2014, forecast through fourth quarter 2017.\nSource: STR; Tourism Economics"
+#caption <- paste0(strwrap(caption, 160), sep="", collapse="\n")
+  
+  p1 <- p1 + labs(x=NULL, y=NULL,
+                  title=grtitle,
+                  subtitle="\nSupreme Court vacancies, by duration",
+                  caption=caption)
+  p1 <- p1 + theme(
+    plot.caption = element_text(size=8, hjust=-0.065),
+    plot.title = element_text(size=20, face="plain",hjust=-0.065,vjust=1),
+    plot.subtitle = element_text(size=10, hjust=-0.065, vjust=1.1)
+  )
+  p1
+  ggsave("output_data/figure_us_overview_graphs/fig-test_ggsave_6_R600dpi-occupancy_forecast.png", dpi=600)
+
+####
+#
+# toying around with subtitle
+# couldn't easily get it to left align all the way over
+  
+  p2 <- ggplot(temp, aes(x = date, y=value)) +
+    ggtitle(variable_text) +
+    scale_y_continuous(labels=percent) +
+    geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], color=mypallete[9:9], size=.6, linetype = 1)
+  
+  p2 <- p2 + labs(x=NULL, y=NULL,
+                  title=grtitle,
+                  subtitle="\nLevel")
+  p2 <- p2 + theme(
+    plot.title = element_text(size=20, face="plain",hjust=-0.065,vjust=2),
+    plot.subtitle = element_text(size=10, hjust=0)
+  )
+  
+    p2
+    
+# this uses cowplot to add an annotation nicely. Would use it but, the subtitle piece isn't great.
+p2 <- cowplot::ggdraw(cowplot::add_sub(p2, "This is an annotation.\nAnnotations can span multiple lines.", 
+                     x = -0.05, hjust = 0, size=10))
+p2
+ggsave("output_data/figure_us_overview_graphs/fig-test_ggsave_7_R600dpi-occupancy_forecast.png", dpi=600)
+  

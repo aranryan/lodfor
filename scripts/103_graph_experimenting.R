@@ -1,3 +1,4 @@
+#devtools::install_github("hadley/ggplot2") 
 
 library(directlabels)
 library(grid)
@@ -7,6 +8,8 @@ library(Cairo)
 library(RColorBrewer)
 library(rmarkdown)
 library(knitr)
+#library(cowplot)
+
 
 # install.packages("extrafont")
 # library(extrafont)
@@ -27,6 +30,7 @@ library(tidyr)
 
 fpath <- c("~/Project/R projects/lodfor/")
 load(paste(fpath, "output_data/ushist_q.Rdata", sep=""))
+graph_path <- c("output_data/figure_us_overview_graphs/")
 
 # puts the quarterly ushist into a melted data frame
 ushist_q_m <- ushist_q %>%
@@ -64,12 +68,11 @@ theme_ts1 <- function (base_size = 12, base_family = "Arial") {
       axis.text=element_text(color="black",size=rel(.7)),
       # following seems to adjust y-axis title
       plot.title=element_text(size=base_size * .8, face="plain",hjust=0,vjust=1)
-      #theme(plot.title = element_text(lineheight=.8, face="bold"))
     )
 }
 
 
-theme_set(theme_ts1())
+#theme_set(theme_ts1())
 #this is also a useful theme to keep in mind
 #theme_classic()
 # this function gets the settings used by the current theme
@@ -80,6 +83,7 @@ theme_set(theme_ts1())
 #sets variable and text items
 todo <- c("totus_occ_sa")
 grtitle <- c("Occupancy")
+subtitle <- c("Text")
 
 footnote <- c("Note: Seasonally adjusted. History through fourth quarter 2014, forecast through fourth quarter 2017.\nSource: STR; Tourism Economics")
 start_mean <- as.Date("2000-01-01") # for mean
@@ -87,25 +91,45 @@ end_mean <- as.Date("2014-10-01")
 
 variable_text <- c("")
 
-
 temp <- ushist_q_m %>% 
   filter(variable == todo, !is.na(value)) 
 
 p1 <- ggplot(temp, aes(x = date, y=value)) +
   ggtitle(variable_text) +
   scale_y_continuous(labels=percent) +
-  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], color=mypallete[10:10], size=.6, linetype = 1)
-CairoPNG("output_data/figure_us_overview_graphs/fig-testR400dpi-occupancy_forecast.png", units="in", width=9, height=5.7, dpi=400)
-#CairoPDF("output_data/figure_us_overview_graphs/fig-testR400dpi-occupancy_forecast.pdf", width=9, height=5.7)
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
-dev.off()
+  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], color=mypallete[9:9], size=.6, linetype = 1)
+#plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, 
+#             filename = paste0(graph_path, "fig-test_ggsave_0_R600dpi-occupancy_forecast.png"))
+#p1
 
-plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, filename = c("temp.png"))
-p1 <- ggplot(temp, aes(x = date, y=value)) +
-  geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], size=.6, linetype = 1)
-p1
-ggsave("output_data/figure_us_overview_graphs/fig-test_ggsave_1_R600dpi-occupancy_forecast.png", dpi=600)
-ggsave("output_data/figure_us_overview_graphs/fig-test_ggsave_2_R400dpi-occupancy_forecast.pdf")
-ggsave("output_data/figure_us_overview_graphs/fig-test_ggsave_3_R600dpi-occupancy_forecast2.png", height=5.5, width=9, dpi=600)
+plot_title_4=function(plot, grtitle, subtitle, footnote, filename){
+  # create a list of grobs in order
+  title_grob <- textGrob(grtitle, x=0, hjust=0, vjust=0.6,
+                      gp = gpar(fontsize=16, fontface="bold"))
+  subtitle_grob <- textGrob(subtitle, x=0, hjust=0, gp = gpar(fontsize=10))
+  footnote_grob <- textGrob(footnote, x=0, hjust=0, vjust=0.1,
+                       gp = gpar(fontface="plain", fontsize=7))
+  groblist <- list(title_grob, subtitle_grob, plot, footnote_grob)
+  
+  grobframe <- arrangeGrob(ncol=1, nrow=4, 
+                           # height of each row defined using npc, where npc means
+                           # normalised parent coordinates - basically analogous to 
+                           # a proportion of the plot area, so values range from 0 to 1
+                           heights=unit(c(.1, .05, .75, .1), "npc"), grobs=groblist)
+  grid.newpage() # basic command to create a new page of output
+  grid.draw(grobframe)
+  ggsave(grobframe,file=filename,height=5.7,width=9,dpi=800,units="in")
+}
+
+p2 <- p1 +  theme(
+  plot.margin = unit(c(.01, 0, .01, 0), "npc"), # top, right, bottom, left
+  axis.line.x = element_line(size=.2, colour = "grey70"),
+  axis.ticks.x=element_line(size=.5, colour = "grey70")
+)  
+
+
+plot_title_4(plot=p2, grtitle=grtitle, footnote=footnote, subtitle=subtitle,
+             filename = paste0(graph_path, "fig-test_ggsave_0_R600dpi-occupancy_forecast.png"))
+
 
 

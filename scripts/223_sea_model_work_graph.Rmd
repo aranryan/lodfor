@@ -45,7 +45,7 @@ opts_chunk$set(fig.width = 9, fig.height = 5, dpi = 144)
 
 ```{r set segrun}
 
-segrun <- c("totus_adr")
+segrun <- c("totus_demd")
 
 ```
 Series being run is `r segrun`.
@@ -117,9 +117,9 @@ out_hold_2 <- out_hold %>%
 
 temp_a <- out_hold %>%
   filter(model_id == "model_8" ) %>%
-  filter(train_end == as.Date("2014-12-01")) %>%
+  filter(train_end == as.Date("2015-12-01")) %>%
   filter(date >= as.Date("2003-01-01")) %>%
-  filter(date <= as.Date("2014-12-01"))
+  filter(date <= as.Date("2015-12-01"))
   
 tograph <- temp_a %>%
   select(-model_id, -train_start, -train_end) %>%
@@ -292,6 +292,9 @@ print(p1)
 }
 
 years <- unique(tograph$year)
+# but drop 2016 if it's there
+years <- years[which(years!=2016)] 
+
 for (i in years) {
   tograph_hold <- tograph %>%
     filter(year == i)
@@ -300,7 +303,7 @@ plot2(tograph_hold)
   
 }
   
-  
+
 
 ```
 
@@ -343,6 +346,8 @@ In these examples the MAE is equivalent to the average error in percentage point
 ```{r}
 
 model_sum <- out_hold_2 %>%
+  # drop rows that don't have actual data, this is to remove 2016
+  filter(!is.na(og_act)) %>%
   group_by(model_id) %>%
   summarize(fct = mean(ogstl_fct_pchya_absd), act = mean(ogstl_act_pchya_absd)) %>%
   mutate(ratio = fct/act)
@@ -371,8 +376,9 @@ kable(model_sum, digits = 4, row.names=FALSE)
 Same measures as above, with each MAPE averaged for a particular month across all test periods.  
 ```{r}
 
-
 model_sum <- selected %>%
+  # drop rows that don't have actual data, this is to remove 2016
+  filter(!is.na(og_act)) %>%
   group_by(month) %>%
   summarize(fct = mean(ogstl_fct_pchya_absd), act = mean(ogstl_act_pchya_absd)) %>%
   mutate(ratio = fct/act)
@@ -425,6 +431,12 @@ p1
 # p1 <- p1 + geom_line(aes(x=date, y=ogstl_act, color=factor(train_end)))
 # p1
 
+
+```
+
+```{r echo=FALSE}
+# write an output file
+write.csv(selected, file=paste0(fpath,"output_data/out_selected_",segrun,".csv"), row.names=FALSE)
 
 ```
 

@@ -372,7 +372,7 @@ models_to_run <- models_to_run %>%
   #filter(model_id %in% c("model_1", "model_8", "model_13"))
 
 out <- models_to_run %>%
-  mutate(factorsout = map(reg_groups, test_seasonal, hist_df=x_df, train_start_year = 2004, train_end_year = 2014)) 
+  mutate(factorsout = map(reg_groups, test_seasonal, hist_df=x_df, train_start_year = 2004, train_end_year = 2015)) 
 
 out_seamod <- NULL
 out_seamod <- rbind(out_seamod, out)
