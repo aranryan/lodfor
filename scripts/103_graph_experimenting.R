@@ -83,7 +83,7 @@ theme_ts1 <- function (base_size = 12, base_family = "Arial") {
 #sets variable and text items
 todo <- c("totus_occ_sa")
 grtitle <- c("Occupancy")
-subtitle <- c("Text")
+subtitle <- c("Occupancy rate")
 
 footnote <- c("Note: Seasonally adjusted. History through fourth quarter 2014, forecast through fourth quarter 2017.\nSource: STR; Tourism Economics")
 start_mean <- as.Date("2000-01-01") # for mean
@@ -98,6 +98,7 @@ p1 <- ggplot(temp, aes(x = date, y=value)) +
   ggtitle(variable_text) +
   scale_y_continuous(labels=percent) +
   geom_line(data = temp[temp$date<=as.Date("2014-10-01"),], color=mypallete[9:9], size=.6, linetype = 1)
+p1
 #plot_title_3(plot=p1, grtitle=grtitle, footnote=footnote, 
 #             filename = paste0(graph_path, "fig-test_ggsave_0_R600dpi-occupancy_forecast.png"))
 #p1
@@ -126,7 +127,7 @@ p2 <- p1 +  theme(
   axis.line.x = element_line(size=.2, colour = "grey70"),
   axis.ticks.x=element_line(size=.5, colour = "grey70")
 )  
-
+p2
 
 plot_title_4(plot=p2, grtitle=grtitle, footnote=footnote, subtitle=subtitle,
              filename = paste0(graph_path, "fig-test_ggsave_0_R600dpi-occupancy_forecast.png"))

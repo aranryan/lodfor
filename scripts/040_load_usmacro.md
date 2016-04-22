@@ -6,13 +6,23 @@ Wednesday, October 15, 2014
 Setup
 
 ```r
-#read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-#source('~/Project/R projects/lodfor/scripts/functions_combined.R')
-#setwd("./output_data/")
 library(arlodr, warn.conflicts=FALSE)
 library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
+library(quantmod, warn.conflicts=FALSE)
+```
+
+```
+## Loading required package: TTR
+```
+
+```
+## Warning: package 'TTR' was built under R version 3.2.5
+```
+
+```
+## Version 0.4-0 included new data defaults. See ?getSymbols.
 ```
 
 
@@ -33,32 +43,13 @@ end_date <- paste(end_year,"-10-01",sep="")
 
 
 ```r
-if (!require(quantmod)) {
-  install.packages("quantmod")
-  require(quantmod)
-}
-```
-
-```
-## Loading required package: quantmod
-```
-
-```
-## Loading required package: TTR
-```
-
-```
-## Version 0.4-0 included new data defaults. See ?getSymbols.
-```
-
-```r
 fpath <- c("~/Project/R projects/lodfor/")
 
 # when kniting from the button, I either needed the full path or to add "../" 
 # in front of each
 #load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
 
-fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2016_03_11.csv")
+fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2016_04_13.csv")
 #fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
 # the check.names piece fixes the issueof the column names coming in with
 # quotes and spaces due to the Oxford file format that is visible when 
@@ -89,7 +80,23 @@ colnames(temp)
 col_temp <- colnames(temp) %>%
   gsub("\\$&", "nusd", .)
 colnames(temp) <- col_temp
+colnames(temp)
+```
 
+```
+##  [1] "dates"      "us_ipnr"    "us_if"      "us_gdp"     "us_rlg"    
+##  [6] "us_psh"     "us_smp"     "us_rrx"     "us_c"       "us_cd"     
+## [11] "us_cnd"     "us_domd"    "us_inrs"    "us_ipde"    "us_iprd"   
+## [16] "us_gc"      "us_rcorp"   "us_iconstr" "us_popnipa" "us_pop"    
+## [21] "us_popw"    "us_et"      "us_yhat"    "us_wc"      "us_cpi"    
+## [26] "us_pc"      "us_pgdp"    "us_eci"     "us_pedy"    "us_penwall"
+## [31] "us_cogtp"   "us_conw"    "us_up"      "mx_gdp"     "mx_cpi"    
+## [36] "mx_pc"      "ca_gdp"     "ca_cpi"     "ca_pc"      "us_gfnc"   
+## [41] "us_gf"      "wd_wpo_wti" "jp_rxd"     "wd_gdp"     "wd_gdpppp" 
+## [46] "wd_gdpnusd"
+```
+
+```r
 # works on the date column to get into a date format
 # more difficult than I would have liked
 temp <- temp %>%
@@ -195,8 +202,8 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ##  $ us_gf     : num  157 161 158 159 162 ...
 ##  $ wd_wpo_wti: num  35.8 39.5 37.8 36.3 38 ...
 ##  $ jp_rxd    : num  244 232 220 211 206 ...
-##  $ wd_gdp    : num  6994470 6964030 7006000 7072080 7125000 ...
-##  $ wd_gdpppp : num  7462200 7426840 7460360 7513240 7584580 ...
+##  $ wd_gdp    : num  6921980 6819030 6788290 6781720 6837300 ...
+##  $ wd_gdpppp : num  7354070 7318800 7352280 7405170 7472810 ...
 ##  $ wd_gdpnusd: num  2763640 2777270 2791130 2805220 2828700 ...
 ```
 
@@ -215,7 +222,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ## 2015-01-01 4044.32  0.006424773
 ## 2015-04-01 4083.40  0.039215590
 ## 2015-07-01 4103.50  0.019835330
-## 2015-10-01 4113.77  0.010048611
+## 2015-10-01 4117.65  0.013864611
 ```
 
 ###Load FRED data
@@ -234,7 +241,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 
 ```
 ## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
-## extra): downloaded length 12653 != reported length 200
+## extra): downloaded length 12670 != reported length 200
 ```
 
 ```

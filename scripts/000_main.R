@@ -57,6 +57,8 @@ rmarkdown::render("scripts/100_us_overview_graphs.Rmd")
 
 # run several experiements with graph resolution
 source("scripts/101_graph_resolution_test.R")
+source("scripts/102_graph_demo.R")
+source("scripts/103_graph_experimenting.R")
 
 # creates an eviews output for host analysis
 source("scripts/110_out_to_eviews.R")

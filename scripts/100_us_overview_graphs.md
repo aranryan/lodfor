@@ -50,7 +50,7 @@ Insert date
 
 ```
 ##  (Intercept)         date 
-## 3.426776e+00 8.290662e-05
+## 3.429023e+00 8.280427e-05
 ```
 
 <img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_fcst-1.png" title="" alt="" width="9in" height="5.7in" />
@@ -60,7 +60,7 @@ Insert date
 
 ```
 ##  (Intercept)         date 
-## 1.249252e+00 1.977676e-05
+## 1.249829e+00 1.974795e-05
 ```
 
 <img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-1.png" title="" alt="" width="9in" height="5.7in" /><img src="../output_data/figure_us_overview_graphs/fig-demand_ratio_pop_lnfcst-2.png" title="" alt="" width="9in" height="5.7in" />

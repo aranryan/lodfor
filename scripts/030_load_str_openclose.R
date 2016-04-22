@@ -9,8 +9,8 @@ library(seasonal, warn.conflicts=FALSE)
 # I used it because I found a way to use that format in reading the data
 # would have liked to avoid it, as I later conver it with as.Date
 f <- function(x) as.yearmon(format(x, nsmall = 2), "%Y%m")
-fname_opens <- c("input_data/coopopen2016-03-17.txt")
-fname_closes <- c("input_data/coopclose2016-03-17.txt")
+fname_opens <- c("input_data/coopopen2016-04-18.txt")
+fname_closes <- c("input_data/coopclose2016-04-18.txt")
 
 # handles opens
 
@@ -115,7 +115,6 @@ plot(opcl_m$upsus_clrms)
 plot(opcl_m$upsus_oprms)
 
 summary(opcl_m)
-rm(f)
 
 #############################3
 #

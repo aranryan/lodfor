@@ -10,13 +10,12 @@ output:
 
 Setup
 ```{r readchunk}
-#read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-#source('~/Project/R projects/lodfor/scripts/functions_combined.R')
-#setwd("./output_data/")
+
 library(arlodr, warn.conflicts=FALSE)
 library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
+library(quantmod, warn.conflicts=FALSE)
 ```
 
 
@@ -36,18 +35,13 @@ end_date <- paste(end_year,"-10-01",sep="")
 
 ```{r load_macro2}
 
-if (!require(quantmod)) {
-  install.packages("quantmod")
-  require(quantmod)
-}
-
 fpath <- c("~/Project/R projects/lodfor/")
 
 # when kniting from the button, I either needed the full path or to add "../" 
 # in front of each
 #load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
 
-fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2016_03_11.csv")
+fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2016_04_13.csv")
 #fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
 # the check.names piece fixes the issueof the column names coming in with
 # quotes and spaces due to the Oxford file format that is visible when 
@@ -63,6 +57,8 @@ colnames(temp)
 col_temp <- colnames(temp) %>%
   gsub("\\$&", "nusd", .)
 colnames(temp) <- col_temp
+colnames(temp)
+
 
 # works on the date column to get into a date format
 # more difficult than I would have liked

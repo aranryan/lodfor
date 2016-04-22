@@ -9,8 +9,6 @@ output:
 
 Setup
 ```{r readchunk}
-#read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-#source('~/Project/R projects/lodfor/scripts/functions_combined.R')
 library(arlodr, warn.conflicts=FALSE)
 library(zoo, warn.conflicts=FALSE)
 library(xts, warn.conflicts=FALSE)
