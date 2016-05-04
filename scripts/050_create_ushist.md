@@ -121,7 +121,7 @@ ushist_q <- merge(ushist_q, us_pc_index)
 autoplot.zoo(ushist_q$us_pc_index)
 ```
 
-![](050_create_ushist_files/figure-html/create_q-1.png)
+![](050_create_ushist_files/figure-html/create_q-1.png)<!-- -->
 
 ```r
 # select the series that contain adr or revpar and convert to real
@@ -221,13 +221,13 @@ rm(tempnames)
 autoplot.zoo(window(real$luxus_adr_sarpc, start="2000-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/create_q-2.png)
+![](050_create_ushist_files/figure-html/create_q-2.png)<!-- -->
 
 ```r
 autoplot.zoo(window(ushist_q$luxus_adr_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/create_q-3.png)
+![](050_create_ushist_files/figure-html/create_q-3.png)<!-- -->
 
 ```r
 # merges onto ushist_q
@@ -235,7 +235,7 @@ ushist_q <- merge(ushist_q, real)
 autoplot.zoo(window(ushist_q$ecous_adr_sarpc, start="2000-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/create_q-4.png)
+![](050_create_ushist_files/figure-html/create_q-4.png)<!-- -->
 
 
 
@@ -245,19 +245,23 @@ ushist_q <- merge(ushist_q, out_str_ihg_mex_q,out_str_ihg_can_q)
 autoplot.zoo(window(ushist_q$totcan_adr_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_ihg_mex_can-1.png)
+![](050_create_ushist_files/figure-html/add_ihg_mex_can-1.png)<!-- -->
 
 ```r
 autoplot.zoo(window(ushist_q$totcan_demd_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_ihg_mex_can-2.png)
+![](050_create_ushist_files/figure-html/add_ihg_mex_can-2.png)<!-- -->
 
 ```r
 autoplot.zoo(window(ushist_q$upmmex_revpar_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_ihg_mex_can-3.png)
+```
+## Warning: Removed 3 rows containing missing values (geom_path).
+```
+
+![](050_create_ushist_files/figure-html/add_ihg_mex_can-3.png)<!-- -->
 
 Adds open close data
 
@@ -382,25 +386,25 @@ ushist_q <- data.frame(date=time(ushist_q), ushist_q) %>%
 autoplot.zoo(window(ushist_q$totus_oprms, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-1.png)
+![](050_create_ushist_files/figure-html/add_opencl-1.png)<!-- -->
 
 ```r
 autoplot.zoo(window(ushist_q$totus_clrms, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-2.png)
+![](050_create_ushist_files/figure-html/add_opencl-2.png)<!-- -->
 
 ```r
 autoplot.zoo(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-3.png)
+![](050_create_ushist_files/figure-html/add_opencl-3.png)<!-- -->
 
 ```r
 autoplot.zoo(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-4.png)
+![](050_create_ushist_files/figure-html/add_opencl-4.png)<!-- -->
 
 ```r
 # looking at it as a ts
@@ -409,7 +413,7 @@ tempa_ts <<- ts(as.numeric(tempa), start=c(1987, 1), frequency=4)
 plot(tempa_ts)
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-5.png)
+![](050_create_ushist_files/figure-html/add_opencl-5.png)<!-- -->
 
 ```r
 head(tempa_ts)
@@ -423,7 +427,7 @@ head(tempa_ts)
 monthplot(tempa_ts)
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-6.png)
+![](050_create_ushist_files/figure-html/add_opencl-6.png)<!-- -->
 
 ```r
 # looking at schanger
@@ -442,7 +446,7 @@ head(tempa_ts)
 monthplot(tempa_ts)
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-7.png)
+![](050_create_ushist_files/figure-html/add_opencl-7.png)<!-- -->
 
 ```r
 # if I adjust as seas, it works, but my function didn't
@@ -539,13 +543,13 @@ mp <- seas(y,
 autoplot.zoo(window(ushist_q$totus_schanger, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-8.png)
+![](050_create_ushist_files/figure-html/add_opencl-8.png)<!-- -->
 
 ```r
 autoplot.zoo(window(temp_schanger$totus_schanger_sa, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-9.png)
+![](050_create_ushist_files/figure-html/add_opencl-9.png)<!-- -->
 
 ```r
 # merge onto ushist_q
@@ -554,7 +558,7 @@ ushist_q <- merge(ushist_q, temp_schanger)
 autoplot.zoo(window(ushist_q$totus_schange, start="1995-01-01", end="2015-10-01"))
 ```
 
-![](050_create_ushist_files/figure-html/add_opencl-10.png)
+![](050_create_ushist_files/figure-html/add_opencl-10.png)<!-- -->
 
 Looking at what's in quarterly databank
 
@@ -736,7 +740,7 @@ autoplot.zoo(ushist_a$totus_schange)
 ## Warning: Removed 22 rows containing missing values (geom_path).
 ```
 
-![](050_create_ushist_files/figure-html/create_a-1.png)
+![](050_create_ushist_files/figure-html/create_a-1.png)<!-- -->
 
 ```r
 autoplot.zoo(ushist_a$luxus_revpar)
@@ -746,13 +750,13 @@ autoplot.zoo(ushist_a$luxus_revpar)
 ## Warning: Removed 22 rows containing missing values (geom_path).
 ```
 
-![](050_create_ushist_files/figure-html/create_a-2.png)
+![](050_create_ushist_files/figure-html/create_a-2.png)<!-- -->
 
 ```r
 autoplot.zoo(window(ushist_a$totus_occ, start=as.Date("1987-01-01"), end=as.Date("2015-10-01")))
 ```
 
-![](050_create_ushist_files/figure-html/create_a-3.png)
+![](050_create_ushist_files/figure-html/create_a-3.png)<!-- -->
 
 Creating monthly historical databank
 

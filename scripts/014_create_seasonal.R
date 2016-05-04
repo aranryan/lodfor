@@ -4,12 +4,35 @@ library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
 library(seasonal, warn.conflicts=FALSE)
 
-
 ########
 #
 # creates seasonal factors
 # only necessary to run if updating seasonal factors
 # 
+
+
+#########
+#
+# loads holiday regressors
+#
+
+load(file="~/Project/R projects/lodfor/output_data/holiday_regress.Rdata")
+# unpack lists
+a <- c(janend_list, val_list, mem_list, eas_list, jlf_list, augend_list, sepstr_list, 
+       hlw_list, vet_list, thk_list, chr_list, han_list)
+varNames <- names(a)
+for (i in seq_along(varNames)) {
+  print(varNames[i])
+  hold_a <- a[[i]]
+  # names the vector, this uses the first object as a name for the second object
+  assign(paste(varNames[i], sep=""), hold_a)
+}
+
+hold_reg <- cbind(eas_7_1_ts_m, val_fs_ts_m, augend_ss_ts_m,
+                  sepstr_ss_ts_m, sepstr_mon_ts_m, mempost_m, jlf_fssm_ts_m, hlw_fss_ts_m,
+                  thk_2826_ts_m, chr_fri_ts_m, hanwdayschr_m)
+
+
 
 ###############
 #
@@ -24,29 +47,30 @@ str_us_m <- temp_str_us[[1]]
 str_us_q <- temp_str_us[[2]]
 
 # drops series that aren't going to be adjusted
-  str_m <- select(str_us_m, 
-                    -ends_with("_days"), 
-                    -ends_with("_demt"), 
-                    -ends_with("_rmrevt"), 
-                    -ends_with("_supt"))
+str_m <- select(str_us_m, 
+                -ends_with("_days"), 
+                -ends_with("_demt"), 
+                -ends_with("_rmrevt"), 
+                -ends_with("_supt"))
 
-  str_q <- select(str_us_q, 
-                    -ends_with("_days"), 
-                    -ends_with("_demt"), 
-                    -ends_with("_rmrevt"), 
-                    -ends_with("_supt"))
+str_q <- select(str_us_q, 
+                -ends_with("_days"), 
+                -ends_with("_demt"), 
+                -ends_with("_rmrevt"), 
+                -ends_with("_supt"))
 
 # why isn't there a dont_m_cols list?
 dont_q_cols <- c("anaheim_supd|neworleans_supd|oahu_supd|sanfrancisco_supd|tampa_supd")
 
-
 # creates seasonal factors and saves as Rdata files
 # monthly
-  str_us_m_factors <- seas_factors_m(str_m, dont_q_cols)
-  save(str_us_m_factors, file="output_data/str_us_m_factors.Rdata")
-  # quarterly
-  str_us_q_factors <- seas_factors_q(str_q, dont_q_cols)
-  save(str_us_q_factors, file="output_data/str_us_q_factors.Rdata")
+# modified this monthly piece to use seas_factors_m_2, which is a slightly modified version of 
+# seas_factors_m, it uses the holiday regressors as an input.
+str_us_m_factors <- seas_factors_m_2(str_m, dont_m_cols=dont_q_cols, hold_reg=hold_reg)
+save(str_us_m_factors, file="output_data/str_us_m_factors.Rdata")
+# quarterly
+str_us_q_factors <- seas_factors_q(str_q, dont_q_cols)
+save(str_us_q_factors, file="output_data/str_us_q_factors.Rdata")
 
 ###############
 #

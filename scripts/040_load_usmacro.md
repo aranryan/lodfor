@@ -18,10 +18,6 @@ library(quantmod, warn.conflicts=FALSE)
 ```
 
 ```
-## Warning: package 'TTR' was built under R version 3.2.5
-```
-
-```
 ## Version 0.4-0 included new data defaults. See ?getSymbols.
 ```
 
@@ -136,7 +132,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ```
 
 ###A few plots
-![](040_load_usmacro_files/figure-html/plots-1.png)
+![](040_load_usmacro_files/figure-html/plots-1.png)<!-- -->
 
 ```
 ## An 'xts' object on 1980-01-01/2030-10-01 containing:
@@ -207,7 +203,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ##  $ wd_gdpnusd: num  2763640 2777270 2791130 2805220 2828700 ...
 ```
 
-![](040_load_usmacro_files/figure-html/plots-2.png)![](040_load_usmacro_files/figure-html/plots-3.png)![](040_load_usmacro_files/figure-html/plots-4.png)![](040_load_usmacro_files/figure-html/plots-5.png)![](040_load_usmacro_files/figure-html/plots-6.png)
+![](040_load_usmacro_files/figure-html/plots-2.png)<!-- -->![](040_load_usmacro_files/figure-html/plots-3.png)<!-- -->![](040_load_usmacro_files/figure-html/plots-4.png)<!-- -->![](040_load_usmacro_files/figure-html/plots-5.png)<!-- -->![](040_load_usmacro_files/figure-html/plots-6.png)<!-- -->
 
 ```
 ##             us_gdp  us_gdp_cagr
@@ -241,7 +237,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 
 ```
 ## Warning in download.file(url, destfile, method, quiet, mode, cacheOK,
-## extra): downloaded length 12670 != reported length 200
+## extra): downloaded length 12687 != reported length 200
 ```
 
 ```
@@ -262,7 +258,7 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ## Warning: Removed 66 rows containing missing values (geom_path).
 ```
 
-![](040_load_usmacro_files/figure-html/fred_data-1.png)
+![](040_load_usmacro_files/figure-html/fred_data-1.png)<!-- -->
 
 ###Writing out files
 

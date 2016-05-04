@@ -21,8 +21,8 @@ fname1 <- c("input_data/IHG Mexico upm consistent reporters - history from super
 fname2 <- c("input_data/IHG Mexico upm consistent reporters - 652401_UPPERMIDSCALECO_PESOS.xls")
 fname3 <- c("input_data/IHG Mexico upm consistent reporters - 652398_UPPERMIDSCALECO_USD.xls")
 # data 2009-01 forward
-fname4 <- c("input_data/IHG Mexico upm consistent reporters - 743696_UPPERMIDSCALECO_PESOS.xls")
-fname5 <- c("input_data/IHG Mexico upm consistent reporters - 743698_UPPERMIDSCALECO_USD.xls")
+fname4 <- c("input_data/IHG Mexico upm consistent reporters - 772191_UPPERMIDSCALECO_PESOS.xls")
+fname5 <- c("input_data/IHG Mexico upm consistent reporters - 772192_UPPERMIDSCALECO_USD.xls")
 
 ########
 #
