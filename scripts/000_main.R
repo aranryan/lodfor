@@ -38,7 +38,7 @@ rmarkdown::render('scripts/040_load_usmacro.Rmd')
 
 # creates the ushist file
 rmarkdown::render('scripts/050_create_ushist.Rmd')
-armarkdown::render('scripts/051_create_ushist_host.Rmd')
+rmarkdown::render('scripts/051_create_ushist_host.Rmd')
 
 # runs simple forecast 
 #source("scripts/060_simple_forecast.R")

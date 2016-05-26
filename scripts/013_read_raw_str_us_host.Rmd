@@ -32,7 +32,7 @@ m_cen_blsces <- read.csv(fname, head=TRUE, colClasses=colc)
 str(m_cen_blsces)
 
 # name of file to read
-fname <- paste0(fpath, "/input_data/Host - Top Markets Data - YE 2015 - AR modified.csv")
+fname <- paste0(fpath, "/input_data/Host - Top Markets Data - 2016-05-26 - AR modified.csv")
 ```
 
 # load STR data
