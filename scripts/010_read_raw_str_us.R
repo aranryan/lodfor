@@ -3,6 +3,7 @@ library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
 library(readxl)
+library(stringr)
 
 ########
 #
@@ -33,16 +34,31 @@ row1 <- first2[1,2:ncol(first2)]
 
 # uses apply to remove columns that are NA
 row1 <- row1[, !apply(is.na(row1), 2, all)]
-row1b <- as.vector(rep(row1, each=3)) %>%
-  as_data_frame() 
 
-colnames(row1b) <- paste0("X",2:100)
+row1b <- rep(row1[1,], each=3) %>%
+  unlist() 
+
+row1b
+
+letters[seq( from = 1, to = 100 )]
+
+# I ran into an issue when I did the spread where
+# x10 was showing up before x2 because it was sorting the column
+# names. This put the metros out of order. My solution was to
+# create a numeric vector that had leading zeros, that prevented
+# the undesired sorting.
+hold <- str_pad(1:99, 3, pad = "0")
+
+row1c <- data_frame(row1 = row1b, x=hold) %>%
+  mutate(x = paste0("x", x)) %>%
+  spread(x, row1)
+
 
 # this is a function that I defined in functions script
 # it takes an input dataset, then vector of old values, then a vector of 
 # new values and it replaces the old with the new, converting any factors to 
 # text along the way
-row1b <- recoder_func(row1b, str_geoseg$str_long, str_geoseg$str_geoseg)
+row1d <- recoder_func(row1c, str_geoseg$str_long, str_geoseg$str_geoseg)
 
 ###########
 # handles second row
@@ -56,7 +72,7 @@ row2 <- car::recode(row2, '"Supply" = "supt"; "Demand" = "demt";
 # create series names
 
 
-series_names <- paste(row1b, row2, sep="_")
+series_names <- paste(row1d, row2, sep="_")
 series_names
 series_names <- c("date", series_names)
 head(series_names)
