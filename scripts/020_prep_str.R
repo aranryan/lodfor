@@ -8,6 +8,7 @@ library(tidyr, warn.conflicts=FALSE)
 # US
 
 load("output_data/raw_str_us.Rdata")
+# runs the load_str function
 temp_str_us <- load_str(raw_str_us)
 
 # these two data frames are the working data frames and become the outputs
