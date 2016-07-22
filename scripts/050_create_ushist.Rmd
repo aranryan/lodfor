@@ -178,7 +178,7 @@ sup_qtr <- aggregate(out_str_us_m$totus_supd, first.of.quarter, first, regular=T
 colnames(sup_qtr) <- c("totus_sups")
 
 # create supe as lead of sups
-# Howeer, evidently dplyr was getting in the way of my ability to use the lag
+# However, evidently dplyr was getting in the way of my ability to use the lag
 # function to calculate a lead
 # I found this discussion on github
 # http://stackoverflow.com/questions/30466740/changing-behaviour-of-statslag-when-loading-dplyr-package

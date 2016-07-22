@@ -46,7 +46,7 @@ b_m <- b_m %>%
 # of the quarter. So solution was to create a monthly series that extended
 # the full length, and then sum that.
 
-# creates newm as a monthly zoo object with number of days for ful
+# creates newm as a monthly zoo object with number of days for full
 # length of quarterly
 temp <- read.zoo(out_str_us_q)
 starta <- start(temp)
