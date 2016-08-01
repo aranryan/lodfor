@@ -79,17 +79,17 @@ head(temp)
 ##              us_up us_yhat  us_pc us_pedy us_penwall us_cogtp  us_cpi
 ## 1980-01-01 6.30000 1640.53 42.398 1147.47    9238.63   59.375 79.0333
 ## 1980-04-01 7.33333 1649.28 43.435 1130.80    9582.46   51.750 81.7000
-## 1980-07-01 7.66667 1657.47 44.449 1144.56    9985.13   53.650 83.2333
-## 1980-10-01 7.40000 1665.53 45.547 1167.01   10326.60   58.775 85.5667
+## 1980-07-01 7.66667 1657.47 44.449 1144.56    9985.12   53.650 83.2333
+## 1980-10-01 7.40000 1665.53 45.547 1167.01   10326.50   58.775 85.5667
 ## 1981-01-01 7.43333 1673.97 46.675 1163.91   10522.40   61.100 87.9333
-## 1981-04-01 7.40000 1683.50 47.454 1163.67   10786.30   60.200 89.7667
+## 1981-04-01 7.40000 1683.50 47.454 1163.67   10786.20   60.200 89.7667
 ##            us_usrecq can_gdp can_cpi  can_pc mex_gdp  mex_cpi    mex_pc
-## 1980-01-01         0  192198 42.2796 40.4810 1491.85 0.101089 0.0871691
-## 1980-04-01         1  191779 43.4352 41.5748 1501.59 0.106925 0.0936038
-## 1980-07-01         1  191712 44.6358 42.7220 1534.00 0.113918 0.1038120
-## 1980-10-01         0  193866 45.9055 44.0455 1578.43 0.119657 0.1060480
-## 1981-01-01         0  198708 47.4281 45.4805 1613.67 0.129351 0.1115080
-## 1981-04-01         0  200900 48.9277 46.5727 1655.48 0.137261 0.1192690
+## 1980-01-01         0  192198 42.2796 40.4810 1491.85 0.101089 0.0872228
+## 1980-04-01         1  191779 43.4352 41.5748 1501.59 0.106925 0.0936615
+## 1980-07-01         1  191712 44.6358 42.7220 1534.00 0.113918 0.1038760
+## 1980-10-01         0  193866 45.9055 44.0455 1578.43 0.119657 0.1061130
+## 1981-01-01         0  198708 47.4281 45.4805 1613.67 0.129351 0.1115770
+## 1981-04-01         0  200900 48.9277 46.5727 1655.48 0.137261 0.1193420
 ```
 
 ```r
@@ -146,72 +146,138 @@ tempnames
 ```
 
 ```
-##   [1] "anaheim_adrrpc"            "anaheim_adr_sarpc"        
-##   [3] "anaheim_revparrpc"         "anaheim_revpar_sarpc"     
-##   [5] "atlanta_adrrpc"            "atlanta_adr_sarpc"        
-##   [7] "atlanta_revparrpc"         "atlanta_revpar_sarpc"     
-##   [9] "boston_adrrpc"             "boston_adr_sarpc"         
-##  [11] "boston_revparrpc"          "boston_revpar_sarpc"      
-##  [13] "chicago_adrrpc"            "chicago_adr_sarpc"        
-##  [15] "chicago_revparrpc"         "chicago_revpar_sarpc"     
-##  [17] "dallas_adrrpc"             "dallas_adr_sarpc"         
-##  [19] "dallas_revparrpc"          "dallas_revpar_sarpc"      
-##  [21] "denver_adrrpc"             "denver_adr_sarpc"         
-##  [23] "denver_revparrpc"          "denver_revpar_sarpc"      
-##  [25] "detroit_adrrpc"            "detroit_adr_sarpc"        
-##  [27] "detroit_revparrpc"         "detroit_revpar_sarpc"     
-##  [29] "ecous_adrrpc"              "ecous_adr_sarpc"          
-##  [31] "ecous_revparrpc"           "ecous_revpar_sarpc"       
-##  [33] "houston_adrrpc"            "houston_adr_sarpc"        
-##  [35] "houston_revparrpc"         "houston_revpar_sarpc"     
-##  [37] "indus_adrrpc"              "indus_adr_sarpc"          
-##  [39] "indus_revparrpc"           "indus_revpar_sarpc"       
-##  [41] "lalongbeach_adrrpc"        "lalongbeach_adr_sarpc"    
-##  [43] "lalongbeach_revparrpc"     "lalongbeach_revpar_sarpc" 
-##  [45] "luxus_adrrpc"              "luxus_adr_sarpc"          
-##  [47] "luxus_revparrpc"           "luxus_revpar_sarpc"       
-##  [49] "miami_adrrpc"              "miami_adr_sarpc"          
-##  [51] "miami_revparrpc"           "miami_revpar_sarpc"       
-##  [53] "midus_adrrpc"              "midus_adr_sarpc"          
-##  [55] "midus_revparrpc"           "midus_revpar_sarpc"       
-##  [57] "minneapolis_adrrpc"        "minneapolis_adr_sarpc"    
-##  [59] "minneapolis_revparrpc"     "minneapolis_revpar_sarpc" 
-##  [61] "nashville_adrrpc"          "nashville_adr_sarpc"      
-##  [63] "nashville_revparrpc"       "nashville_revpar_sarpc"   
-##  [65] "neworleans_adrrpc"         "neworleans_adr_sarpc"     
-##  [67] "neworleans_revparrpc"      "neworleans_revpar_sarpc"  
-##  [69] "newyork_adrrpc"            "newyork_adr_sarpc"        
-##  [71] "newyork_revparrpc"         "newyork_revpar_sarpc"     
-##  [73] "norfolk_adrrpc"            "norfolk_adr_sarpc"        
-##  [75] "norfolk_revparrpc"         "norfolk_revpar_sarpc"     
-##  [77] "oahu_adrrpc"               "oahu_adr_sarpc"           
-##  [79] "oahu_revparrpc"            "oahu_revpar_sarpc"        
-##  [81] "orlando_adrrpc"            "orlando_adr_sarpc"        
-##  [83] "orlando_revparrpc"         "orlando_revpar_sarpc"     
-##  [85] "philadelphia_adrrpc"       "philadelphia_adr_sarpc"   
-##  [87] "philadelphia_revparrpc"    "philadelphia_revpar_sarpc"
-##  [89] "phoenix_adrrpc"            "phoenix_adr_sarpc"        
-##  [91] "phoenix_revparrpc"         "phoenix_revpar_sarpc"     
-##  [93] "sandiego_adrrpc"           "sandiego_adr_sarpc"       
-##  [95] "sandiego_revparrpc"        "sandiego_revpar_sarpc"    
-##  [97] "sanfrancisco_adrrpc"       "sanfrancisco_adr_sarpc"   
-##  [99] "sanfrancisco_revparrpc"    "sanfrancisco_revpar_sarpc"
-## [101] "seattle_adrrpc"            "seattle_adr_sarpc"        
-## [103] "seattle_revparrpc"         "seattle_revpar_sarpc"     
-## [105] "stlouis_adrrpc"            "stlouis_adr_sarpc"        
-## [107] "stlouis_revparrpc"         "stlouis_revpar_sarpc"     
-## [109] "tampa_adrrpc"              "tampa_adr_sarpc"          
-## [111] "tampa_revparrpc"           "tampa_revpar_sarpc"       
-## [113] "totus_adrrpc"              "totus_adr_sarpc"          
-## [115] "totus_revparrpc"           "totus_revpar_sarpc"       
-## [117] "upmus_adrrpc"              "upmus_adr_sarpc"          
-## [119] "upmus_revparrpc"           "upmus_revpar_sarpc"       
-## [121] "upsus_adrrpc"              "upsus_adr_sarpc"          
-## [123] "upsus_revparrpc"           "upsus_revpar_sarpc"       
-## [125] "upuus_adrrpc"              "upuus_adr_sarpc"          
-## [127] "upuus_revparrpc"           "upuus_revpar_sarpc"       
-## [129] "washingtondc_adrrpc"       "washingtondc_adr_sarpc"   
-## [131] "washingtondc_revparrpc"    "washingtondc_revpar_sarpc"
+##   [1] "anaheim_adrrpc"                "anaheim_adr_sarpc"            
+##   [3] "anaheim_revparrpc"             "anaheim_revpar_sarpc"         
+##   [5] "atlanta_adrrpc"                "atlanta_adr_sarpc"            
+##   [7] "atlanta_revparrpc"             "atlanta_revpar_sarpc"         
+##   [9] "boston_adrrpc"                 "boston_adr_sarpc"             
+##  [11] "boston_revparrpc"              "boston_revpar_sarpc"          
+##  [13] "chicago_adrrpc"                "chicago_adr_sarpc"            
+##  [15] "chicago_revparrpc"             "chicago_revpar_sarpc"         
+##  [17] "dallas_adrrpc"                 "dallas_adr_sarpc"             
+##  [19] "dallas_revparrpc"              "dallas_revpar_sarpc"          
+##  [21] "denver_adrrpc"                 "denver_adr_sarpc"             
+##  [23] "denver_revparrpc"              "denver_revpar_sarpc"          
+##  [25] "detroit_adrrpc"                "detroit_adr_sarpc"            
+##  [27] "detroit_revparrpc"             "detroit_revpar_sarpc"         
+##  [29] "ecous_adrrpc"                  "ecous_adr_sarpc"              
+##  [31] "ecous_revparrpc"               "ecous_revpar_sarpc"           
+##  [33] "houston_adrrpc"                "houston_adr_sarpc"            
+##  [35] "houston_revparrpc"             "houston_revpar_sarpc"         
+##  [37] "indus_adrrpc"                  "indus_adr_sarpc"              
+##  [39] "indus_revparrpc"               "indus_revpar_sarpc"           
+##  [41] "lalongbeach_adrrpc"            "lalongbeach_adr_sarpc"        
+##  [43] "lalongbeach_revparrpc"         "lalongbeach_revpar_sarpc"     
+##  [45] "luxus_adrrpc"                  "luxus_adr_sarpc"              
+##  [47] "luxus_revparrpc"               "luxus_revpar_sarpc"           
+##  [49] "miami_adrrpc"                  "miami_adr_sarpc"              
+##  [51] "miami_revparrpc"               "miami_revpar_sarpc"           
+##  [53] "midus_adrrpc"                  "midus_adr_sarpc"              
+##  [55] "midus_revparrpc"               "midus_revpar_sarpc"           
+##  [57] "minneapolis_adrrpc"            "minneapolis_adr_sarpc"        
+##  [59] "minneapolis_revparrpc"         "minneapolis_revpar_sarpc"     
+##  [61] "nashville_adrrpc"              "nashville_adr_sarpc"          
+##  [63] "nashville_revparrpc"           "nashville_revpar_sarpc"       
+##  [65] "neworleans_adrrpc"             "neworleans_adr_sarpc"         
+##  [67] "neworleans_revparrpc"          "neworleans_revpar_sarpc"      
+##  [69] "newyork_adrrpc"                "newyork_adr_sarpc"            
+##  [71] "newyork_revparrpc"             "newyork_revpar_sarpc"         
+##  [73] "norfolk_adrrpc"                "norfolk_adr_sarpc"            
+##  [75] "norfolk_revparrpc"             "norfolk_revpar_sarpc"         
+##  [77] "oahu_adrrpc"                   "oahu_adr_sarpc"               
+##  [79] "oahu_revparrpc"                "oahu_revpar_sarpc"            
+##  [81] "orlando_adrrpc"                "orlando_adr_sarpc"            
+##  [83] "orlando_revparrpc"             "orlando_revpar_sarpc"         
+##  [85] "philadelphia_adrrpc"           "philadelphia_adr_sarpc"       
+##  [87] "philadelphia_revparrpc"        "philadelphia_revpar_sarpc"    
+##  [89] "phoenix_adrrpc"                "phoenix_adr_sarpc"            
+##  [91] "phoenix_revparrpc"             "phoenix_revpar_sarpc"         
+##  [93] "sandiego_adrrpc"               "sandiego_adr_sarpc"           
+##  [95] "sandiego_revparrpc"            "sandiego_revpar_sarpc"        
+##  [97] "sanfrancisco_adrrpc"           "sanfrancisco_adr_sarpc"       
+##  [99] "sanfrancisco_revparrpc"        "sanfrancisco_revpar_sarpc"    
+## [101] "seattle_adrrpc"                "seattle_adr_sarpc"            
+## [103] "seattle_revparrpc"             "seattle_revpar_sarpc"         
+## [105] "stlouis_adrrpc"                "stlouis_adr_sarpc"            
+## [107] "stlouis_revparrpc"             "stlouis_revpar_sarpc"         
+## [109] "tampa_adrrpc"                  "tampa_adr_sarpc"              
+## [111] "tampa_revparrpc"               "tampa_revpar_sarpc"           
+## [113] "totus_adrrpc"                  "totus_adr_sarpc"              
+## [115] "totus_revparrpc"               "totus_revpar_sarpc"           
+## [117] "upmus_adrrpc"                  "upmus_adr_sarpc"              
+## [119] "upmus_revparrpc"               "upmus_revpar_sarpc"           
+## [121] "upsus_adrrpc"                  "upsus_adr_sarpc"              
+## [123] "upsus_revparrpc"               "upsus_revpar_sarpc"           
+## [125] "upuus_adrrpc"                  "upuus_adr_sarpc"              
+## [127] "upuus_revparrpc"               "upuus_revpar_sarpc"           
+## [129] "washingtondc_adrrpc"           "washingtondc_adr_sarpc"       
+## [131] "washingtondc_revparrpc"        "washingtondc_revpar_sarpc"    
+## [133] "anaheim_adr_indrpc"            "anaheim_adr_sa_indrpc"        
+## [135] "anaheim_revpar_indrpc"         "anaheim_revpar_sa_indrpc"     
+## [137] "atlanta_adr_indrpc"            "atlanta_adr_sa_indrpc"        
+## [139] "atlanta_revpar_indrpc"         "atlanta_revpar_sa_indrpc"     
+## [141] "boston_adr_indrpc"             "boston_adr_sa_indrpc"         
+## [143] "boston_revpar_indrpc"          "boston_revpar_sa_indrpc"      
+## [145] "chicago_adr_indrpc"            "chicago_adr_sa_indrpc"        
+## [147] "chicago_revpar_indrpc"         "chicago_revpar_sa_indrpc"     
+## [149] "dallas_adr_indrpc"             "dallas_adr_sa_indrpc"         
+## [151] "dallas_revpar_indrpc"          "dallas_revpar_sa_indrpc"      
+## [153] "denver_adr_indrpc"             "denver_adr_sa_indrpc"         
+## [155] "denver_revpar_indrpc"          "denver_revpar_sa_indrpc"      
+## [157] "detroit_adr_indrpc"            "detroit_adr_sa_indrpc"        
+## [159] "detroit_revpar_indrpc"         "detroit_revpar_sa_indrpc"     
+## [161] "ecous_adr_indrpc"              "ecous_adr_sa_indrpc"          
+## [163] "ecous_revpar_indrpc"           "ecous_revpar_sa_indrpc"       
+## [165] "houston_adr_indrpc"            "houston_adr_sa_indrpc"        
+## [167] "houston_revpar_indrpc"         "houston_revpar_sa_indrpc"     
+## [169] "indus_adr_indrpc"              "indus_adr_sa_indrpc"          
+## [171] "indus_revpar_indrpc"           "indus_revpar_sa_indrpc"       
+## [173] "lalongbeach_adr_indrpc"        "lalongbeach_adr_sa_indrpc"    
+## [175] "lalongbeach_revpar_indrpc"     "lalongbeach_revpar_sa_indrpc" 
+## [177] "luxus_adr_indrpc"              "luxus_adr_sa_indrpc"          
+## [179] "luxus_revpar_indrpc"           "luxus_revpar_sa_indrpc"       
+## [181] "miami_adr_indrpc"              "miami_adr_sa_indrpc"          
+## [183] "miami_revpar_indrpc"           "miami_revpar_sa_indrpc"       
+## [185] "midus_adr_indrpc"              "midus_adr_sa_indrpc"          
+## [187] "midus_revpar_indrpc"           "midus_revpar_sa_indrpc"       
+## [189] "minneapolis_adr_indrpc"        "minneapolis_adr_sa_indrpc"    
+## [191] "minneapolis_revpar_indrpc"     "minneapolis_revpar_sa_indrpc" 
+## [193] "nashville_adr_indrpc"          "nashville_adr_sa_indrpc"      
+## [195] "nashville_revpar_indrpc"       "nashville_revpar_sa_indrpc"   
+## [197] "neworleans_adr_indrpc"         "neworleans_adr_sa_indrpc"     
+## [199] "neworleans_revpar_indrpc"      "neworleans_revpar_sa_indrpc"  
+## [201] "newyork_adr_indrpc"            "newyork_adr_sa_indrpc"        
+## [203] "newyork_revpar_indrpc"         "newyork_revpar_sa_indrpc"     
+## [205] "norfolk_adr_indrpc"            "norfolk_adr_sa_indrpc"        
+## [207] "norfolk_revpar_indrpc"         "norfolk_revpar_sa_indrpc"     
+## [209] "oahu_adr_indrpc"               "oahu_adr_sa_indrpc"           
+## [211] "oahu_revpar_indrpc"            "oahu_revpar_sa_indrpc"        
+## [213] "orlando_adr_indrpc"            "orlando_adr_sa_indrpc"        
+## [215] "orlando_revpar_indrpc"         "orlando_revpar_sa_indrpc"     
+## [217] "philadelphia_adr_indrpc"       "philadelphia_adr_sa_indrpc"   
+## [219] "philadelphia_revpar_indrpc"    "philadelphia_revpar_sa_indrpc"
+## [221] "phoenix_adr_indrpc"            "phoenix_adr_sa_indrpc"        
+## [223] "phoenix_revpar_indrpc"         "phoenix_revpar_sa_indrpc"     
+## [225] "sandiego_adr_indrpc"           "sandiego_adr_sa_indrpc"       
+## [227] "sandiego_revpar_indrpc"        "sandiego_revpar_sa_indrpc"    
+## [229] "sanfrancisco_adr_indrpc"       "sanfrancisco_adr_sa_indrpc"   
+## [231] "sanfrancisco_revpar_indrpc"    "sanfrancisco_revpar_sa_indrpc"
+## [233] "seattle_adr_indrpc"            "seattle_adr_sa_indrpc"        
+## [235] "seattle_revpar_indrpc"         "seattle_revpar_sa_indrpc"     
+## [237] "stlouis_adr_indrpc"            "stlouis_adr_sa_indrpc"        
+## [239] "stlouis_revpar_indrpc"         "stlouis_revpar_sa_indrpc"     
+## [241] "tampa_adr_indrpc"              "tampa_adr_sa_indrpc"          
+## [243] "tampa_revpar_indrpc"           "tampa_revpar_sa_indrpc"       
+## [245] "totus_adr_indrpc"              "totus_adr_sa_indrpc"          
+## [247] "totus_revpar_indrpc"           "totus_revpar_sa_indrpc"       
+## [249] "upmus_adr_indrpc"              "upmus_adr_sa_indrpc"          
+## [251] "upmus_revpar_indrpc"           "upmus_revpar_sa_indrpc"       
+## [253] "upsus_adr_indrpc"              "upsus_adr_sa_indrpc"          
+## [255] "upsus_revpar_indrpc"           "upsus_revpar_sa_indrpc"       
+## [257] "upuus_adr_indrpc"              "upuus_adr_sa_indrpc"          
+## [259] "upuus_revpar_indrpc"           "upuus_revpar_sa_indrpc"       
+## [261] "washingtondc_adr_indrpc"       "washingtondc_adr_sa_indrpc"   
+## [263] "washingtondc_revpar_indrpc"    "washingtondc_revpar_sa_indrpc"
 ```
 
 ```r
@@ -295,12 +361,12 @@ head(temp_opcl)
 
 ```
 ##            totus_oprms_sa totus_oprms_sf totus_oprms totus_clrms
-## 1987-01-01       45359.27      0.8083464       36666         458
-## 1987-04-01       38940.61      1.5520813       60439         141
-## 1987-07-01       37954.10      0.8447046       32060           0
-## 1987-10-01       32048.01      0.8162754       26160         350
-## 1988-01-01       31416.71      0.8483384       26652         165
-## 1988-04-01       35448.28      1.4828365       52564         991
+## 1987-01-01       45764.39      0.8020209       36704         458
+## 1987-04-01       39234.07      1.5442702       60588         141
+## 1987-07-01       36770.22      0.8719012       32060           0
+## 1987-10-01       32652.59      0.8011309       26159         350
+## 1988-01-01       31393.39      0.8503701       26696         165
+## 1988-04-01       35798.79      1.4698263       52618         991
 ```
 
 ```r
@@ -317,7 +383,7 @@ sup_qtr <- aggregate(out_str_us_m$totus_supd, first.of.quarter, first, regular=T
 colnames(sup_qtr) <- c("totus_sups")
 
 # create supe as lead of sups
-# Howeer, evidently dplyr was getting in the way of my ability to use the lag
+# However, evidently dplyr was getting in the way of my ability to use the lag
 # function to calculate a lead
 # I found this discussion on github
 # http://stackoverflow.com/questions/30466740/changing-behaviour-of-statslag-when-loading-dplyr-package
@@ -332,12 +398,12 @@ head(out_str_us_m$totus_supd) #monthly
 
 ```
 ##            totus_supd
-## 1987-01-01   2.866905
-## 1987-02-01   2.876905
-## 1987-03-01   2.895655
-## 1987-04-01   2.923622
-## 1987-05-01   2.970490
-## 1987-06-01   3.013716
+## 1987-01-01   2.866010
+## 1987-02-01   2.876010
+## 1987-03-01   2.894698
+## 1987-04-01   2.922534
+## 1987-05-01   2.969415
+## 1987-06-01   3.012873
 ```
 
 ```r
@@ -346,12 +412,12 @@ head(sup_qtr$totus_sups) # based on start of quarter
 
 ```
 ##            totus_sups
-## 1987-01-01   2.866905
-## 1987-04-01   2.923622
-## 1987-07-01   3.026175
-## 1987-10-01   3.039854
-## 1988-01-01   3.017680
-## 1988-04-01   3.067041
+## 1987-01-01   2.866010
+## 1987-04-01   2.922534
+## 1987-07-01   3.025464
+## 1987-10-01   3.039061
+## 1988-01-01   3.016977
+## 1988-04-01   3.066167
 ```
 
 ```r
@@ -360,12 +426,12 @@ head(sup_qtr$totus_supe) # based on start of quarter
 
 ```
 ##            totus_supe
-## 1987-01-01   2.923622
-## 1987-04-01   3.026175
-## 1987-07-01   3.039854
-## 1987-10-01   3.017680
-## 1988-01-01   3.067041
-## 1988-04-01   3.160616
+## 1987-01-01   2.922534
+## 1987-04-01   3.025464
+## 1987-07-01   3.039061
+## 1987-10-01   3.016977
+## 1988-01-01   3.066167
+## 1988-04-01   3.160018
 ```
 
 ```r
@@ -420,7 +486,7 @@ head(tempa_ts)
 ```
 
 ```
-## [1]  20509  42255 -18381 -47984  22874  42002
+## [1]  20278  42483 -18463 -47893  22659  42224
 ```
 
 ```r
@@ -438,8 +504,8 @@ head(tempa_ts)
 ```
 
 ```
-## [1]  0.007153708  0.014452963 -0.006074004 -0.015784969  0.007579995
-## [6]  0.013694633
+## [1]  0.007075342  0.014536358 -0.006102535 -0.015759144  0.007510498
+## [6]  0.013770939
 ```
 
 ```r
@@ -531,12 +597,12 @@ mp <- seas(y,
 
 ```
 ##            totus_schanger_sa totus_schanger_sf
-## 1987-01-01     -0.0009113319       0.008065040
-## 1987-04-01      0.0012811456       0.013171817
-## 1987-07-01     -0.0010919986      -0.004982006
-## 1987-10-01      0.0005096329      -0.016294601
-## 1988-01-01     -0.0005494154       0.008129411
-## 1988-04-01      0.0005821501       0.013112483
+## 1987-01-01     -0.0009173608       0.007992702
+## 1987-04-01      0.0013048400       0.013231518
+## 1987-07-01     -0.0010996620      -0.005002873
+## 1987-10-01      0.0005022171      -0.016261361
+## 1988-01-01     -0.0005391994       0.008049697
+## 1988-04-01      0.0005910659       0.013179874
 ```
 
 ```r
@@ -607,18 +673,26 @@ b
 ```
 
 ```
-##  [1] "totus_adr"          "totus_adr_sa"       "totus_adr_sf"      
-##  [4] "totus_days"         "totus_demar_sa"     "totus_demd"        
-##  [7] "totus_demd_sa"      "totus_demd_sf"      "totus_demt"        
-## [10] "totus_occ"          "totus_occ_sa"       "totus_occ_sf"      
-## [13] "totus_revpar"       "totus_revpar_sa"    "totus_revpar_sf"   
-## [16] "totus_rmrevt"       "totus_supd"         "totus_supd_sa"     
-## [19] "totus_supd_sf"      "totus_supt"         "totus_strdays"     
-## [22] "totus_adrrpc"       "totus_adr_sarpc"    "totus_revparrpc"   
-## [25] "totus_revpar_sarpc" "totus_oprms_sa"     "totus_oprms_sf"    
-## [28] "totus_oprms"        "totus_clrms"        "totus_sups"        
-## [31] "totus_supe"         "totus_schange"      "totus_schanger"    
-## [34] "totus_schanger_sa"  "totus_schanger_sf"
+##  [1] "totus_adr"              "totus_adr_sa"          
+##  [3] "totus_adr_sf"           "totus_days"            
+##  [5] "totus_demar_sa"         "totus_demd"            
+##  [7] "totus_demd_sa"          "totus_demd_sf"         
+##  [9] "totus_demt"             "totus_occ"             
+## [11] "totus_occ_sa"           "totus_occ_sf"          
+## [13] "totus_revpar"           "totus_revpar_sa"       
+## [15] "totus_revpar_sf"        "totus_rmrevt"          
+## [17] "totus_supd"             "totus_supd_sa"         
+## [19] "totus_supd_sf"          "totus_supt"            
+## [21] "totus_strdays"          "totus_adrrpc"          
+## [23] "totus_adr_sarpc"        "totus_revparrpc"       
+## [25] "totus_revpar_sarpc"     "totus_adr_indrpc"      
+## [27] "totus_adr_sa_indrpc"    "totus_revpar_indrpc"   
+## [29] "totus_revpar_sa_indrpc" "totus_oprms_sa"        
+## [31] "totus_oprms_sf"         "totus_oprms"           
+## [33] "totus_clrms"            "totus_sups"            
+## [35] "totus_supe"             "totus_schange"         
+## [37] "totus_schanger"         "totus_schanger_sa"     
+## [39] "totus_schanger_sf"
 ```
 
 

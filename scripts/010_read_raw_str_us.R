@@ -9,7 +9,7 @@ library(stringr)
 #
 # name of file to read
 
-fname <- c("input_data/TourismEconomicsUS_201603.xls")
+fname <- c("input_data/TourismEconomicsUS_201606.xls")
 
 # reference file to use in converting market names to shorter abbreviations
 str_geoseg <- read.csv("reference/str_geoseg.csv", header = TRUE, sep = ",")
