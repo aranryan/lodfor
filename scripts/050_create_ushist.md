@@ -323,10 +323,6 @@ autoplot.zoo(window(ushist_q$totcan_demd_sa, start="2000-01-01", end="2015-10-01
 autoplot.zoo(window(ushist_q$upmmex_revpar_sa, start="2000-01-01", end="2015-10-01"))
 ```
 
-```
-## Warning: Removed 3 rows containing missing values (geom_path).
-```
-
 ![](050_create_ushist_files/figure-html/add_ihg_mex_can-3.png)<!-- -->
 
 Adds open close data

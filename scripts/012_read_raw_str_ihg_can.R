@@ -18,7 +18,7 @@ library(lubridate, warn.conflicts=FALSE)
 
 # sometimes comes with all countries
 # remember to open save Excel file so that it reads the rooms column
-fname1 <- c("input_data/from IHG - TE Total Country-2016-04-21.xls")
+fname1 <- c("input_data/from IHG - TE Country Report-2016-08-01.xls")
 # sometimes comes with just Canada
 #fname1 <- c("input_data/from IHG - Canada data-2016-01-22.xls")
 

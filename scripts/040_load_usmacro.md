@@ -7,35 +7,9 @@ Setup
 ```r
 library(arlodr, warn.conflicts=FALSE)
 library(xts, warn.conflicts=FALSE)
-```
-
-```
-## Loading required package: zoo
-```
-
-```
-## 
-## Attaching package: 'zoo'
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     as.Date, as.Date.numeric
-```
-
-```r
 library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
 library(quantmod, warn.conflicts=FALSE)
-```
-
-```
-## Loading required package: TTR
-```
-
-```
-## Version 0.4-0 included new data defaults. See ?getSymbols.
 ```
 
 
@@ -239,18 +213,6 @@ oe_usmac_q <- window(oe_usmac_q, end = end_date)
 ```
 
 ###Load FRED data
-
-```
-##     As of 0.4-0, 'getSymbols' uses env=parent.frame() and
-##  auto.assign=TRUE by default.
-## 
-##  This  behavior  will be  phased out in 0.5-0  when the call  will
-##  default to use auto.assign=FALSE. getOption("getSymbols.env") and 
-##  getOptions("getSymbols.auto.assign") are now checked for alternate defaults
-## 
-##  This message is shown once per session and may be disabled by setting 
-##  options("getSymbols.warning4.0"=FALSE). See ?getSymbols for more details.
-```
 
 ```
 ## [1] "FEDFUNDS" "GDPPOT"   "USRECQ"

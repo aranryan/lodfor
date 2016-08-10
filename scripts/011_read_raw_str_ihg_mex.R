@@ -16,13 +16,21 @@ library(lubridate, warn.conflicts=FALSE)
 # the history before 2008 came out of the IHG supermodel, then more recent
 # history is from STR trend reports supplied by IHG
 
+# so this works. In theory, there is more up to date date for 2009 that could be used
+# but it starts to become stiching together lots of reports. In other words, in August 2016
+# the STR report started with 2010 foreward, so I just used an earlier file for 2009 
+# data rather than trying to use a 2015 file. 
+
 fname1 <- c("input_data/IHG Mexico upm consistent reporters - history from supermodel.xlsx")
 # data 2008-01 forward
 fname2 <- c("input_data/IHG Mexico upm consistent reporters - 652401_UPPERMIDSCALECO_PESOS.xls")
 fname3 <- c("input_data/IHG Mexico upm consistent reporters - 652398_UPPERMIDSCALECO_USD.xls")
-# data 2009-01 forward
-fname4 <- c("input_data/IHG Mexico upm consistent reporters - 772191_UPPERMIDSCALECO_PESOS.xls")
+# data 2010-01 forward
+fname4 <- c("input_data/IHG Mexico upm consistent reporters - 797914_UPPERMIDSCALECO.xls")
+# in August 2016 I didn't update the following because IHG didn't send the dollar file
 fname5 <- c("input_data/IHG Mexico upm consistent reporters - 772192_UPPERMIDSCALECO_USD.xls")
+
+
 
 ########
 #
@@ -51,7 +59,7 @@ temp2b <- temp2 %>% filter(!grepl("STR", Date) &  !is.na(Date))  %>%
   mutate(date=as.Date(date)) %>%
   select(date, upmmex_supt=Supply, upmmex_demt=Demand, upmmex_rmrevt=Revenue) %>%
   # just keep 2008
-  filter(date < as.Date("2009-01-01"))
+  filter(date < as.Date("2010-01-01"))
 
 # does the same as above, but using the more recent trend report, data from 2009 forward
 # reads STR trend report in pesos
@@ -103,7 +111,7 @@ temp3b <- temp3 %>% filter(!grepl("STR", Date) &  !is.na(Date))  %>%
   mutate(date=as.Date(date)) %>%
     select(date, upmmexusd_supt=Supply, upmmexusd_demt=Demand, upmmexusd_rmrevt=Revenue) %>%
   # just keep 2008
-  filter(date < as.Date("2009-01-01"))
+  filter(date < as.Date("2010-01-01"))
 
 # reads STR trend report in USD
 temp5 <- read.xlsx(fname5, sheetName="8) Raw Data", startRow=5,colIndex =2:18,
