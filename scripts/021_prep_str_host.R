@@ -22,11 +22,11 @@ str_us_host_q <- temp_str_us_host[[2]]
 #load("output_data/str_us_host_q_factors.Rdata")
 
 load("output_data/str_us_host_q_factors_2016-11-07.Rdata")
-#load("output_data/str_us_host_select_q_factors.Rdata")
+load("output_data/str_us_host_select_q_factors.Rdata")
 
 # combine the two files
-#str_us_host_q_factors <- str_us_host_q_factors %>%
-#  left_join(str_us_host_select_q_factors, by=c("date"))
+str_us_host_q_factors <- str_us_host_q_factors %>%
+  left_join(str_us_host_select_q_factors, by=c("date"))
 
 
 # ############
@@ -110,6 +110,10 @@ out_str_us_host_q <- str_us_host_q2 %>%
   read.zoo() %>%
   xts()
 
+# just to take a peek for troubleshooting purposes
+a <- out_str_us_host_q %>%
+  data.frame(date=time(.), .) %>%
+  gather(variable, value, -date)
 
 #########################
 #

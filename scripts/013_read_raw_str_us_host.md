@@ -1,6 +1,5 @@
 # create_ushist
 Tourism Economics  
-Thursday, October 16, 2014  
 
 Setup
 
@@ -53,7 +52,7 @@ str(m_cen_blsces)
 
 ```r
 # name of file to read
-fname <- paste0(fpath, "/input_data/Host - Top Markets Data - YE 2015 - AR modified.csv")
+fname <- paste0(fpath, "/input_data/Host - Top Markets Data 2016-11-04 - AR modified.csv")
 ```
 
 # load STR data
@@ -100,6 +99,25 @@ head(row1)
 # switched this over to read_csv because later on columns in character format were an issue
 data_1 <- read_csv(fname, col_names = FALSE, col_types = NULL, 
                     na = c("", "na", "NA", "0", "/0"), skip = 8)
+```
+
+```
+## Parsed with column specification:
+## cols(
+##   .default = col_double(),
+##   X1 = col_character(),
+##   X2 = col_character(),
+##   X3 = col_character(),
+##   X4 = col_character(),
+##   X5 = col_character()
+## )
+```
+
+```
+## See spec(...) for full column specifications.
+```
+
+```r
 data_2 <- data_1 %>%
     select(X1,X2, num_range("X",5:ncol(.)))
 # applies the row1 column names prepared above
@@ -122,6 +140,7 @@ data_4 <- data_3 %>%
   left_join(., m_cen_blsces, by=c("area_name_simp")) %>%
   # manually applies an area_sh code for Orange County and some other Host STR data
   mutate(area_sh = ifelse(hoststr_simp == "Orange County", "orgca", area_sh)) %>%
+  mutate(area_sh = ifelse(hoststr_simp == "Oakland", "oklca", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "San Francisco and San Jose, CA", "sfjca", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "Maui, HI", "khlhi", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "Oahu, HI", "hnlhi", area_sh)) %>%
@@ -131,6 +150,7 @@ data_4 <- data_3 %>%
   # could be done more simply with a lookup table of some type but at least
   # this is parallel with above
   mutate(country = ifelse(hoststr_simp == "Orange County", "usa", country)) %>%
+  mutate(country = ifelse(hoststr_simp == "Oakland", "usa", country)) %>%
   mutate(country = ifelse(area_name_simp == "San Francisco and San Jose, CA", "usa", country)) %>%
   mutate(country = ifelse(area_name_simp == "Maui, HI", "usa", country)) %>%
   mutate(country = ifelse(area_name_simp == "Oahu, HI", "usa", country)) %>%

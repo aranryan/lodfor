@@ -94,7 +94,7 @@ data_4 <- data_3 %>%
   left_join(., m_cen_blsces, by=c("area_name_simp")) %>%
   # manually applies an area_sh code for Orange County and some other Host STR data
   mutate(area_sh = ifelse(hoststr_simp == "Orange County", "orgca", area_sh)) %>%
-  mutate(area_sh = ifelse(hoststr_simp == "Oakland", "oakca", area_sh)) %>%
+  mutate(area_sh = ifelse(hoststr_simp == "Oakland", "oklca", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "San Francisco and San Jose, CA", "sfjca", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "Maui, HI", "khlhi", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "Oahu, HI", "hnlhi", area_sh)) %>%

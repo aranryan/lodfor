@@ -202,9 +202,9 @@ str_us_host4_q_factors <- seas_factors_q(str_us_host4_q, dont_q_cols)
 
 # approach to do just selected markets. I added this so I could run the additional markets 
 # without overwriting the factors for the existing markets. 
-# str_us_host_select_q <- str_us_host_q %>%
-#   select(date,matches('oakca|bltmd|torcn|vcncn|rlgnc|lsvky'))
-# str_us_host_select_q_factors <- seas_factors_q(str_us_host_select_q, dont_q_cols)
+str_us_host_select_q <- str_us_host_q %>%
+  select(date,matches('oklca'))
+str_us_host_select_q_factors <- seas_factors_q(str_us_host_select_q, dont_q_cols)
 
 
 # joins them together
@@ -227,7 +227,7 @@ str_us_host_q_factors <- left_join(
 )
 
 save(str_us_host_q_factors, file="output_data/str_us_host_q_factors.Rdata")
-# save(str_us_host_select_q_factors, file="output_data/str_us_host_select_q_factors.Rdata")
+ save(str_us_host_select_q_factors, file="output_data/str_us_host_select_q_factors.Rdata")
 
 
 
