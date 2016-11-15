@@ -170,7 +170,9 @@ str_us_host_q <- select(str_us_host_q,
 str_us_host_q <- select(str_us_host_q, 
                 date, 
                 starts_with("upa"), 
-                starts_with("totus"))
+                starts_with("tot"))
+
+
 
 a <- c("upa_calcn_can_supd|upa_mmptn_usa_supd|upa_mxcmx_mex_supd|") 
 b <- c("upa_slcut_usa_supd|upa_sttwa_usa_supd|upa_torcn_can_supd|")
@@ -198,6 +200,13 @@ str_us_host4_q <- str_us_host_q %>%
   select(date,151:length(str_us_host_q))
 str_us_host4_q_factors <- seas_factors_q(str_us_host4_q, dont_q_cols)
 
+# approach to do just selected markets. I added this so I could run the additional markets 
+# without overwriting the factors for the existing markets. 
+# str_us_host_select_q <- str_us_host_q %>%
+#   select(date,matches('oakca|bltmd|torcn|vcncn|rlgnc|lsvky'))
+# str_us_host_select_q_factors <- seas_factors_q(str_us_host_select_q, dont_q_cols)
+
+
 # joins them together
 str_us_host_q_factors <- left_join(
   str_us_host1_q_factors,
@@ -218,6 +227,7 @@ str_us_host_q_factors <- left_join(
 )
 
 save(str_us_host_q_factors, file="output_data/str_us_host_q_factors.Rdata")
+# save(str_us_host_select_q_factors, file="output_data/str_us_host_select_q_factors.Rdata")
 
 
 

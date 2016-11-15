@@ -1,7 +1,6 @@
 ---
 title: "create_ushist"
 author: "Tourism Economics"
-date: "Thursday, October 16, 2014"
 output: 
   html_document: 
     keep_md: yes
@@ -32,7 +31,7 @@ m_cen_blsces <- read.csv(fname, head=TRUE, colClasses=colc)
 str(m_cen_blsces)
 
 # name of file to read
-fname <- paste0(fpath, "/input_data/Host - Top Markets Data 2016-09-21 - AR modified.csv")
+fname <- paste0(fpath, "/input_data/Host - Top Markets Data 2016-11-04 - AR modified.csv")
 ```
 
 # load STR data
@@ -95,6 +94,7 @@ data_4 <- data_3 %>%
   left_join(., m_cen_blsces, by=c("area_name_simp")) %>%
   # manually applies an area_sh code for Orange County and some other Host STR data
   mutate(area_sh = ifelse(hoststr_simp == "Orange County", "orgca", area_sh)) %>%
+  mutate(area_sh = ifelse(hoststr_simp == "Oakland", "oakca", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "San Francisco and San Jose, CA", "sfjca", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "Maui, HI", "khlhi", area_sh)) %>%
   mutate(area_sh = ifelse(area_name_simp == "Oahu, HI", "hnlhi", area_sh)) %>%
@@ -104,6 +104,7 @@ data_4 <- data_3 %>%
   # could be done more simply with a lookup table of some type but at least
   # this is parallel with above
   mutate(country = ifelse(hoststr_simp == "Orange County", "usa", country)) %>%
+  mutate(country = ifelse(hoststr_simp == "Oakland", "usa", country)) %>%
   mutate(country = ifelse(area_name_simp == "San Francisco and San Jose, CA", "usa", country)) %>%
   mutate(country = ifelse(area_name_simp == "Maui, HI", "usa", country)) %>%
   mutate(country = ifelse(area_name_simp == "Oahu, HI", "usa", country)) %>%

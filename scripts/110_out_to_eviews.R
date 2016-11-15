@@ -2,6 +2,7 @@ library(arlodr, warn.conflicts=FALSE)
 library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
 library(tidyr, warn.conflicts=FALSE)
+library(readr, warn.conflicts=FALSE)
 
 
 # load various files
@@ -10,8 +11,22 @@ load("output_data/ushist_host_q.Rdata")
 load("output_data/ushist_host_m.Rdata")
 
 # list of geos that we want to be sure to cover, even if with NAs
-geo_for_eviews <- read.table("input_data/geo_for_eviews_list.txt", header=FALSE, stringsAsFactors=FALSE)
-names(geo_for_eviews) <- c("area_sh")
+geo_for_eviews <- read_csv("input_data/geo_for_eviews.csv", 
+                           col_types = c("cc")) %>%
+  select(area_sh)
+
+# at this stage it is still using usxxx as the geo code. I was later 
+# trying to get rid of this, but it was becoming too much effort going
+# back, so I manually mixed geo_for_eviews here. In other words, 
+# I was trying to keep the geo_for_eviews.csv file consistent with what
+# I have in fred, but that requires a manual fix here. Then later, when
+# pulling the data into fred, I do a replacement from usxxx to us.
+geo_for_eviews <- geo_for_eviews %>%
+  mutate(area_sh = ifelse(area_sh == "us", "usxxx", area_sh))
+
+
+#geo_for_eviews <- read.table("input_data/geo_for_eviews_list.txt", header=FALSE, stringsAsFactors=FALSE)
+#names(geo_for_eviews) <- c("area_sh")
 
 # this is in an actual tidy format with date and seg columns to describe the
 # observations, and then variables in the columns
@@ -86,7 +101,7 @@ plot(out_e_hststr$adrsarupa_vnccn, type="l")
 # NA series for any combination that is missing, which is helpful for Anthony
 
 # starts with list with all intended geos
-check_for <- as.character(geo_for_eviews[,1])
+check_for <- as.character(geo_for_eviews$area_sh)
 # applies function
 hold <- check_vargeo(out_e_hststr, check_for)
 print("list of missing series") 

@@ -1,3 +1,4 @@
+
 library(arlodr, warn.conflicts=FALSE)
 library(xts, warn.conflicts=FALSE)
 library(dplyr, warn.conflicts=FALSE)
@@ -22,7 +23,6 @@ simp_xts <- function(x, y){
 # lodging data
 load("output_data/out_t_hststr.Rdata")
 temp1_lodhstbk_q <- out_t_hststr
-
 
 #########
 #

@@ -40,7 +40,7 @@ fpath <- c("~/Project/R projects/lodfor/")
 # in front of each
 #load(paste(fpath, "output_data/ushist_m.Rdata", sep=""))
 
-fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2016_08_01.csv")
+fname <- paste0(fpath, "/input_data/LODFOR_OEF_USMACRO_2016_10_13.csv")
 #fname <- c("../input_data/LODFOR_OEF_USMACRO_2015_12_14.csv")
 # the check.names piece fixes the issueof the column names coming in with
 # quotes and spaces due to the Oxford file format that is visible when 

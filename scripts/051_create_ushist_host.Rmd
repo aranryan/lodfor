@@ -1,7 +1,6 @@
 ---
 title: "create_ushist"
 author: "Tourism Economics"
-date: "Thursday, October 16, 2014"
 output: 
   html_document: 
     keep_md: yes
@@ -223,6 +222,8 @@ b
 
 c <- colnames(ushist_q)
 c
+
+
 ```
 
 Create a sum of top 25 metros
@@ -385,7 +386,7 @@ Writing outputs
   
   # saves Rdata versions of the output files
   save(ushist_host_q, file=paste(fpath, "output_data/ushist_host_q.Rdata", sep=""))
- 
+  
 # monthly
   # writes csv versions of the output files
   write.zoo(ushist_host_m, file=paste(fpath,"output_data/ushist_host_m.csv",sep=""), sep=",")
