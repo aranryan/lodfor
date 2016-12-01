@@ -1,7 +1,6 @@
 library(arlodr)
 library(xts, warn.conflicts=FALSE)
-library(dplyr, warn.conflicts=FALSE)
-library(tidyr, warn.conflicts=FALSE)
+library(tidyverse, warn.conflicts=FALSE)
 
 
 #########################################
@@ -21,7 +20,7 @@ str_us_host_q <- temp_str_us_host[[2]]
 #load("output_data/str_us_host_m_factors.Rdata")
 #load("output_data/str_us_host_q_factors.Rdata")
 
-load("output_data/str_us_host_q_factors_2016-11-07.Rdata")
+load("output_data/str_us_host_q_factors_2016-11-30.Rdata")
 load("output_data/str_us_host_select_q_factors.Rdata")
 
 # combine the two files

@@ -1,8 +1,6 @@
 library(arlodr, warn.conflicts=FALSE)
 library(xts, warn.conflicts=FALSE)
-library(dplyr, warn.conflicts=FALSE)
-library(tidyr, warn.conflicts=FALSE)
-library(readr, warn.conflicts=FALSE)
+library(tidyverse)
 
 
 # load various files

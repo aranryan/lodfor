@@ -13,12 +13,9 @@ Then I went through a more thorough reworking. I realized I could do the calcula
 
 Setup
 ```{r readchunk}
-#read_chunk('~/Project/R projects/lodfor/scripts/functions.R')
-#source('~/Project/R projects/lodfor/scripts/functions_combined.R')
 library(arlodr, warn.conflicts=FALSE)
 library(xts, warn.conflicts=FALSE)
-library(dplyr, warn.conflicts=FALSE)
-library(tidyr, warn.conflicts=FALSE)
+library(tidyverse)
 ```
 
 
@@ -113,7 +110,7 @@ head(temp_usmac)
 
 ```
 
-##Converts some series to real
+## Converts some series to real
 
 First set up the price deflator to use for each country
 Index the personal cons price deflator to average 100 in 2014
@@ -386,6 +383,11 @@ Writing outputs
   
   # saves Rdata versions of the output files
   save(ushist_host_q, file=paste(fpath, "output_data/ushist_host_q.Rdata", sep=""))
+
+  # to take a look
+# a <- ushist_host_q %>%
+#   data.frame(date=time(.), .) %>%
+#   gather(variable, value, -date) 
   
 # monthly
   # writes csv versions of the output files

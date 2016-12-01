@@ -31,7 +31,7 @@ m_cen_blsces <- read.csv(fname, head=TRUE, colClasses=colc)
 str(m_cen_blsces)
 
 # name of file to read
-fname <- paste0(fpath, "/input_data/Host - Top Markets Data 2016-11-04 - AR modified.csv")
+fname <- paste0(fpath, "/input_data/Host - Top Markets Data 2016-11-30.csv")
 ```
 
 # load STR data
@@ -159,6 +159,9 @@ raw_str_us_host <- data_7 %>%
   do.call("merge", .) %>%
   data.frame(date=time(.), .)
 
+a <- colnames(raw_str_us_host) %>%
+  data_frame()
+a
 ```
 
 # save output
